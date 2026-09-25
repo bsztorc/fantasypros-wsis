@@ -201,3 +201,29 @@ comparison gives 53 / 24 / 13 / 9, which is the shape the product actually produ
 The agent had written that exponent to make a favourite look decisive, which is precisely
 the wrong instinct for a prototype whose argument is that the headline number overstates
 how settled the question is.
+
+## 2026-09-25 — Real rankings data
+
+**Human direction:** Brandon rejected both the synthetic dataset and the plan to scrape
+twenty comparison pages, on the grounds that a hands-on reviewer would immediately leave
+the small set of players we had data for. He also set one hard constraint: everything must
+be 2026 Week 3.
+
+**What the agent found:** FantasyPros' own ranking pages embed an `ecrData` object holding,
+for every ranked player, the consensus rank and the dispersion behind it: best rank, worst
+rank, average and standard deviation. Individual ballots are not published in bulk, but
+the distribution that produced them is, which is the part the engine needs.
+
+**The constraint earned its keep immediately.** Three pages look like the "all positions"
+ranking and do carry dispersion data, but they report week 0 and type "Draft". They are
+season-long draft cheat sheets. Taking them at face value would have put preseason opinion
+behind a week 3 recommendation, and nothing in the output would have looked wrong. The
+harvest script now refuses to write when its sources disagree on the week.
+
+**Also worth recording:** the agent cannot produce this data from memory. Its training
+cutoff predates the 2026 season entirely, so any rankings it recalled rather than fetched
+would have been invented. Fetching and recalling are different capabilities and the
+distinction matters when the output is a list of real people's opinions.
+
+**Validation:** simulating 46 ballots from the published dispersion for Hampton against
+Hubbard gives 27 to 19. FantasyPros publishes 26 to 20. One ballot out of 46.
