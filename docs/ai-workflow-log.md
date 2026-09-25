@@ -84,3 +84,20 @@ from the fixture model, using the largest remainder method so votes sum to the p
 **Tooling note:** the dev server wedged mid-session and took the browser pane with it.
 The production build was used to confirm the application itself was healthy before
 restarting the server, rather than guessing.
+
+## 2026-09-25 — Premium gating
+
+**Human decision:** Brandon reviewed the Sentiment finding and decided Lineup Goal should
+match the gating of the meters it reads: Balanced for everyone, Most Upside and Safe Floor
+for premium. He also spotted that the demo state label was wrong. "Signed In, League
+Synced" implied sync would unlock those meters, and it does not, so it became "Premium,
+League Synced".
+
+**What the agent got right:** it flagged the constraint rather than quietly building
+Lineup Goal against data most users cannot see, and it checked three screenshots including
+a synced one before claiming the wall was a premium wall rather than a sync wall.
+
+**What the agent should have caught earlier:** the non-premium Sentiment module shows the
+Overall row and locks only the other two. The first implementation blurred the whole
+module behind one overlay, which was less faithful and, more importantly, hid the detail
+that makes the argument: the product already splits a module across tiers.

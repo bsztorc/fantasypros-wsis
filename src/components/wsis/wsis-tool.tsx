@@ -29,7 +29,7 @@ const MINIMUM_FOR_ADVICE = 2;
  * proposed product behaviour.
  */
 export function WsisTool() {
-  const [demoState, setDemoState] = useState<DemoState>("signed-in-synced");
+  const [demoState, setDemoState] = useState<DemoState>("premium-synced");
   const [selected, setSelected] = useState<Player[]>([]);
   const [goal, setGoal] = useState<LineupGoal>("balanced");
   const [startN, setStartN] = useState<StartN>(1);
@@ -57,6 +57,7 @@ export function WsisTool() {
     setDemoState(next);
     setSelected([]);
     setStartN(1);
+    if (!DEMO_STATES[next].isPremium) setGoal("balanced");
     setTab("my-team");
     setView("compare");
   }
@@ -84,6 +85,7 @@ export function WsisTool() {
             players={selected}
             demoState={demoState}
             openSlots={capabilities.openSlots}
+            isPremium={capabilities.isPremium}
             pool={searchPool}
             onSelect={handleToggle}
             onBack={() => setView("compare")}
@@ -106,6 +108,7 @@ export function WsisTool() {
               startN={startN}
               onStartNChange={setStartN}
               playerCount={selected.length}
+              isPremium={capabilities.isPremium}
             />
 
             <PlayerSlots

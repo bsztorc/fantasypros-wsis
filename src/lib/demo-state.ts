@@ -1,4 +1,4 @@
-import type { DemoState, StartN } from "@/lib/types";
+import type { DemoState, LineupGoal, StartN } from "@/lib/types";
 
 /** What each demo state can do. Drives every gated affordance on the page. */
 export interface StateCapabilities {
@@ -9,6 +9,14 @@ export interface StateCapabilities {
   lockedSlots: number;
   /** Whether the My Team tab shows a roster or a conversion prompt. */
   hasRoster: boolean;
+  /**
+   * Whether premium data is available.
+   *
+   * Upside Potential and Bust Risk sit behind a premium wall in the live product, and
+   * league sync does not lift it. Lineup Goal reads those two meters, so the goals that
+   * depend on them are premium too.
+   */
+  isPremium: boolean;
 }
 
 export const DEMO_STATES: Record<DemoState, StateCapabilities> = {
@@ -17,18 +25,21 @@ export const DEMO_STATES: Record<DemoState, StateCapabilities> = {
     openSlots: 2,
     lockedSlots: 2,
     hasRoster: false,
+    isPremium: false,
   },
   "signed-in-unsynced": {
     label: "Signed In, No League Synced",
     openSlots: 4,
     lockedSlots: 0,
     hasRoster: false,
+    isPremium: false,
   },
-  "signed-in-synced": {
-    label: "Signed In, League Synced",
+  "premium-synced": {
+    label: "Premium, League Synced",
     openSlots: 4,
     lockedSlots: 0,
     hasRoster: true,
+    isPremium: true,
   },
 };
 
@@ -36,7 +47,7 @@ export const DEMO_STATES: Record<DemoState, StateCapabilities> = {
 export const DEMO_STATE_ORDER: DemoState[] = [
   "signed-out",
   "signed-in-unsynced",
-  "signed-in-synced",
+  "premium-synced",
 ];
 
 /**
@@ -54,4 +65,15 @@ export function maxEnabledStartN(playerCount: number): StartN {
   if (playerCount > 3) return 3;
   if (playerCount > 2) return 2;
   return 1;
+}
+
+/**
+ * Whether a lineup goal is selectable.
+ *
+ * Balanced is always available, because the answer itself is never gated. Most Upside and
+ * Safe Floor are weighted from the Upside Potential and Bust Risk meters, which are
+ * premium, so they gate with the data they depend on.
+ */
+export function isLineupGoalEnabled(goal: LineupGoal, isPremium: boolean): boolean {
+  return goal === "balanced" || isPremium;
 }

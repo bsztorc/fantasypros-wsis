@@ -3,10 +3,16 @@
 import { useState } from "react";
 import { ChevronDown, GearIcon } from "@/components/ui/icons";
 import { AdviceTabs, type AdviceTab } from "@/components/wsis/advice/advice-tabs";
-import { CompareModule, Stars, type CompareRow } from "@/components/wsis/advice/compare-module";
+import {
+  CompareModule,
+  LockedValue,
+  PremiumFooter,
+  Stars,
+  type CompareRow,
+} from "@/components/wsis/advice/compare-module";
 import { ConsensusSentiment } from "@/components/wsis/advice/consensus-sentiment";
-import { LockedModule } from "@/components/wsis/advice/locked-module";
 import { ResultsBand } from "@/components/wsis/advice/results-band";
+import { SentimentMeter } from "@/components/wsis/advice/sentiment-meter";
 import { SpinTheWheel } from "@/components/wsis/advice/spin-the-wheel";
 import { PlayerSearch } from "@/components/wsis/player-search";
 import { computeConsensus } from "@/lib/consensus";
@@ -14,7 +20,11 @@ import {
   defenseAllowed,
   injuryStatus,
   matchupRating,
+  rankNumber,
   seasonStats,
+  sentimentBust,
+  sentimentOverall,
+  sentimentUpside,
   weather,
 } from "@/lib/fixtures/player-detail";
 import { SCORING_LABEL, WEEK_LABEL } from "@/lib/fixtures/roster";
@@ -25,6 +35,8 @@ interface AdviceViewProps {
   demoState: DemoState;
   /** Slots this state allows, which caps how many players can be compared. */
   openSlots: number;
+  /** Premium unlocks the Sentiment meters that Lineup Goal reads. */
+  isPremium: boolean;
   /** Everything the current demo state lets the user search. */
   pool: Player[];
   onSelect: (player: Player) => void;
@@ -50,6 +62,7 @@ export function AdviceView({
   players,
   demoState,
   openSlots,
+  isPremium,
   pool,
   onSelect,
   onBack,
@@ -77,6 +90,46 @@ export function AdviceView({
     { label: "Season Avg.", values: ordered.map((player) => seasonStats(player).seasonAverage) },
     { label: "Projection Avg.", values: ordered.map((player) => seasonStats(player).projectionAverage) },
     { label: "2025 Avg.", values: ordered.map((player) => seasonStats(player).priorYearAverage) },
+  ];
+
+  const expertAccuracyRows: CompareRow[] = ["Top Overall Experts", "Top Position Experts", "Top Player Experts"].map(
+    (label, index) => ({
+      label,
+      values: ordered.map((player) =>
+        isPremium ? (
+          <span key={player.id}>#{rankNumber(player) + index}</span>
+        ) : (
+          <LockedValue key={player.id} />
+        ),
+      ),
+    }),
+  );
+
+  const sentimentRows: CompareRow[] = [
+    {
+      label: "Overall",
+      values: ordered.map((player) => <SentimentMeter key={player.id} value={sentimentOverall(player)} />),
+    },
+    {
+      label: "Upside Potential",
+      values: ordered.map((player) =>
+        isPremium ? (
+          <SentimentMeter key={player.id} value={sentimentUpside(player)} />
+        ) : (
+          <LockedValue key={player.id} />
+        ),
+      ),
+    },
+    {
+      label: "Bust Risk",
+      values: ordered.map((player) =>
+        isPremium ? (
+          <SentimentMeter key={player.id} value={sentimentBust(player)} inverted />
+        ) : (
+          <LockedValue key={player.id} />
+        ),
+      ),
+    },
   ];
 
   const miscRows: CompareRow[] = [
@@ -147,23 +200,16 @@ export function AdviceView({
           <>
             {consensus.votes.length === 2 && <ConsensusSentiment consensus={consensus} />}
             <SpinTheWheel />
-            <LockedModule title="Most Accurate Experts">
-              <div className="space-y-2">
-                <p className="text-sm">Top Overall Experts</p>
-                <p className="text-sm">Top Position Experts</p>
-                <p className="text-sm">Top Player Experts</p>
-              </div>
-            </LockedModule>
-            <LockedModule title="Sentiment">
-              <div className="space-y-3">
-                {["Overall", "Upside Potential", "Bust Risk"].map((meter) => (
-                  <div key={meter} className="flex items-center gap-3">
-                    <span className="w-32 text-xs text-fp-muted">{meter}</span>
-                    <div className="h-2 flex-1 rounded-full bg-slate-200" />
-                  </div>
-                ))}
-              </div>
-            </LockedModule>
+            <CompareModule
+              title="Most Accurate Experts"
+              rows={expertAccuracyRows}
+              footer={isPremium ? undefined : <PremiumFooter />}
+            />
+            <CompareModule
+              title="Sentiment"
+              rows={sentimentRows}
+              footer={isPremium ? undefined : <PremiumFooter />}
+            />
             <CompareModule title="Matchup" rows={matchupRows} />
             <CompareModule title="Fantasy Points" rows={pointsRows} />
             <CompareModule title="Misc" rows={miscRows} />

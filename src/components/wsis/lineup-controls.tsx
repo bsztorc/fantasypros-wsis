@@ -1,7 +1,7 @@
 "use client";
 
 import { Segmented, type SegmentedOption } from "@/components/ui/segmented";
-import { isStartNEnabled } from "@/lib/demo-state";
+import { isLineupGoalEnabled, isStartNEnabled } from "@/lib/demo-state";
 import type { LineupGoal, StartN } from "@/lib/types";
 
 interface LineupControlsProps {
@@ -11,9 +11,11 @@ interface LineupControlsProps {
   onStartNChange: (startN: StartN) => void;
   /** Players currently in the comparison, which gates the Start N options. */
   playerCount: number;
+  /** Premium unlocks the goals that read the Upside and Bust meters. */
+  isPremium: boolean;
 }
 
-const GOAL_OPTIONS: SegmentedOption<LineupGoal>[] = [
+const GOALS: { value: LineupGoal; label: string }[] = [
   { value: "balanced", label: "Balanced" },
   { value: "most-upside", label: "Most Upside" },
   { value: "safe-floor", label: "Safe Floor" },
@@ -25,6 +27,10 @@ const GOAL_OPTIONS: SegmentedOption<LineupGoal>[] = [
  *
  * Start N options unlock only when there are more players in the comparison than spots to
  * fill. Starting two of two is not a decision, so offering it would be noise.
+ *
+ * Most Upside and Safe Floor are weighted from the Upside Potential and Bust Risk meters,
+ * which the live product gates behind premium. They gate with the data they depend on.
+ * Balanced stays available to everyone, because the recommendation itself is never gated.
  */
 export function LineupControls({
   goal,
@@ -32,7 +38,14 @@ export function LineupControls({
   startN,
   onStartNChange,
   playerCount,
+  isPremium,
 }: LineupControlsProps) {
+  const goalOptions: SegmentedOption<LineupGoal>[] = GOALS.map((entry) => ({
+    ...entry,
+    disabled: !isLineupGoalEnabled(entry.value, isPremium),
+    disabledHint: "Premium: weighted from the Upside Potential and Bust Risk meters",
+  }));
+
   const startNOptions: SegmentedOption<StartN>[] = ([1, 2, 3] as StartN[]).map((n) => ({
     value: n,
     label: String(n),
@@ -46,7 +59,7 @@ export function LineupControls({
         <span className="text-[15px] font-semibold text-white">Lineup Goal</span>
         <Segmented
           label="Lineup goal"
-          options={GOAL_OPTIONS}
+          options={goalOptions}
           value={goal}
           onChange={onGoalChange}
         />

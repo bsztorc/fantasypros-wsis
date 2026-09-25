@@ -64,3 +64,24 @@ player in the comparison, so mixing positions shrinks it.
 This is the mechanism behind the consensus-strength ceiling in the brief. A comparison
 with few shared experts cannot support a strong claim no matter how lopsided the split.
 The prototype models this as `expertPoolFor` in `src/lib/consensus.ts`.
+
+### Resolved: Lineup Goal gates with its data
+
+Decided 2026-09-25. Lineup Goal matches the gating of the meters it reads.
+
+- **Balanced** is available to everyone. The recommendation itself is never gated.
+- **Most Upside** and **Safe Floor** require premium, because they are weighted from
+  Upside Potential and Bust Risk.
+
+This also changed the demo states. "Signed In, League Synced" was renamed **"Premium,
+League Synced"**, because league sync does not lift the premium wall and the old label
+implied a tier that would still see two of the three meters locked.
+
+The three demo states are now Signed Out, Signed In / No League Synced, and Premium /
+League Synced.
+
+**Consequence worth stating in the write-up:** the feature's headline control is
+differentiated by tier. A free user gets a lineup-aware recommendation, just not a
+goal-weighted one. That is arguably the right commercial shape, since it gates the
+personalisation rather than the answer, but it should be a deliberate decision rather
+than a side effect of where the meters happen to sit today.

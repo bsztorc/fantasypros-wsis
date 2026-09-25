@@ -78,3 +78,22 @@ export function injuryStatus(player: Player): "Healthy" | "Questionable" {
 
 /** Consensus rank as a plain number, re-exported for display. */
 export { rankNumber };
+
+/**
+ * Sentiment meters, each 1 to 5.
+ *
+ * Deliberately not derived from vote share. In the product a player can lead the expert
+ * vote and still carry a Low overall sentiment, so tying these to the percentage would
+ * misrepresent how they behave.
+ */
+export function sentimentOverall(player: Player): number {
+  return 1 + Math.floor(seeded(player.id, 41) * 5);
+}
+
+export function sentimentUpside(player: Player): number {
+  return 1 + Math.floor(seeded(player.id, 43) * 5);
+}
+
+export function sentimentBust(player: Player): number {
+  return 1 + Math.floor(seeded(player.id, 47) * 5);
+}
