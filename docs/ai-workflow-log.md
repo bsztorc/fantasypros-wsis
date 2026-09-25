@@ -122,3 +122,18 @@ missed by testing pieces rather than walking the demo end to end:
 State changes now keep the comparison, trimming players that exceed the new state's slot
 limit and leaving the advice view only if too few remain. Four players on premium becomes
 two when switched to signed out, and stays on the advice page.
+
+## 2026-09-25 — Making the gate legible
+
+**Human correction:** the upgrade prompt was styled as a button and sat beside the Lineup
+Goal control with nothing tying it to the locked options. It read as a floating action
+rather than an explanation.
+
+Two changes. Padlocks now sit beside Most Upside and Safe Floor, so the prompt has a
+visible referent. The prompt itself is inline text rather than a button, matching the
+tool's other inline prompts, because it explains a limit rather than offering an action
+on the same footing as choosing a goal.
+
+The padlock is opt-in per option rather than automatic for anything disabled. Start N's
+unavailable options are conditional on how many players are in the comparison, not
+withheld by tier, and marking them locked would claim something untrue.

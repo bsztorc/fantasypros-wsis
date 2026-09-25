@@ -50,6 +50,7 @@ export function LineupControls({
     ...entry,
     disabled: !isLineupGoalEnabled(entry.value, isPremium),
     disabledHint: "Premium: weighted from the Upside Potential and Bust Risk meters",
+    locked: true,
   }));
 
   const startNOptions: SegmentedOption<StartN>[] = ([1, 2, 3] as StartN[]).map((n) => ({
