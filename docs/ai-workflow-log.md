@@ -161,3 +161,22 @@ width into the same number of fractional units.
 
 Verified by measuring rendered element edges rather than by eye: every card edge matches
 its column edge exactly at both three and four players.
+
+## 2026-09-25 — Premium screenshots
+
+**What changed:** Brandon supplied screenshots of the unlocked premium view, which the
+agent had asked for because it was guessing at the gated meters.
+
+**What the agent had wrong:**
+- The sentiment scale is five named levels, not a three-way high/medium/low split.
+- Moderate renders grey, not amber.
+- Most Accurate Experts shows percentages, not rank numbers.
+- The comparison tables carry a player name header row, which the agent had not
+  implemented at all.
+
+**What it had right:** Bust Risk is inverted. A high bust risk is red.
+
+**Worth noting for the write-up:** in the supplied screenshot the most accurate experts
+prefer a different player than the full pool does. The prototype now models that with
+`subsetShares` rather than making every subset agree with the headline, because making
+them agree would have quietly removed the product's own best evidence for the thesis.

@@ -5,15 +5,30 @@ import { tableColumns } from "@/lib/layout";
 export interface CompareRow {
   label: string;
   values: React.ReactNode[];
+  /**
+   * Index of the value that favours its player, highlighted green.
+   *
+   * The product marks the best value in a row rather than leaving the reader to scan, so
+   * rows where one value is plainly better carry it.
+   */
+  bestIndex?: number;
 }
 
-function Row({ label, values }: CompareRow) {
+function Row({ label, values, bestIndex }: CompareRow) {
   if (values.length === 2) {
     return (
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 border-b border-fp-border px-5 py-2.5 last:border-b-0 odd:bg-[#fafbfc]">
-        <span className="flex justify-center text-sm font-semibold text-fp-ink">{values[0]}</span>
+        <span
+          className={`flex justify-center text-sm font-semibold ${bestIndex === 0 ? "text-[#0f9d63]" : "text-fp-ink"}`}
+        >
+          {values[0]}
+        </span>
         <span className="min-w-[140px] text-center text-xs text-fp-muted">{label}</span>
-        <span className="flex justify-center text-sm font-semibold text-fp-ink">{values[1]}</span>
+        <span
+          className={`flex justify-center text-sm font-semibold ${bestIndex === 1 ? "text-[#0f9d63]" : "text-fp-ink"}`}
+        >
+          {values[1]}
+        </span>
       </div>
     );
   }
@@ -25,8 +40,35 @@ function Row({ label, values }: CompareRow) {
     >
       <span className="px-3 text-right text-xs text-fp-muted">{label}</span>
       {values.map((value, index) => (
-        <span key={index} className="flex justify-center px-3 text-sm font-semibold text-fp-ink">
+        <span
+          key={index}
+          className={`flex justify-center px-3 text-sm font-semibold ${index === bestIndex ? "text-[#0f9d63]" : "text-fp-ink"}`}
+        >
           {value}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * The player name row that heads the comparison modules.
+ *
+ * Only rendered from three players up. With two, each card already sits directly above
+ * its own half and the names would be redundant.
+ */
+function PlayerHeaderRow({ names }: { names: string[] }) {
+  if (names.length < 3) return null;
+
+  return (
+    <div
+      className="grid items-center border-b border-fp-border bg-white py-3"
+      style={{ gridTemplateColumns: tableColumns(names.length) }}
+    >
+      <span />
+      {names.map((name) => (
+        <span key={name} className="px-3 text-center text-[15px] font-bold text-fp-ink">
+          {name}
         </span>
       ))}
     </div>
@@ -36,14 +78,18 @@ function Row({ label, values }: CompareRow) {
 export function CompareModule({
   title,
   rows,
+  playerNames,
   footer,
 }: {
   title: string;
   rows: CompareRow[];
+  /** Renders the player name header above the title, for the first module on the page. */
+  playerNames?: string[];
   footer?: React.ReactNode;
 }) {
   return (
     <section className="overflow-hidden rounded-lg bg-white">
+      {playerNames && <PlayerHeaderRow names={playerNames} />}
       <h3 className="px-5 py-3 text-center text-[15px] font-bold text-fp-ink">{title}</h3>
       {rows.map((row) => (
         <Row key={row.label} {...row} />
@@ -75,6 +121,11 @@ export function PremiumFooter() {
       </button>
     </div>
   );
+}
+
+/** Index of the largest number in a list, for rows where higher is better. */
+export function indexOfMax(values: number[]): number {
+  return values.reduce((best, value, index) => (value > values[best] ? index : best), 0);
 }
 
 /** Five-star matchup rating. */

@@ -85,3 +85,24 @@ differentiated by tier. A free user gets a lineup-aware recommendation, just not
 goal-weighted one. That is arguably the right commercial shape, since it gates the
 personalisation rather than the answer, but it should be a deliberate decision rather
 than a side effect of where the meters happen to sit today.
+
+### Resolved: the premium meters, from the unlocked screenshots
+
+Brandon supplied premium screenshots on 2026-09-25, replacing two inferences with facts.
+
+- **The scale has five named levels**, not three: Very Low, Low, Moderate, High, Very High.
+- **Moderate is grey**, not amber. Colour tracks whether the level favours the player.
+- **Bust Risk is inverted**, which the earlier guess had right: a high bust risk renders
+  red, a very low one green.
+- **Most Accurate Experts shows percentages, not ranks**, and they are first-choice shares
+  within a subset of the pool.
+
+That last one is the most useful finding, and it strengthens the argument in the brief.
+In the screenshot the most accurate experts prefer **Hubbard at 58%** while the full pool
+prefers **Hampton**. The product already publishes a case where a subset of experts
+disagrees with the headline number.
+
+This is worth using in the write-up. It is not an edge case invented to make a point: it
+is the product's own data showing that a single percentage summarises votes rather than
+settling the question. The prototype models it with `subsetShares`, where each subset
+perturbs the weighting so it can legitimately disagree with the headline.

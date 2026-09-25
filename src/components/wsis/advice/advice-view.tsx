@@ -5,6 +5,7 @@ import { ChevronDown, GearIcon } from "@/components/ui/icons";
 import { AdviceTabs, type AdviceTab } from "@/components/wsis/advice/advice-tabs";
 import {
   CompareModule,
+  indexOfMax,
   LockedValue,
   PremiumFooter,
   Stars,
@@ -16,12 +17,11 @@ import { SentimentMeter } from "@/components/wsis/advice/sentiment-meter";
 import { LineupControls } from "@/components/wsis/lineup-controls";
 import { SpinTheWheel } from "@/components/wsis/advice/spin-the-wheel";
 import { PlayerSearch } from "@/components/wsis/player-search";
-import { computeConsensus } from "@/lib/consensus";
+import { computeConsensus, subsetShares } from "@/lib/consensus";
 import {
   defenseAllowed,
   injuryStatus,
   matchupRating,
-  rankNumber,
   seasonStats,
   sentimentBust,
   sentimentOverall,
@@ -84,36 +84,53 @@ export function AdviceView({
   const signedOut = demoState === "signed-out";
   const canAddPlayer = players.length < openSlots;
 
+  const attempts = ordered.map((player) => defenseAllowed(player).attempts);
+  const yardsAllowed = ordered.map((player) => defenseAllowed(player).yards);
+  const projections = ordered.map((player) => seasonStats(player).projectionAverage);
+
   const matchupRows: CompareRow[] = [
     { label: "Opponent", values: ordered.map((player) => player.opponent) },
     {
       label: "Matchup Rating",
       values: ordered.map((player) => <Stars key={player.id} rating={matchupRating(player)} />),
+      bestIndex: indexOfMax(ordered.map((player) => matchupRating(player))),
     },
-    { label: "Rushing Att Allowed", values: ordered.map((player) => defenseAllowed(player).attempts) },
-    { label: "Rushing Yds Allowed", values: ordered.map((player) => defenseAllowed(player).yards) },
-    { label: "Rushing TDs Allowed", values: ordered.map((player) => defenseAllowed(player).touchdowns) },
+    { label: "Rushing Att Allowed", values: attempts, bestIndex: indexOfMax(attempts) },
+    { label: "Rushing Yds Allowed", values: yardsAllowed, bestIndex: indexOfMax(yardsAllowed) },
+    {
+      label: "Rushing TDs Allowed",
+      values: ordered.map((player) => defenseAllowed(player).touchdowns),
+    },
   ];
 
   const pointsRows: CompareRow[] = [
     { label: "Season Total", values: ordered.map((player) => seasonStats(player).seasonTotal) },
     { label: "Season Avg.", values: ordered.map((player) => seasonStats(player).seasonAverage) },
-    { label: "Projection Avg.", values: ordered.map((player) => seasonStats(player).projectionAverage) },
+    {
+      label: "Projection Avg.",
+      values: projections,
+      bestIndex: indexOfMax(projections),
+    },
     { label: "2025 Avg.", values: ordered.map((player) => seasonStats(player).priorYearAverage) },
   ];
 
-  const expertAccuracyRows: CompareRow[] = ["Top Overall Experts", "Top Position Experts", "Top Player Experts"].map(
-    (label, index) => ({
-      label,
-      values: ordered.map((player) =>
-        isPremium ? (
-          <span key={player.id}>#{rankNumber(player) + index}</span>
-        ) : (
-          <LockedValue key={player.id} />
-        ),
+  const expertSubsets: { label: string; salt: number; size: number }[] = [
+    { label: "Top Overall Experts", salt: 61, size: 19 },
+    { label: `Top ${ordered[0].position} Experts`, salt: 67, size: 13 },
+    { label: "Top Player Experts", salt: 71, size: 11 },
+  ];
+
+  const expertAccuracyRows: CompareRow[] = expertSubsets.map((subset) => {
+    const shares = subsetShares(ordered, subset.salt, subset.size);
+    return {
+      label: subset.label,
+      values: ordered.map((player, index) =>
+        isPremium ? <span key={player.id}>{shares[index]}%</span> : <LockedValue key={player.id} />,
       ),
-    }),
-  );
+      bestIndex: isPremium ? indexOfMax(shares) : undefined,
+    };
+  });
+
 
   const sentimentRows: CompareRow[] = [
     {
@@ -219,10 +236,12 @@ export function AdviceView({
         {tab === "Overview" ? (
           <>
             {consensus.votes.length === 2 && <ConsensusSentiment consensus={consensus} />}
+
             <SpinTheWheel />
             <CompareModule
               title="Most Accurate Experts"
               rows={expertAccuracyRows}
+              playerNames={ordered.map((player) => player.name)}
               footer={isPremium ? undefined : <PremiumFooter />}
             />
             <CompareModule

@@ -1,3 +1,4 @@
+import { seeded } from "@/lib/seed";
 import type { Player, Position } from "@/lib/types";
 
 /**
@@ -106,4 +107,41 @@ export function computeConsensus(players: Player[], totalExperts?: number): Cons
   }));
 
   return { totalExperts: pool, votes: votes.sort((a, b) => b.votes - a.votes) };
+}
+
+/**
+ * First-choice shares within a subset of the expert pool, such as the most accurate
+ * experts overall or at the player's position.
+ *
+ * Each subset perturbs the weights slightly, so a subset can disagree with the headline
+ * number. That is not an artefact: it is visible in the product, where the most accurate
+ * experts can prefer a different player than the full pool does. It is also the clearest
+ * argument that a single percentage is a summary of votes rather than a verdict.
+ *
+ * Illustrative, like the rest of the fixture model.
+ */
+export function subsetShares(players: Player[], salt: number, subsetSize: number): number[] {
+  if (players.length === 0) return [];
+
+  const weights = players.map(
+    (player) => Math.pow(projectedPoints(player), 4) * (0.55 + seeded(player.id, salt) * 1.1),
+  );
+  const weightTotal = weights.reduce((sum, weight) => sum + weight, 0);
+
+  const exact = weights.map((weight) => (weight / weightTotal) * subsetSize);
+  const floors = exact.map(Math.floor);
+  let remaining = subsetSize - floors.reduce((sum, value) => sum + value, 0);
+
+  const byRemainder = exact
+    .map((value, index) => ({ index, remainder: value - Math.floor(value) }))
+    .sort((a, b) => b.remainder - a.remainder);
+
+  const allocated = [...floors];
+  for (const entry of byRemainder) {
+    if (remaining <= 0) break;
+    allocated[entry.index] += 1;
+    remaining -= 1;
+  }
+
+  return allocated.map((votes) => Math.round((votes / subsetSize) * 100));
 }
