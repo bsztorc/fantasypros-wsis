@@ -59,3 +59,28 @@ result would misrepresent what is real.
 asked for an explicit X in the slot corner instead, with the card itself inert, so removal
 happens only through the X or by deselecting in the list below. Click-to-remove on a card
 the user is reading is easy to trigger by accident and gives no sign it is possible.
+
+## 2026-09-25 — Advice view
+
+**Prompt:** build the signed-out, two-player advice view, using the live product page as
+the reference.
+
+**What the agent did:** read the live comparison page rather than working from a
+screenshot, which gave exact copy, the eleven-tab list, the gated module treatment and
+the class structure. Built the vote maths as a real function so percentages are computed
+from the fixture model, using the largest remainder method so votes sum to the pool.
+
+**What the screenshots corrected, after they arrived:**
+- The results band uses two different layouts, not one. Two players get mirrored cards of
+  equal weight; three or more collapse the non-leading players into compact cards. The
+  first implementation used uniform cards for every count and had to be rebuilt.
+- The expert pool is not a constant. It is the set of experts who ranked every player, so
+  it shrinks when positions are mixed: 45 for three running backs, 42 once a wide receiver
+  replaces one. Implemented as `expertPoolFor`.
+- Search copy is contextual: "Add a third player", then "Add a fourth player".
+- The Coach AI summary is absent once three or more players are compared, which the brief
+  suspected and the screenshots confirmed.
+
+**Tooling note:** the dev server wedged mid-session and took the browser pane with it.
+The production build was used to confirm the application itself was healthy before
+restarting the server, rather than guessing.

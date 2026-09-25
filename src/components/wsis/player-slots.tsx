@@ -9,6 +9,7 @@ interface PlayerSlotsProps {
   lockedSlots: number;
   onRemove: (playerId: string) => void;
   canGetAdvice: boolean;
+  onViewAdvice: () => void;
 }
 
 /**
@@ -75,6 +76,7 @@ export function PlayerSlots({
   lockedSlots,
   onRemove,
   canGetAdvice,
+  onViewAdvice,
 }: PlayerSlotsProps) {
   const open = Array.from({ length: openSlots });
   const locked = Array.from({ length: lockedSlots });
@@ -92,6 +94,7 @@ export function PlayerSlots({
         <button
           type="button"
           disabled={!canGetAdvice}
+          onClick={onViewAdvice}
           className={[
             "rounded-md px-6 py-2.5 text-sm font-bold leading-tight transition-colors",
             canGetAdvice
