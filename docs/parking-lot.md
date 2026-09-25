@@ -133,3 +133,35 @@ scale. The summary is load-bearing for the feature, not decoration beside it.
 Note the scope this implies. The prototype does not change how players are ranked or how
 the head-to-head consensus is computed. It changes how existing ranking data is aggregated
 into an answer when N is greater than one, and it always explains the result.
+
+## Divergence measured against roster tiers
+
+How often the expert-preferred pair differs from the top two by first-choice share, in a
+twelve-team league where the top twelve at a position are everyone's starter at that slot.
+Three players from the same tier, filling two slots, against the Week 3 snapshot.
+
+| Tier | Divergence | Dispersion |
+|---|---|---|
+| RB1 (1-12) | 1.4% | 1.15 |
+| RB2 (13-24) | 5.0% | 2.20 |
+| RB3 (25-36) | 6.4% | 2.54 |
+| RB4 (37-48) | 36.8% | 4.52 |
+| WR1 (1-12) | 9.5% | 1.36 |
+| WR2 (13-24) | 5.5% | 2.16 |
+| WR3 (25-36) | 23.6% | 4.11 |
+| WR4 (37-48) | 20.0% | 4.53 |
+| FLEX1 (1-12) | 3.2% | 1.27 |
+| FLEX4 (37-48) | 16.4% | 4.78 |
+| FLEX6 (61-72) | 32.7% | 7.94 |
+
+**The finding is not the average, it is the shape.** Divergence tracks expert uncertainty
+almost perfectly. At the top of the board, where nobody needs advice, first-choice share
+is a fine proxy for the right answer: RB1 and QB1 sit at 1.4%. In the flex range, where
+managers actually agonise, it is wrong between one in six and one in three times.
+
+So the current display works where it does not matter and fails where it does. That is a
+better argument than any average, and it is the one to lead with.
+
+**Caveat to state rather than bury:** the QB4 tier shows 50%, but that is two divergent
+cases out of four possible combinations, which is noise. Tiers with fewer than roughly
+twenty combinations should not be quoted.

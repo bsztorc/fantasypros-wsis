@@ -2,8 +2,11 @@
  * How often does the expert-preferred combination differ from the top N by first-choice
  * share?
  *
- * This is the validation question in the brief, answered against the Week 3 snapshot
- * rather than proposed as a test for someone else to run later.
+ * Measured within realistic roster tiers rather than across the whole board. In a
+ * twelve-team league the top twelve at a position are everyone's starter at that slot,
+ * the next twelve are the second starter, and so on. Managers choose between players in
+ * the same tier: your RB2 against your RB3, or three flex candidates. A comparison
+ * spanning tiers is lopsided and tells us nothing.
  *
  * Ballots are reconstructed from FantasyPros' published dispersion (best, worst, average
  * and standard deviation per player) because individual ballots are not published in
@@ -16,6 +19,7 @@
 import { readFile } from "node:fs/promises";
 
 const EXPERTS = 46;
+const LEAGUE_SIZE = 12;
 
 /** How much of a rank comes from the expert's lean rather than player-specific noise. */
 const CORRELATION = 0.45;
@@ -29,6 +33,10 @@ function mulberry(seed) {
   };
 }
 
+/**
+ * Ballots are built over the whole position list, not per tier, so an expert's opinion of
+ * a player does not change depending on which comparison we are looking at.
+ */
 function buildBallots(players, correlation, seed) {
   const rng = mulberry(seed);
   const normal = () => {
@@ -52,7 +60,6 @@ function buildBallots(players, correlation, seed) {
   });
 }
 
-/** Divergence rate across every three-player combination in `players`. */
 function measure(players, ballots, startN) {
   let total = 0;
   let diverged = 0;
@@ -80,35 +87,54 @@ function measure(players, ballots, startN) {
       }
     }
   }
-  return { total, diverged, pct: (diverged / total) * 100 };
+  return { total, diverged, pct: total ? (diverged / total) * 100 : 0 };
 }
 
 const data = JSON.parse(await readFile("src/lib/fixtures/rankings-week3.json", "utf8"));
-const flex = data.positions.FLEX;
 
-console.log(`Week ${data.week} ${data.season}, ${EXPERTS} reconstructed ballots\n`);
-
-console.log("Headline: any three of the FLEX top 60, filling two slots");
-const headline = measure(flex.slice(0, 60), buildBallots(flex.slice(0, 60), CORRELATION, 20260925), 2);
-console.log(`  ${headline.pct.toFixed(1)}%  (${headline.diverged} of ${headline.total})\n`);
-
-console.log("By tier, which is what users actually compare");
-for (const [label, slice] of [
-  ["FLEX 1-20", flex.slice(0, 20)],
-  ["FLEX 21-60", flex.slice(20, 60)],
-  ["FLEX 61-120", flex.slice(60, 120)],
-]) {
-  const result = measure(slice, buildBallots(slice, CORRELATION, 20260925), 2);
-  const dispersion = slice.reduce((sum, p) => sum + p.deviation, 0) / slice.length;
-  console.log(`  ${label.padEnd(12)} ${result.pct.toFixed(1).padStart(5)}%   average dispersion ${dispersion.toFixed(2)}`);
+function report(listName, players, blockSize) {
+  const ballots = buildBallots(players, CORRELATION, 20260925);
+  const rows = [];
+  for (let start = 0; start + 3 <= players.length; start += blockSize) {
+    const block = players.slice(start, start + blockSize);
+    if (block.length < 3) break;
+    const result = measure(block, ballots, 2);
+    const dispersion = block.reduce((s, p) => s + p.deviation, 0) / block.length;
+    rows.push({
+      tier: `${listName}${Math.floor(start / blockSize) + 1}`,
+      range: `${start + 1}-${start + block.length}`,
+      pct: result.pct,
+      diverged: result.diverged,
+      total: result.total,
+      dispersion,
+    });
+  }
+  return rows;
 }
 
-console.log("\nSensitivity, to show the number is not an artefact of the model");
-for (const correlation of [0.2, 0.45, 0.7]) {
-  const r = measure(flex.slice(0, 60), buildBallots(flex.slice(0, 60), correlation, 20260925), 2);
-  console.log(`  correlation ${correlation}   ${r.pct.toFixed(1)}%`);
+for (const blockSize of [LEAGUE_SIZE, LEAGUE_SIZE * 2]) {
+  console.log(`\n${"=".repeat(64)}`);
+  console.log(`Blocks of ${blockSize}  (${blockSize === LEAGUE_SIZE ? "one starter slot per team" : "two starter slots per team"})`);
+  console.log(`Three players from the same tier, filling two slots`);
+  console.log("=".repeat(64));
+
+  for (const [listName, key, limit] of [
+    ["QB", "QB", 48],
+    ["RB", "RB", 48],
+    ["WR", "WR", 48],
+    ["TE", "TE", 36],
+    ["FLEX", "FLEX", 96],
+  ]) {
+    const players = data.positions[key].slice(0, limit);
+    const rows = report(listName, players, blockSize);
+    if (!rows.length) continue;
+    console.log(`\n  ${listName}`);
+    for (const r of rows) {
+      console.log(
+        `    ${r.tier.padEnd(7)} ranks ${r.range.padEnd(7)} ${r.pct.toFixed(1).padStart(5)}%  ` +
+          `(${String(r.diverged).padStart(4)}/${String(r.total).padStart(4)})   dispersion ${r.dispersion.toFixed(2)}`,
+      );
+    }
+  }
 }
-for (const seed of [11, 22, 33]) {
-  const r = measure(flex.slice(0, 60), buildBallots(flex.slice(0, 60), CORRELATION, seed), 2);
-  console.log(`  seed ${String(seed).padEnd(11)} ${r.pct.toFixed(1)}%`);
-}
+console.log();
