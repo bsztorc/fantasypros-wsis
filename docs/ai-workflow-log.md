@@ -52,3 +52,10 @@ built as a pure function and verified against four cases in the browser.
 **Deliberately not done:** the View Advice button enables at two players but does not yet
 produce advice. The recommendation output is the next deliverable, and stubbing a fake
 result would misrepresent what is real.
+
+## 2026-09-25 — Removal affordance
+
+**Human correction:** the first pass made the whole player card a remove button. Brandon
+asked for an explicit X in the slot corner instead, with the card itself inert, so removal
+happens only through the X or by deselecting in the list below. Click-to-remove on a card
+the user is reading is easy to trigger by accident and gives no sign it is possible.

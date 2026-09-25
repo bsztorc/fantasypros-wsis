@@ -1,6 +1,6 @@
 "use client";
 
-import { LockIcon, PlayerSilhouette } from "@/components/ui/icons";
+import { CloseIcon, LockIcon, PlayerSilhouette } from "@/components/ui/icons";
 import type { Player } from "@/lib/types";
 
 interface PlayerSlotsProps {
@@ -11,7 +11,13 @@ interface PlayerSlotsProps {
   canGetAdvice: boolean;
 }
 
-/** One comparison slot: a selected player, an empty silhouette, or a locked slot. */
+/**
+ * One comparison slot: a selected player, an empty silhouette, or a locked slot.
+ *
+ * A filled slot is not itself clickable. Removal is an explicit action, either the X in
+ * the corner or deselecting the player in the list below, so the card can be read without
+ * the risk of clearing it by accident.
+ */
 function Slot({
   player,
   locked,
@@ -27,23 +33,29 @@ function Slot({
         {player ? player.rank : "-"}
       </span>
 
+      {player && !locked && (
+        <button
+          type="button"
+          onClick={() => onRemove(player.id)}
+          aria-label={`Remove ${player.name} from the comparison`}
+          className="absolute right-2 top-2 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full text-fp-on-navy transition-colors hover:bg-white/10 hover:text-white"
+        >
+          <CloseIcon className="h-3.5 w-3.5" />
+        </button>
+      )}
+
       {locked ? (
         <div className="flex h-full w-full items-center justify-center">
           <LockIcon className="h-11 w-11 text-white/85" />
         </div>
       ) : player ? (
-        <button
-          type="button"
-          onClick={() => onRemove(player.id)}
-          aria-label={`Remove ${player.name} from the comparison`}
-          className="flex cursor-pointer flex-col items-center gap-1 pb-3"
-        >
+        <div className="flex flex-col items-center gap-1 pb-3">
           <PlayerSilhouette className="h-16 w-16 text-white/20" />
           <span className="text-sm font-semibold text-white">{player.name}</span>
           <span className="text-xs text-fp-on-navy">
             {player.position} - {player.team} · {player.opponent}
           </span>
-        </button>
+        </div>
       ) : (
         <PlayerSilhouette className="-mb-7 h-32 w-32 text-white/[0.09]" />
       )}
