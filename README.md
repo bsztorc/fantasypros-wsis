@@ -17,13 +17,13 @@ The math is not wrong. The input model is narrower than the decision the user ar
 
 ## Status
 
-Scaffold and deployment pipeline only. Nothing below is built yet.
+The landing page is built. The recommendation output is not.
 
 | Area | State |
 |---|---|
+| Landing page, three demo states | built |
+| Start N and Lineup Goal controls | built, gating logic verified |
 | Recommendation engine | not started |
-| Two-state demo screen | not started |
-| Landing page | not started |
 | Dev spec | not started |
 
 ## What is real vs. stubbed
