@@ -180,3 +180,24 @@ agent had asked for because it was guessing at the gated meters.
 prefer a different player than the full pool does. The prototype now models that with
 `subsetShares` rather than making every subset agree with the headline, because making
 them agree would have quietly removed the product's own best evidence for the thesis.
+
+## 2026-09-25 — Always explain, and a calibration the agent got wrong
+
+**Human direction:** Brandon worked through a real comparison and found it genuinely
+confusing, then decided the prototype should always show the Coach AI summary rather than
+dropping it at three or more players as the product does. He also asked to confirm the
+scope: he is not fixing the head-to-head algorithm, only changing aggregation above one
+slot. That is right, with one addition worth stating: the explanation applies at every N,
+including one, and is a separate change from Start N.
+
+**What the agent got wrong, found while testing the change:** the fixture vote weighting
+used a projection exponent of 4, which produced splits like 82 / 13 / 4 / 0 at four
+players. A player on nought percent reads as a broken tool.
+
+Calibrated against the product instead of guessed again: a 13.9 to 11.4 projection gap
+produces a 58 to 42 split there, implying an exponent near 1.6. At 1.7 the same four-player
+comparison gives 53 / 24 / 13 / 9, which is the shape the product actually produces.
+
+The agent had written that exponent to make a favourite look decisive, which is precisely
+the wrong instinct for a prototype whose argument is that the headline number overstates
+how settled the question is.

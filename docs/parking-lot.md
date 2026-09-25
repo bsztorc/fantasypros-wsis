@@ -106,3 +106,30 @@ This is worth using in the write-up. It is not an edge case invented to make a p
 is the product's own data showing that a single percentage summarises votes rather than
 settling the question. The prototype models it with `subsetShares`, where each subset
 perturbs the weighting so it can legitimately disagree with the headline.
+
+## Deliberate divergence: always explain the recommendation
+
+The live tool shows the Coach AI summary at two players and drops it at three or more.
+The prototype always shows it.
+
+**Why this is a change worth proposing on its own merits,** separately from Start N:
+
+A real comparison from the product, captured 2026-09-25. Hampton leads the vote at 43% to
+Hubbard's 39%. Hubbard is ahead on season total, season average, all three sentiment
+meters, and all three most-accurate-expert subsets, where he leads 58 / 54 / 40. Hampton
+wins on exactly two rows: projection average, 13.9 to 11.5, and matchup rating, five stars
+to one.
+
+Both can be true. The vote is forward-looking and most of the page is backward-looking. But
+the page does not say so at three players, because that is where the summary disappears.
+The comparison gets harder, the gap between the headline and the evidence widens, and the
+explanation is withdrawn exactly then.
+
+**This also makes Start N safe.** Above one slot the recommended combination can differ
+from the top N by displayed percentage. Showing a set that does not match the visible
+ordering without explaining it would reproduce the same confusion deliberately, at larger
+scale. The summary is load-bearing for the feature, not decoration beside it.
+
+Note the scope this implies. The prototype does not change how players are ranked or how
+the head-to-head consensus is computed. It changes how existing ranking data is aggregated
+into an answer when N is greater than one, and it always explains the result.

@@ -235,7 +235,7 @@ export function AdviceView({
       <div className="space-y-4 bg-fp-navy-tab py-5">
         {tab === "Overview" ? (
           <>
-            {consensus.votes.length === 2 && <ConsensusSentiment consensus={consensus} />}
+            <ConsensusSentiment consensus={consensus} />
 
             <SpinTheWheel />
             <CompareModule

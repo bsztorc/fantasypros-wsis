@@ -56,6 +56,16 @@ export function projectedPoints(player: Player): number {
 export const BASE_EXPERT_POOL = 45;
 
 /**
+ * How sharply a projection edge converts into vote share.
+ *
+ * Calibrated against the product rather than guessed. A 13.9 to 11.4 projection gap
+ * produces a 58 to 42 split there, which implies an exponent near 1.6. An earlier value
+ * of 4 produced splits like 82 / 13 / 4 / 0, and a player on nought percent reads as a
+ * broken tool rather than a decisive one.
+ */
+const VOTE_SHARPNESS = 1.7;
+
+/**
  * Experts who ranked every player in the comparison.
  *
  * The pool is not fixed. Only experts who ranked all of the players can express a first
@@ -81,8 +91,8 @@ export function computeConsensus(players: Player[], totalExperts?: number): Cons
   const pool = totalExperts ?? expertPoolFor(players);
   if (players.length === 0) return { totalExperts: pool, votes: [] };
 
-  // Sharpen the projection gap so a clear favourite reads as one.
-  const weights = players.map((player) => Math.pow(projectedPoints(player), 4));
+  // Convert the projection edge into vote share.
+  const weights = players.map((player) => Math.pow(projectedPoints(player), VOTE_SHARPNESS));
   const weightTotal = weights.reduce((sum, weight) => sum + weight, 0);
 
   const exact = weights.map((weight) => (weight / weightTotal) * pool);
@@ -124,7 +134,8 @@ export function subsetShares(players: Player[], salt: number, subsetSize: number
   if (players.length === 0) return [];
 
   const weights = players.map(
-    (player) => Math.pow(projectedPoints(player), 4) * (0.55 + seeded(player.id, salt) * 1.1),
+    (player) =>
+      Math.pow(projectedPoints(player), VOTE_SHARPNESS) * (0.55 + seeded(player.id, salt) * 1.1),
   );
   const weightTotal = weights.reduce((sum, weight) => sum + weight, 0);
 
