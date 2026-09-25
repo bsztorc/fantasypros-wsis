@@ -20,7 +20,7 @@ export function AdviceTabs({
   onChange: (tab: AdviceTab) => void;
 }) {
   return (
-    <div className="flex gap-6 overflow-x-auto bg-fp-navy-tab px-5 pt-3">
+    <div className="flex justify-center gap-6 overflow-x-auto bg-fp-navy-tab px-5 pt-3">
       {ADVICE_TABS.map((tab) => {
         const selected = tab === active;
         return (
