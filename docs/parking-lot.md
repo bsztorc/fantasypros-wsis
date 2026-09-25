@@ -85,3 +85,51 @@ differentiated by tier. A free user gets a lineup-aware recommendation, just not
 goal-weighted one. That is arguably the right commercial shape, since it gates the
 personalisation rather than the answer, but it should be a deliberate decision rather
 than a side effect of where the meters happen to sit today.
+
+### Resolved: the premium meters, from the unlocked screenshots
+
+Brandon supplied premium screenshots on 2026-09-25, replacing two inferences with facts.
+
+- **The scale has five named levels**, not three: Very Low, Low, Moderate, High, Very High.
+- **Moderate is grey**, not amber. Colour tracks whether the level favours the player.
+- **Bust Risk is inverted**, which the earlier guess had right: a high bust risk renders
+  red, a very low one green.
+- **Most Accurate Experts shows percentages, not ranks**, and they are first-choice shares
+  within a subset of the pool.
+
+That last one is the most useful finding, and it strengthens the argument in the brief.
+In the screenshot the most accurate experts prefer **Hubbard at 58%** while the full pool
+prefers **Hampton**. The product already publishes a case where a subset of experts
+disagrees with the headline number.
+
+This is worth using in the write-up. It is not an edge case invented to make a point: it
+is the product's own data showing that a single percentage summarises votes rather than
+settling the question. The prototype models it with `subsetShares`, where each subset
+perturbs the weighting so it can legitimately disagree with the headline.
+
+## Deliberate divergence: always explain the recommendation
+
+The live tool shows the Coach AI summary at two players and drops it at three or more.
+The prototype always shows it.
+
+**Why this is a change worth proposing on its own merits,** separately from Start N:
+
+A real comparison from the product, captured 2026-09-25. Hampton leads the vote at 43% to
+Hubbard's 39%. Hubbard is ahead on season total, season average, all three sentiment
+meters, and all three most-accurate-expert subsets, where he leads 58 / 54 / 40. Hampton
+wins on exactly two rows: projection average, 13.9 to 11.5, and matchup rating, five stars
+to one.
+
+Both can be true. The vote is forward-looking and most of the page is backward-looking. But
+the page does not say so at three players, because that is where the summary disappears.
+The comparison gets harder, the gap between the headline and the evidence widens, and the
+explanation is withdrawn exactly then.
+
+**This also makes Start N safe.** Above one slot the recommended combination can differ
+from the top N by displayed percentage. Showing a set that does not match the visible
+ordering without explaining it would reproduce the same confusion deliberately, at larger
+scale. The summary is load-bearing for the feature, not decoration beside it.
+
+Note the scope this implies. The prototype does not change how players are ranked or how
+the head-to-head consensus is computed. It changes how existing ranking data is aggregated
+into an answer when N is greater than one, and it always explains the result.

@@ -1,4 +1,6 @@
+import type { SentimentLevel } from "@/components/wsis/advice/sentiment-meter";
 import { projectedPoints, rankNumber } from "@/lib/consensus";
+import { seeded } from "@/lib/seed";
 import type { Player } from "@/lib/types";
 
 /**
@@ -9,14 +11,6 @@ import type { Player } from "@/lib/types";
  * are illustrative rather than an attempt to reproduce FantasyPros' models.
  */
 
-/** Stable pseudo-random number in [0, 1) from a player id. Same id, same value, always. */
-function seeded(id: string, salt: number): number {
-  let hash = salt;
-  for (let index = 0; index < id.length; index += 1) {
-    hash = (hash * 31 + id.charCodeAt(index)) >>> 0;
-  }
-  return (hash % 1000) / 1000;
-}
 
 /** Matchup difficulty, 1 (hardest) to 5 (easiest). */
 export function matchupRating(player: Player): number {
@@ -86,14 +80,14 @@ export { rankNumber };
  * vote and still carry a Low overall sentiment, so tying these to the percentage would
  * misrepresent how they behave.
  */
-export function sentimentOverall(player: Player): number {
-  return 1 + Math.floor(seeded(player.id, 41) * 5);
+export function sentimentOverall(player: Player): SentimentLevel {
+  return (1 + Math.floor(seeded(player.id, 41) * 5)) as SentimentLevel;
 }
 
-export function sentimentUpside(player: Player): number {
-  return 1 + Math.floor(seeded(player.id, 43) * 5);
+export function sentimentUpside(player: Player): SentimentLevel {
+  return (1 + Math.floor(seeded(player.id, 43) * 5)) as SentimentLevel;
 }
 
-export function sentimentBust(player: Player): number {
-  return 1 + Math.floor(seeded(player.id, 47) * 5);
+export function sentimentBust(player: Player): SentimentLevel {
+  return (1 + Math.floor(seeded(player.id, 47) * 5)) as SentimentLevel;
 }
