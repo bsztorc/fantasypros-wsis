@@ -1,5 +1,6 @@
 "use client";
 
+import { GateCta, type GateVariant } from "@/components/ui/gate-cta";
 import { Segmented, type SegmentedOption } from "@/components/ui/segmented";
 import { isLineupGoalEnabled, isStartNEnabled } from "@/lib/demo-state";
 import type { LineupGoal, StartN } from "@/lib/types";
@@ -13,6 +14,8 @@ interface LineupControlsProps {
   playerCount: number;
   /** Premium unlocks the goals that read the Upside and Bust meters. */
   isPremium: boolean;
+  /** Which upgrade prompt to show beside a gated goal, if any. */
+  gateVariant?: GateVariant;
 }
 
 const GOALS: { value: LineupGoal; label: string }[] = [
@@ -29,8 +32,10 @@ const GOALS: { value: LineupGoal; label: string }[] = [
  * fill. Starting two of two is not a decision, so offering it would be noise.
  *
  * Most Upside and Safe Floor are weighted from the Upside Potential and Bust Risk meters,
- * which the live product gates behind premium. They gate with the data they depend on.
- * Balanced stays available to everyone, because the recommendation itself is never gated.
+ * which the live product gates behind premium. They gate with the data they depend on, and
+ * carry the product's own upgrade prompt so the limit reads as a tier boundary rather than
+ * a broken control. Balanced stays available to everyone, because the recommendation
+ * itself is never gated.
  */
 export function LineupControls({
   goal,
@@ -39,6 +44,7 @@ export function LineupControls({
   onStartNChange,
   playerCount,
   isPremium,
+  gateVariant,
 }: LineupControlsProps) {
   const goalOptions: SegmentedOption<LineupGoal>[] = GOALS.map((entry) => ({
     ...entry,
@@ -55,7 +61,7 @@ export function LineupControls({
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 bg-fp-navy px-5 pb-4">
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center gap-3">
         <span className="text-[15px] font-semibold text-white">Lineup Goal</span>
         <Segmented
           label="Lineup goal"
@@ -63,6 +69,7 @@ export function LineupControls({
           value={goal}
           onChange={onGoalChange}
         />
+        {!isPremium && gateVariant && <GateCta variant={gateVariant} />}
       </div>
 
       <div className="flex items-center gap-4">

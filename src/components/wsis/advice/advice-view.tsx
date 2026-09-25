@@ -13,6 +13,7 @@ import {
 import { ConsensusSentiment } from "@/components/wsis/advice/consensus-sentiment";
 import { ResultsBand } from "@/components/wsis/advice/results-band";
 import { SentimentMeter } from "@/components/wsis/advice/sentiment-meter";
+import { LineupControls } from "@/components/wsis/lineup-controls";
 import { SpinTheWheel } from "@/components/wsis/advice/spin-the-wheel";
 import { PlayerSearch } from "@/components/wsis/player-search";
 import { computeConsensus } from "@/lib/consensus";
@@ -28,7 +29,8 @@ import {
   weather,
 } from "@/lib/fixtures/player-detail";
 import { SCORING_LABEL, WEEK_LABEL } from "@/lib/fixtures/roster";
-import type { DemoState, Player } from "@/lib/types";
+import { gateVariantFor } from "@/lib/demo-state";
+import type { DemoState, LineupGoal, Player, StartN } from "@/lib/types";
 
 interface AdviceViewProps {
   players: Player[];
@@ -40,6 +42,10 @@ interface AdviceViewProps {
   /** Everything the current demo state lets the user search. */
   pool: Player[];
   onSelect: (player: Player) => void;
+  goal: LineupGoal;
+  onGoalChange: (goal: LineupGoal) => void;
+  startN: StartN;
+  onStartNChange: (startN: StartN) => void;
   onBack: () => void;
   onRemove: (playerId: string) => void;
 }
@@ -65,6 +71,10 @@ export function AdviceView({
   isPremium,
   pool,
   onSelect,
+  goal,
+  onGoalChange,
+  startN,
+  onStartNChange,
   onBack,
   onRemove,
 }: AdviceViewProps) {
@@ -184,6 +194,16 @@ export function AdviceView({
           placeholder={searchPlaceholder(players.length)}
         />
       )}
+
+      <LineupControls
+        goal={goal}
+        onGoalChange={onGoalChange}
+        startN={startN}
+        onStartNChange={onStartNChange}
+        playerCount={players.length}
+        isPremium={isPremium}
+        gateVariant={gateVariantFor(demoState)}
+      />
 
       <ResultsBand
         consensus={consensus}

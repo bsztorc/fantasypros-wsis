@@ -10,7 +10,7 @@ import { PlayerSlots } from "@/components/wsis/player-slots";
 import { TeamTabs } from "@/components/wsis/team-tabs";
 import { TopPlayersPanel } from "@/components/wsis/top-players-panel";
 import { WsisBanner } from "@/components/wsis/wsis-banner";
-import { DEMO_STATES, maxEnabledStartN } from "@/lib/demo-state";
+import { DEMO_STATES, gateVariantFor, maxEnabledStartN } from "@/lib/demo-state";
 import { MY_ROSTER } from "@/lib/fixtures/roster";
 import { TOP_PLAYERS } from "@/lib/fixtures/top-players";
 import type { DemoState, LineupGoal, Player, StartN, TeamTab } from "@/lib/types";
@@ -53,13 +53,26 @@ export function WsisTool() {
     if (players.length < MINIMUM_FOR_ADVICE) setView("compare");
   }
 
+  /**
+   * Switching demo state keeps the comparison wherever possible.
+   *
+   * The demo arc depends on it: pick players, see the answer, then change state and
+   * watch the same decision get better or worse. Clearing the comparison would make
+   * that comparison impossible to see. Players beyond the new state's slot limit are
+   * dropped, and the advice view is only left if too few players remain to support it.
+   */
   function handleDemoStateChange(next: DemoState) {
+    const nextCapabilities = DEMO_STATES[next];
+    const kept = selected.slice(0, nextCapabilities.openSlots);
+
     setDemoState(next);
-    setSelected([]);
-    setStartN(1);
-    if (!DEMO_STATES[next].isPremium) setGoal("balanced");
-    setTab("my-team");
-    setView("compare");
+    setSelected(kept);
+    setStartN((current) => {
+      const highest = maxEnabledStartN(kept.length);
+      return current > highest ? highest : current;
+    });
+    if (!nextCapabilities.isPremium) setGoal("balanced");
+    if (kept.length < MINIMUM_FOR_ADVICE) setView("compare");
   }
 
   function handleToggle(player: Player) {
@@ -88,6 +101,10 @@ export function WsisTool() {
             isPremium={capabilities.isPremium}
             pool={searchPool}
             onSelect={handleToggle}
+            goal={goal}
+            onGoalChange={setGoal}
+            startN={startN}
+            onStartNChange={setStartN}
             onBack={() => setView("compare")}
             onRemove={handleRemove}
           />
@@ -109,6 +126,7 @@ export function WsisTool() {
               onStartNChange={setStartN}
               playerCount={selected.length}
               isPremium={capabilities.isPremium}
+              gateVariant={gateVariantFor(demoState)}
             />
 
             <PlayerSlots

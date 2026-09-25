@@ -77,3 +77,15 @@ export function maxEnabledStartN(playerCount: number): StartN {
 export function isLineupGoalEnabled(goal: LineupGoal, isPremium: boolean): boolean {
   return goal === "balanced" || isPremium;
 }
+
+/**
+ * Which upgrade prompt a gated control should carry.
+ *
+ * A signed-out user cannot buy premium before they have an account, so they are asked to
+ * sign up. A signed-in free user is asked to upgrade. Premium users are asked nothing.
+ */
+export function gateVariantFor(state: DemoState): "signup" | "premium" | undefined {
+  if (state === "signed-out") return "signup";
+  if (state === "signed-in-unsynced") return "premium";
+  return undefined;
+}
