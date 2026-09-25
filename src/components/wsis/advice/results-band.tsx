@@ -3,6 +3,7 @@
 import { CloseIcon, LockIcon, PlayerSilhouette } from "@/components/ui/icons";
 import { PercentageBadge, PercentageRing } from "@/components/wsis/advice/percentage-ring";
 import type { Consensus, ExpertVote } from "@/lib/consensus";
+import { bandColumns } from "@/lib/layout";
 import type { Player, Position } from "@/lib/types";
 
 const POSITION_TEXT: Record<Position, string> = {
@@ -137,6 +138,41 @@ function CompactCard({
   );
 }
 
+/** The Add Player strip at the right of the band. */
+function AddPlayerCell({
+  canAddPlayer,
+  addPlayerLocked,
+  onAddPlayer,
+}: {
+  canAddPlayer: boolean;
+  addPlayerLocked: boolean;
+  onAddPlayer: () => void;
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-2 px-3">
+      <p className="text-center text-[15px] font-bold leading-tight text-white">
+        Add
+        <br />
+        Player
+      </p>
+      <button
+        type="button"
+        onClick={onAddPlayer}
+        disabled={!canAddPlayer}
+        aria-label="Add another player to the comparison"
+        className={[
+          "flex h-9 w-9 items-center justify-center rounded-full text-xl leading-none",
+          canAddPlayer
+            ? "cursor-pointer bg-white text-fp-navy hover:bg-fp-blue hover:text-white"
+            : "cursor-not-allowed bg-white/25 text-white/60",
+        ].join(" ")}
+      >
+        {addPlayerLocked ? <LockIcon className="h-4 w-4" /> : "+"}
+      </button>
+    </div>
+  );
+}
+
 interface ResultsBandProps {
   consensus: Consensus;
   onRemove: (playerId: string) => void;
@@ -151,9 +187,12 @@ interface ResultsBandProps {
  * The results header.
  *
  * The product uses two layouts. With exactly two players the cards mirror each other at
- * equal weight. From three players up, the leading player keeps the large card and the
- * rest collapse into compact ones, which is precisely the visual hierarchy that invites
- * the ordering to be read as a ranking.
+ * equal weight. From three players up, the leading player keeps a double-width card and
+ * the rest collapse into single-width ones, which is precisely the visual hierarchy that
+ * invites the ordering to be read as a ranking.
+ *
+ * From three players the band is a grid sharing its geometry with the comparison tables
+ * below, so each player's card sits directly above his own column.
  */
 export function ResultsBand({
   consensus,
@@ -165,41 +204,34 @@ export function ResultsBand({
   const [leader, ...rest] = consensus.votes;
   if (!leader) return null;
 
-  const isPair = consensus.votes.length === 2;
+  if (consensus.votes.length === 2) {
+    return (
+      <div className="flex items-stretch bg-fp-navy-slot">
+        <LeaderCard vote={leader} total={consensus.totalExperts} onRemove={onRemove} />
+        <RunnerUpCard vote={rest[0]} total={consensus.totalExperts} onRemove={onRemove} />
+        <AddPlayerCell
+          canAddPlayer={canAddPlayer}
+          addPlayerLocked={addPlayerLocked}
+          onAddPlayer={onAddPlayer}
+        />
+      </div>
+    );
+  }
 
   return (
-    <div className="flex items-stretch bg-fp-navy-slot">
+    <div
+      className="grid items-stretch bg-fp-navy-slot"
+      style={{ gridTemplateColumns: bandColumns(consensus.votes.length) }}
+    >
       <LeaderCard vote={leader} total={consensus.totalExperts} onRemove={onRemove} />
-
-      {isPair ? (
-        <RunnerUpCard vote={rest[0]} total={consensus.totalExperts} onRemove={onRemove} />
-      ) : (
-        rest.map((vote) => <CompactCard key={vote.player.id} vote={vote} onRemove={onRemove} />)
-      )}
-
-      {(canAddPlayer || addPlayerLocked) && (
-        <div className="flex w-[104px] shrink-0 flex-col items-center justify-center gap-2 px-3">
-          <p className="text-center text-[15px] font-bold leading-tight text-white">
-            Add
-            <br />
-            Player
-          </p>
-          <button
-            type="button"
-            onClick={onAddPlayer}
-            disabled={!canAddPlayer}
-            aria-label="Add another player to the comparison"
-            className={[
-              "flex h-9 w-9 items-center justify-center rounded-full text-xl leading-none",
-              canAddPlayer
-                ? "cursor-pointer bg-white text-fp-navy hover:bg-fp-blue hover:text-white"
-                : "cursor-not-allowed bg-white/25 text-white/60",
-            ].join(" ")}
-          >
-            {addPlayerLocked ? <LockIcon className="h-4 w-4" /> : "+"}
-          </button>
-        </div>
-      )}
+      {rest.map((vote) => (
+        <CompactCard key={vote.player.id} vote={vote} onRemove={onRemove} />
+      ))}
+      <AddPlayerCell
+        canAddPlayer={canAddPlayer}
+        addPlayerLocked={addPlayerLocked}
+        onAddPlayer={onAddPlayer}
+      />
     </div>
   );
 }

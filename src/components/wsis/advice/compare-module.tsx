@@ -1,4 +1,5 @@
 import { LockIcon } from "@/components/ui/icons";
+import { tableColumns } from "@/lib/layout";
 
 /** A labelled row of per-player values, used by every comparison module. */
 export interface CompareRow {
@@ -19,12 +20,12 @@ function Row({ label, values }: CompareRow) {
 
   return (
     <div
-      className="grid items-center gap-3 border-b border-fp-border px-5 py-2.5 last:border-b-0 odd:bg-[#fafbfc]"
-      style={{ gridTemplateColumns: `150px repeat(${values.length}, minmax(0, 1fr))` }}
+      className="grid items-center border-b border-fp-border py-2.5 last:border-b-0 odd:bg-[#fafbfc]"
+      style={{ gridTemplateColumns: tableColumns(values.length) }}
     >
-      <span className="text-right text-xs text-fp-muted">{label}</span>
+      <span className="px-3 text-right text-xs text-fp-muted">{label}</span>
       {values.map((value, index) => (
-        <span key={index} className="flex justify-center text-sm font-semibold text-fp-ink">
+        <span key={index} className="flex justify-center px-3 text-sm font-semibold text-fp-ink">
           {value}
         </span>
       ))}

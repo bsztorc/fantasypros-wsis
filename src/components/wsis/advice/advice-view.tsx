@@ -215,7 +215,7 @@ export function AdviceView({
 
       <AdviceTabs active={tab} onChange={setTab} />
 
-      <div className="space-y-4 bg-fp-navy-tab px-5 py-5">
+      <div className="space-y-4 bg-fp-navy-tab py-5">
         {tab === "Overview" ? (
           <>
             {consensus.votes.length === 2 && <ConsensusSentiment consensus={consensus} />}

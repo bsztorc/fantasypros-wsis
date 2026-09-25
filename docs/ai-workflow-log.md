@@ -137,3 +137,27 @@ on the same footing as choosing a goal.
 The padlock is opt-in per option rather than automatic for anything disabled. Start N's
 unavailable options are conditional on how many players are in the comparison, not
 withheld by tier, and marking them locked would claim something untrue.
+
+## 2026-09-25 — Column alignment
+
+**Human correction:** with three or more players the leading player was not getting the
+larger card, and no player's card lined up with his own column of data below.
+
+Fixed by giving the results band and the comparison tables a single shared geometry in
+`src/lib/layout.ts`. The leader spans two column units, every other player spans one, and
+both grids reserve the same fixed strip for Add Player, so the two divide the remaining
+width into the same number of fractional units.
+
+**Two things had to be true for it to actually line up, and the first attempt missed both:**
+
+- `calc(1fr + 104px)` is not valid CSS. Fractional units cannot appear inside `calc`, so
+  the browser discarded the whole declaration and the tables silently fell back to no
+  explicit columns. The fix was a trailing spacer track instead of trying to widen the
+  last column.
+- The two grids had different horizontal extents. The table rows carried padding and
+  column gaps the band did not, and the content wrapper inset the tables by twenty pixels.
+  Identical track definitions are not enough when the containers start at different
+  positions. Padding moved inside the cells and the wrapper inset was removed.
+
+Verified by measuring rendered element edges rather than by eye: every card edge matches
+its column edge exactly at both three and four players.
