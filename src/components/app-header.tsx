@@ -19,7 +19,7 @@ interface AppHeaderProps {
  */
 export function AppHeader({ demoState, onDemoStateChange }: AppHeaderProps) {
   return (
-    <header className="border-b border-fp-border bg-white">
+    <header className="sticky top-0 z-30 border-b border-fp-border bg-white">
       <div className="mx-auto flex h-16 max-w-[1180px] items-center justify-between px-5">
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-fp-navy">
           <Image src="/fp-icon.svg" alt="FantasyPros" width={40} height={40} priority />

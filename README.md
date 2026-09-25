@@ -17,12 +17,14 @@ The math is not wrong. The input model is narrower than the decision the user ar
 
 ## Status
 
-The landing page is built. The recommendation output is not.
+The landing page and the signed-out advice view are built. The lineup-aware recommendation is not.
 
 | Area | State |
 |---|---|
 | Landing page, three demo states | built |
 | Start N and Lineup Goal controls | built, gating logic verified |
+| Advice view, signed out, two players | built |
+| Advice view, three and four players | not started |
 | Recommendation engine | not started |
 | Dev spec | not started |
 

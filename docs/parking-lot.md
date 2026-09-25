@@ -33,3 +33,55 @@ list.
 
 - **Status:** considered and set aside for this iteration. The concept design keeps the
   standard empty-slot default. Revisit once the engine can identify close calls.
+
+## Constraint found in the variant screenshots
+
+**Upside Potential and Bust Risk are premium-gated.** In the signed-in, non-premium state
+the Sentiment module shows the Overall meter but locks the other two behind "Upgrade to
+Premium".
+
+This matters because Lineup Goal is specified to weight Overall, Upside and Bust. Two of
+the three inputs are not available to a free signed-in user, so one of the following has
+to be true:
+
+- Lineup Goal is a premium feature, which conflicts with the principle of never gating
+  the answer, or
+- Lineup Goal is computed server side from data the user never sees directly, so the
+  gating applies to the meters rather than to the recommendation, or
+- Most Upside and Safe Floor are derived from something already visible, such as the
+  projection spread and matchup rating, rather than from the gated meters.
+
+The third reads as the most defensible: the user gets a differentiated recommendation
+without being shown gated data, and the meters remain a premium upsell. Worth resolving
+explicitly in the dev spec rather than leaving implied.
+
+## Expert pool is not fixed
+
+Observed across the screenshots: three running backs draw 45 experts, while swapping one
+for a wide receiver drops the pool to 42. The pool is the set of experts who ranked every
+player in the comparison, so mixing positions shrinks it.
+
+This is the mechanism behind the consensus-strength ceiling in the brief. A comparison
+with few shared experts cannot support a strong claim no matter how lopsided the split.
+The prototype models this as `expertPoolFor` in `src/lib/consensus.ts`.
+
+### Resolved: Lineup Goal gates with its data
+
+Decided 2026-09-25. Lineup Goal matches the gating of the meters it reads.
+
+- **Balanced** is available to everyone. The recommendation itself is never gated.
+- **Most Upside** and **Safe Floor** require premium, because they are weighted from
+  Upside Potential and Bust Risk.
+
+This also changed the demo states. "Signed In, League Synced" was renamed **"Premium,
+League Synced"**, because league sync does not lift the premium wall and the old label
+implied a tier that would still see two of the three meters locked.
+
+The three demo states are now Signed Out, Signed In / No League Synced, and Premium /
+League Synced.
+
+**Consequence worth stating in the write-up:** the feature's headline control is
+differentiated by tier. A free user gets a lineup-aware recommendation, just not a
+goal-weighted one. That is arguably the right commercial shape, since it gates the
+personalisation rather than the answer, but it should be a deliberate decision rather
+than a side effect of where the meters happen to sit today.

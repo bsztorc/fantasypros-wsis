@@ -16,7 +16,7 @@ export interface Player {
 }
 
 /** Which demo state the prototype is presenting. */
-export type DemoState = "signed-out" | "signed-in-unsynced" | "signed-in-synced";
+export type DemoState = "signed-out" | "signed-in-unsynced" | "premium-synced";
 
 /** How the recommendation should weight floor against ceiling. */
 export type LineupGoal = "balanced" | "most-upside" | "safe-floor";

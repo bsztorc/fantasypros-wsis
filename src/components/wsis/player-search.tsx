@@ -10,10 +10,12 @@ interface PlayerSearchProps {
   selectedIds: string[];
   onSelect: (player: Player) => void;
   disabled: boolean;
+  /** Overrides the default "Add a player" copy; the product makes this contextual. */
+  placeholder?: string;
 }
 
 /** The search pill, with a type-ahead list drawn from the fixture pool. */
-export function PlayerSearch({ pool, selectedIds, onSelect, disabled }: PlayerSearchProps) {
+export function PlayerSearch({ pool, selectedIds, onSelect, disabled, placeholder }: PlayerSearchProps) {
   const [query, setQuery] = useState("");
 
   const matches = query.trim()
@@ -35,7 +37,7 @@ export function PlayerSearch({ pool, selectedIds, onSelect, disabled }: PlayerSe
           value={query}
           disabled={disabled}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder={disabled ? "Comparison is full" : "Add a player"}
+          placeholder={disabled ? "Comparison is full" : (placeholder ?? "Add a player")}
           aria-label="Add a player to the comparison"
           className="w-full bg-transparent text-sm text-fp-ink placeholder:text-fp-muted focus:outline-none disabled:cursor-not-allowed"
         />
