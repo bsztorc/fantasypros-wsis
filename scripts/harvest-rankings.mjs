@@ -91,6 +91,7 @@ async function harvest({ position, url, keep }) {
     average: number(player.rank_ave),
     deviation: number(player.rank_std),
     grade: player.start_sit_grade,
+    kickoff: player.player_game_kickoff_ts ? Number(player.player_game_kickoff_ts) : null,
     projectedPoints: number(player.r2p_pts),
     owned: number(player.owned_perc),
   }));

@@ -24,6 +24,7 @@ const ROSTER_IDS = [
   "24357", // WR30   A. Mitchell
   "25333", // WR29   M. Wilson
   "19794", // WR33   R. Bateman
+  "19222", // WR7    D. Smith
   "27331", // WR47   KC Concepcion Jr.
   "25337", // WR45   T. Tucker
   "23000", // WR48   B. Thomas Jr.

@@ -3,7 +3,8 @@ import { designationFor } from "@/lib/injuries";
 /**
  * The injury designation shown beside a player's name.
  *
- * Appended rather than placed, so adding one never moves the name. Renders nothing when a
+ * Appended rather than placed, so adding one never moves the name, and set on the same
+ * baseline as the name rather than raised: it is a status, not a footnote. Renders nothing when a
  * player has no designation, which is most of them.
  *
  * The live product shows a questionable player as "Healthy" in a green label on mobile,
@@ -15,11 +16,11 @@ export function InjuryTag({ playerId, className = "" }: { playerId: string; clas
   if (!designation) return null;
 
   return (
-    <sup
-      className={`ml-1 font-bold text-[#e2483d] ${className}`}
+    <span
+      className={`ml-1 align-baseline text-[0.85em] font-bold text-[#e2483d] ${className}`}
       title={`Injury designation: ${designation}`}
     >
       {designation}
-    </sup>
+    </span>
   );
 }
