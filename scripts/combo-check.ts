@@ -1,19 +1,19 @@
 /** What share of experts would start exactly this set? Run: npx tsx scripts/combo-check.ts */
-import { buildPanel } from "../src/lib/ballots";
+import { buildPanel } from "../src/lib/expert-rankings";
 import { recommend } from "../src/lib/engine";
 import { list, type RankedPlayer } from "../src/lib/rankings";
 
 const wr = list("WR");
 const find = (n: string) => wr.find((p) => p.name === n)!;
 
-/** Share of ballots whose top N is exactly this set of players. */
+/** Share of expert rankings whose top N is exactly this set of players. */
 function combinationSupport(players: RankedPlayer[], set: RankedPlayer[]): number {
   const panel = buildPanel(players);
   const wanted = new Set(set.map((p) => p.id));
   let agree = 0;
-  for (const ballot of panel) {
+  for (const ranking of panel) {
     const top = [...players]
-      .sort((a, b) => (ballot.get(a.id) ?? 0) - (ballot.get(b.id) ?? 0))
+      .sort((a, b) => (ranking.get(a.id) ?? 0) - (ranking.get(b.id) ?? 0))
       .slice(0, set.length)
       .map((p) => p.id);
     if (top.length === wanted.size && top.every((id) => wanted.has(id))) agree += 1;

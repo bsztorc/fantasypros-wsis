@@ -60,7 +60,7 @@ function searchPlaceholder(count: number): string {
  *
  * Everything on screen derives from one reconstructed expert panel, so the percentage the
  * product shows today and the recommendation this prototype adds are two readings of the
- * same ballots rather than two competing opinions.
+ * same expert rankings rather than two competing opinions.
  */
 export function AdviceView({
   players,

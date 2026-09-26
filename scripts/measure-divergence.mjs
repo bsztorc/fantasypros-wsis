@@ -13,9 +13,10 @@
  * starting slot, and splits in two: the tier a manager is genuinely torn over, and the
  * remainder that can legally fill the slot.
  *
- * Ballots are reconstructed from FantasyPros' published dispersion because individual
- * ballots are not published in bulk. Each simulated expert carries a persistent lean, so
- * their ballot hangs together across players instead of being independent noise.
+ * A panel of expert rankings is reconstructed from FantasyPros' published dispersion, because
+ * individual expert rankings are not published in bulk. Each simulated expert carries a
+ * persistent lean, so their ranking hangs together across players instead of being independent
+ * noise.
  *
  * Run with: node scripts/measure-divergence.mjs
  */
@@ -54,7 +55,7 @@ function mulberry(seed) {
   };
 }
 
-function buildBallots(players, correlation, seed) {
+function buildExpertRankings(players, correlation, seed) {
   const rng = mulberry(seed);
   const normal = () => {
     const u = Math.max(rng(), 1e-9);
@@ -77,7 +78,7 @@ function buildBallots(players, correlation, seed) {
   });
 }
 
-function measure(players, ballots, startN = 2) {
+function measure(players, rankings, startN = 2) {
   let total = 0;
   let diverged = 0;
   for (let i = 0; i < players.length; i++)
@@ -86,11 +87,11 @@ function measure(players, ballots, startN = 2) {
         const ids = [players[i].id, players[j].id, players[k].id];
         const votes = new Map(ids.map((id) => [id, 0]));
         const included = new Map(ids.map((id) => [id, 0]));
-        for (const ballot of ballots) {
+        for (const ranking of rankings) {
           let best = null;
-          for (const id of ids) if (best === null || ballot.get(id) < ballot.get(best)) best = id;
+          for (const id of ids) if (best === null || ranking.get(id) < ranking.get(best)) best = id;
           votes.set(best, votes.get(best) + 1);
-          const top = [...ids].sort((a, b) => ballot.get(a) - ballot.get(b)).slice(0, startN);
+          const top = [...ids].sort((a, b) => ranking.get(a) - ranking.get(b)).slice(0, startN);
           for (const id of top) included.set(id, included.get(id) + 1);
         }
         const fc = [...ids].sort((a, b) => votes.get(b) - votes.get(a)).slice(0, startN);
@@ -110,8 +111,8 @@ function header(title) {
   console.log("  " + "-".repeat(63));
 }
 
-function line(label, players, ballots) {
-  const result = measure(players, ballots);
+function line(label, players, rankings) {
+  const result = measure(players, rankings);
   const dispersion = players.reduce((s, p) => s + p.deviation, 0) / players.length;
   const thin = result.total < 100 ? "  (thin sample)" : "";
   console.log(
@@ -124,20 +125,20 @@ function runTiers(title, tiers) {
   header(title);
   for (const [position, bands] of Object.entries(tiers)) {
     const list = data.positions[position];
-    const ballots = buildBallots(list, CORRELATION, SEED);
+    const rankings = buildExpertRankings(list, CORRELATION, SEED);
     bands.forEach(([low, high], index) =>
-      line(`${position}${index + 1} (${low}-${high})`, list.slice(low - 1, high), ballots),
+      line(`${position}${index + 1} (${low}-${high})`, list.slice(low - 1, high), rankings),
     );
   }
 }
 
-console.log(`Week ${data.week} ${data.season}, ${EXPERTS} reconstructed ballots`);
+console.log(`Week ${data.week} ${data.season}, ${EXPERTS} reconstructed expert rankings`);
 console.log("Three players from the same tier, filling two slots.");
 
 runTiers("BLOCKS OF 12 - one starting slot per team", TIERS_12);
 
 const flexList = data.positions.FLEX;
-const flexBallots = buildBallots(flexList, CORRELATION, SEED);
+const flexRankings = buildExpertRankings(flexList, CORRELATION, SEED);
 header("FLEX - split into two tiers");
 for (const tier of FLEX_TIERS) {
   const pool = flexList.filter((p) => {
@@ -146,6 +147,6 @@ for (const tier of FLEX_TIERS) {
     const rank = positionalRank(p);
     return rank >= band[0] && rank <= band[1];
   });
-  line(tier.label, pool, flexBallots);
+  line(tier.label, pool, flexRankings);
 }
 console.log();

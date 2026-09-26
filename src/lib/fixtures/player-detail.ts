@@ -1,4 +1,4 @@
-import { bustRoom, upsideRoom } from "@/lib/ballots";
+import { bustRoom, upsideRoom } from "@/lib/expert-rankings";
 import type { SentimentLevel } from "@/components/wsis/advice/sentiment-meter";
 import { seeded } from "@/lib/seed";
 import type { Player } from "@/lib/types";

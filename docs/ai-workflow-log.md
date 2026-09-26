@@ -211,8 +211,8 @@ be 2026 Week 3.
 
 **What the agent found:** FantasyPros' own ranking pages embed an `ecrData` object holding,
 for every ranked player, the consensus rank and the dispersion behind it: best rank, worst
-rank, average and standard deviation. Individual ballots are not published in bulk, but
-the distribution that produced them is, which is the part the engine needs.
+rank, average and standard deviation. Individual expert rankings are not published in bulk,
+but the distribution that produced them is, which is the part the engine needs.
 
 **The constraint earned its keep immediately.** Three pages look like the "all positions"
 ranking and do carry dispersion data, but they report week 0 and type "Draft". They are
@@ -225,5 +225,14 @@ cutoff predates the 2026 season entirely, so any rankings it recalled rather tha
 would have been invented. Fetching and recalling are different capabilities and the
 distinction matters when the output is a list of real people's opinions.
 
-**Validation:** simulating 46 ballots from the published dispersion for Hampton against
-Hubbard gives 27 to 19. FantasyPros publishes 26 to 20. One ballot out of 46.
+**Calibration, once:** reconstructing 46 expert rankings from the published dispersion for
+Hampton against Hubbard landed within a couple of experts of the split FantasyPros published,
+which was enough to confirm the snapshot behaves like the real product.
+
+**What that check turned out not to be.** It was then treated as a standing gate, and it
+failed the moment the snapshot was re-harvested. These two players sit 0.19 of a rank apart
+with Hubbard the more widely dispersed of the pair, so which one leads is inside the
+reconstruction margin. Calibrating on the closest pair on the board means calibrating on the
+one comparison a reconstruction cannot be expected to settle. The check is now kept as a
+record with no verdict, and the write-up claims nothing beyond a reconstructed snapshot of
+the published rankings at a moment in time.

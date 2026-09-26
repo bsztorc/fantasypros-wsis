@@ -2,16 +2,19 @@ import { seeded } from "@/lib/seed";
 import type { RankedPlayer } from "@/lib/rankings";
 
 /**
- * Reconstructed expert ballots.
+ * Reconstructed expert rankings.
  *
  * FantasyPros publishes, for every ranked player, the consensus rank and the dispersion
  * behind it: best rank, worst rank, average and standard deviation. It does not publish
- * individual ballots in bulk. This rebuilds a panel whose disagreement matches the
+ * individual expert rankings in bulk. This rebuilds a panel whose disagreement matches the
  * published dispersion.
  *
- * Validated against the product: for Hampton against Hubbard this produces 24 first-place
- * votes of 46, where FantasyPros publishes 26. Re-check with
- * `npx tsx scripts/validate-against-product.ts` after any change here.
+ * A reconstruction, not a recovery. The published dispersion constrains the panel but does
+ * not determine it, so what this reproduces is how much the experts disagree, not who said
+ * what. It was sanity-checked once against a published head-to-head to confirm the snapshot
+ * behaves like the real product. That is not a precision claim and is not re-checked as a
+ * gate: when two players sit within a fraction of a rank of each other, which one comes out
+ * ahead is inside the reconstruction margin.
  *
  * Every value is deterministic. The same players always produce the same panel, so a
  * walkthrough can be repeated and a screenshot still matches the page.
@@ -46,7 +49,7 @@ const CORRELATION = 0.45;
  * these players, which is what a lineup goal has to work against. Collapsing it to first,
  * second and third would leave every gap looking identical.
  */
-export type Ballot = Map<string, number>;
+export type ExpertRanking = Map<string, number>;
 
 /** Box-Muller, driven by a seeded generator so a panel is reproducible. */
 function normalFrom(next: () => number): number {
@@ -55,15 +58,18 @@ function normalFrom(next: () => number): number {
 }
 
 /**
- * Build a panel of ballots over the given players.
+ * Build a panel of expert rankings over the given players.
  *
  * Each expert carries a persistent lean, scaled by how uncertain a player is. An expert
- * who is bullish on volatile players is bullish on all of them, so their ballot hangs
+ * who is bullish on volatile players is bullish on all of them, so their ranking hangs
  * together instead of being independent noise per player. That matters here: real
  * disagreement clusters, and independent noise would understate how often a comparison is
  * genuinely close.
  */
-export function buildPanel(players: RankedPlayer[], panelSize = panelSizeFor(players)): Ballot[] {
+export function buildPanel(
+  players: RankedPlayer[],
+  panelSize = panelSizeFor(players),
+): ExpertRanking[] {
   if (players.length === 0) return [];
 
   const spread = players.reduce((sum, p) => sum + p.deviation, 0) / players.length || 1;
@@ -84,9 +90,9 @@ export function buildPanel(players: RankedPlayer[], panelSize = panelSizeFor(pla
       };
     });
 
-    const ballot: Ballot = new Map();
-    for (const entry of scored) ballot.set(entry.id, entry.raw);
-    return ballot;
+    const ranking: ExpertRanking = new Map();
+    for (const entry of scored) ranking.set(entry.id, entry.raw);
+    return ranking;
   });
 }
 

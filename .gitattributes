@@ -1,0 +1,5 @@
+# The frozen snapshot is hashed by scripts/check-snapshot.mjs, which runs in the build. Keep
+# these files LF everywhere so the hash does not depend on the platform that checked them out.
+src/lib/fixtures/rankings-week3.json text eol=lf
+src/lib/fixtures/injuries-week3.json text eol=lf
+src/lib/fixtures/snapshot.lock.json text eol=lf

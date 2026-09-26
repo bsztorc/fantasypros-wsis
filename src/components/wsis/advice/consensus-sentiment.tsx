@@ -1,4 +1,4 @@
-import { bustRoom, upsideRoom } from "@/lib/ballots";
+import { bustRoom, upsideRoom } from "@/lib/expert-rankings";
 import type { PlayerResult, Recommendation } from "@/lib/engine";
 
 /**

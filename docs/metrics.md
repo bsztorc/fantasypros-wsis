@@ -102,12 +102,21 @@ support library to explain why its own recommendations disagree is not explainin
 
 ## Computed from the Week 3 snapshot
 
-Source: 725 entries across nine ranking lists, 395 distinct players, captured
-2026-09-25. Ballots reconstructed from published dispersion, 46 experts.
-Reproducible with `node scripts/measure-divergence.mjs`.
+Source: a reconstructed snapshot of FantasyPros' published rankings at a moment in time.
+765 entries across nine ranking lists, 435 distinct players, captured 2026-09-26. A panel
+of 46 expert rankings reconstructed from the published dispersion: best rank, worst rank,
+average and standard deviation per player. Reproducible with `npm run check:divergence`.
 
-**Validation.** Simulating 46 ballots for Hampton against Hubbard gives 27 to 19.
-FantasyPros publishes 26 to 20. One ballot out of 46.
+The snapshot is frozen so the demo is repeatable, and `npm run build` fails if it moves.
+See `docs/handoff.md`.
+
+**What the reconstruction is.** It reproduces how much the experts disagree, not who said
+what. Individual expert rankings are not published in bulk, so the panel is built to match
+the published dispersion rather than recovered from it. It was checked once against a
+published head-to-head, which was enough to confirm the snapshot behaves like the real
+product, and that check is not a standing gate. **Claim nothing more than a reconstructed
+snapshot of the published rankings at a moment in time.** No precision claim, and do not
+offer an expert count as proof of accuracy.
 
 ### Divergence rate: how often the expert-preferred pair differs from the top two by first-choice share
 

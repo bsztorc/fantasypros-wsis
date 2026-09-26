@@ -138,7 +138,7 @@ into an answer when N is greater than one, and it always explains the result.
 
 How often the expert-preferred pair differs from the top two by first-choice share. Three
 players from the same tier, filling two slots, against the Week 3 snapshot, 46
-reconstructed ballots.
+reconstructed expert rankings.
 
 Tiers follow how rosters and rankings actually work, not even blocks. QB caps at 32
 because only 32 quarterbacks start in the NFL. RB stops at RB3 and TE at TE2, because
