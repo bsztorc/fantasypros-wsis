@@ -72,26 +72,34 @@ export interface Recommendation {
 }
 
 /**
- * How far a lineup goal may move a player within an expert's ranking, in rank positions.
+ * How far a lineup goal may move a player within an expert's ranking, in board positions.
  *
- * The goal expresses the user's risk tolerance, so it is applied to the rankings when
- * choosing the set: if these experts shared your appetite for ceiling, who would they
- * start? It is never applied to the numbers reported back, which stay counts of what the
- * experts actually said.
+ * A ballot records the rank each expert gave on the underlying board, so the nudge works
+ * on that scale: at 0.35, a player whose optimistic ranking sits ten places above his
+ * average gains three and a half places. That is enough to overtake someone an expert put
+ * narrowly ahead of him and not enough to overtake someone put comfortably ahead.
  */
 const GOAL_WEIGHT = 0.35;
 
 /**
- * Goal adjustment, in rank positions. Negative is better.
+ * Per-player goal adjustment for one comparison, in places. Negative is better.
  *
- * Most Upside rewards the player an optimistic expert would rank far higher than the
- * average; Safe Floor penalises the one a pessimistic expert would drop furthest. Balanced
- * applies nothing, which is why it needs no premium data and stays available to everyone.
+ * Each player's ceiling or downside is measured against the widest in this comparison, so
+ * the adjustment is relative to the players actually being compared rather than to the
+ * whole position list. Most Upside rewards the player an optimistic expert ranks furthest
+ * above his average; Safe Floor penalizes the one a pessimistic expert drops furthest.
+ * Balanced applies nothing, which is why it needs no premium data.
  */
-function goalAdjustment(player: RankedPlayer, goal: LineupGoal): number {
-  if (goal === "most-upside") return -GOAL_WEIGHT * upsideRoom(player);
-  if (goal === "safe-floor") return GOAL_WEIGHT * bustRoom(player);
-  return 0;
+function goalAdjustments(
+  players: RankedPlayer[],
+  goal: LineupGoal,
+): Map<string, number> {
+  const empty = new Map(players.map((p) => [p.id, 0]));
+  if (goal === "balanced") return empty;
+
+  const room = (p: RankedPlayer) => (goal === "most-upside" ? upsideRoom(p) : bustRoom(p));
+  const direction = goal === "most-upside" ? -1 : 1;
+  return new Map(players.map((p) => [p.id, direction * GOAL_WEIGHT * room(p)]));
 }
 
 /**
@@ -106,23 +114,23 @@ function goalAdjustment(player: RankedPlayer, goal: LineupGoal): number {
 function orderBallot(
   ballot: Ballot,
   players: RankedPlayer[],
-  goal: LineupGoal,
+  tilt: Map<string, number>,
 ): RankedPlayer[] {
   return [...players].sort(
     (a, b) =>
-      (ballot.get(a.id) ?? Infinity) + goalAdjustment(a, goal) -
-      ((ballot.get(b.id) ?? Infinity) + goalAdjustment(b, goal)),
+      (ballot.get(a.id) ?? Infinity) + (tilt.get(a.id) ?? 0) -
+      ((ballot.get(b.id) ?? Infinity) + (tilt.get(b.id) ?? 0)),
   );
 }
 
 function countFirstChoices(
   panel: Ballot[],
   players: RankedPlayer[],
-  goal: LineupGoal,
+  tilt: Map<string, number>,
 ): Map<string, number> {
   const votes = new Map(players.map((p) => [p.id, 0]));
   for (const ballot of panel) {
-    const best = orderBallot(ballot, players, goal)[0];
+    const best = orderBallot(ballot, players, tilt)[0];
     if (best) votes.set(best.id, (votes.get(best.id) ?? 0) + 1);
   }
   return votes;
@@ -133,11 +141,11 @@ function countInclusions(
   panel: Ballot[],
   players: RankedPlayer[],
   startN: number,
-  goal: LineupGoal,
+  tilt: Map<string, number>,
 ): Map<string, number> {
   const included = new Map(players.map((p) => [p.id, 0]));
   for (const ballot of panel) {
-    for (const player of orderBallot(ballot, players, goal).slice(0, startN)) {
+    for (const player of orderBallot(ballot, players, tilt).slice(0, startN)) {
       included.set(player.id, (included.get(player.id) ?? 0) + 1);
     }
   }
@@ -162,8 +170,9 @@ export function recommend(
   if (!players) return null;
 
   const panel = buildPanel(players);
-  const firstChoices = countFirstChoices(panel, players, goal);
-  const inclusions = countInclusions(panel, players, startN, goal);
+  const tilt = goalAdjustments(players, goal);
+  const firstChoices = countFirstChoices(panel, players, tilt);
+  const inclusions = countInclusions(panel, players, startN, tilt);
 
   const bySelection = [...players].sort((a, b) => {
     const diff = (inclusions.get(b.id) ?? 0) - (inclusions.get(a.id) ?? 0);
@@ -189,7 +198,7 @@ export function recommend(
   // How many experts would start exactly this set, rather than merely include a member.
   let exactAgreement = 0;
   for (const ballot of panel) {
-    const top = orderBallot(ballot, players, goal).slice(0, startN);
+    const top = orderBallot(ballot, players, tilt).slice(0, startN);
     if (top.every((p) => recommended.has(p.id))) exactAgreement += 1;
   }
   const combinationShare = Math.round((exactAgreement / panel.length) * 100);

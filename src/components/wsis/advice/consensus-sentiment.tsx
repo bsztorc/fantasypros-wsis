@@ -127,8 +127,10 @@ function goalNote(recommendation: Recommendation): string {
         );
       }
     }
-    const widest = [...starters].sort((a, b) => upsideRoom(b.player) - upsideRoom(a.player))[0];
-    return ` Most Upside does not change the pick, and ${widest.player.name} carries the widest ceiling of these.`;
+    const widest = [...results].sort((a, b) => upsideRoom(b.player) - upsideRoom(a.player))[0];
+    return widest.recommended
+      ? ` Most Upside does not change the pick: ${widest.player.name} already has the widest ceiling here.`
+      : ` Most Upside does not change the pick. ${widest.player.name} has the widest ceiling here, but not enough to displace ${starters[starters.length - 1].player.name}.`;
   }
 
   if (goalChangedFrom) {
@@ -141,8 +143,10 @@ function goalNote(recommendation: Recommendation): string {
       );
     }
   }
-  const steadiest = [...starters].sort((a, b) => bustRoom(a.player) - bustRoom(b.player))[0];
-  return ` Safe Floor does not change the pick, and ${steadiest.player.name} has the least downside of these.`;
+  const steadiest = [...results].sort((a, b) => bustRoom(a.player) - bustRoom(b.player))[0];
+  return steadiest.recommended
+    ? ` Safe Floor does not change the pick: ${steadiest.player.name} already has the least downside here.`
+    : ` Safe Floor does not change the pick. ${steadiest.player.name} has the least downside here, but not enough to displace ${starters[starters.length - 1].player.name}.`;
 }
 
 /** "a, b and c", or just "a" for a single item. */

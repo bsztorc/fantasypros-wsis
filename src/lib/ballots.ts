@@ -22,7 +22,14 @@ export const PANEL_SIZE = 46;
 /** How much of a rank comes from the expert's own lean rather than player-specific noise. */
 const CORRELATION = 0.45;
 
-/** A single expert's view: player id to the rank they gave. */
+/**
+ * A single expert's view: player id to the rank they gave that player.
+ *
+ * The value is the expert's rank on the underlying board, not their position within this
+ * comparison. Keeping the board rank matters: it preserves how far apart the expert put
+ * these players, which is what a lineup goal has to work against. Collapsing it to first,
+ * second and third would leave every gap looking identical.
+ */
 export type Ballot = Map<string, number>;
 
 /** Box-Muller, driven by a seeded generator so a panel is reproducible. */
@@ -61,9 +68,8 @@ export function buildPanel(players: RankedPlayer[], panelSize = PANEL_SIZE): Bal
       };
     });
 
-    scored.sort((a, b) => a.raw - b.raw);
     const ballot: Ballot = new Map();
-    scored.forEach((entry, index) => ballot.set(entry.id, index + 1));
+    for (const entry of scored) ballot.set(entry.id, entry.raw);
     return ballot;
   });
 }
