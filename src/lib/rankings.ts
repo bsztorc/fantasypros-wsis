@@ -21,6 +21,8 @@ export interface RankedPlayer {
   average: number;
   deviation: number;
   grade: string | null;
+  /** Kickoff as a unix timestamp. When a player plays decides whether you can replace him. */
+  kickoff: number | null;
   projectedPoints: number | null;
   owned: number | null;
 }
