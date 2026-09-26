@@ -40,12 +40,13 @@ is filling a flex or superflex slot, where several positions compete for one spo
 strict positional slot. Until that is cut, 27% stands on its own with no adjustment
 claimed in either direction.
 
-**What the sample actually shows about position mix.** Reviewed but not yet counted:
+**What the sample shows about the multi-slot subset.** These describe the N>1 requests,
+the 27%, not the sample as a whole. Reviewed but not yet counted:
 
-- No multi-slot question in the sample was QB-only, and none was QB against TE.
+- No multi-slot request was QB-only, and none pitted QB against TE.
 - QB questions are almost always single-slot.
-- Most questions involve wide receivers. Some are running backs or a mix of both.
-  Tight ends are rare.
+- Most multi-slot requests involve wide receivers. Some are running backs or a mix of
+  both. Tight ends are rare.
 
 **This rehabilitates the re-cut, on different grounds.** Superflex means a multi-slot QB
 question is *possible*, so the structural argument for excluding QB and TE does not hold.
@@ -57,8 +58,8 @@ Stated safely: **every multi-slot request in the sample was a running back, wide
 or mixed decision.** That is a claim about the sample, it is checkable, and it does not
 depend on league format.
 
-**Open work Brandon is doing:** counting the position mix properly, so "most questions
-involve wide receivers" becomes a number rather than an impression.
+**Open work Brandon is doing:** counting the position mix of the multi-slot requests, so
+"most involve wide receivers" becomes a number rather than an impression.
 
 **Dominant theme in the extra context:** injury uncertainty, specifically whether a
 questionable player will suit up and the problem of not knowing before a Sunday or Monday
@@ -130,15 +131,15 @@ FantasyPros publishes 26 to 20. One ballot out of 46.
 different and false: it reads as flex accounting for 22.3% of all divergence across the
 board. The 22.3% is a **rate within flex comparisons**, not flex's share of a total.
 
-**Demand and divergence point at the same place.** The sample is wide receiver heavy and
-every multi-slot request in it is a running back, wide receiver or mixed decision. WR3 is
+**Demand and divergence point at the same place.** The multi-slot requests are wide
+receiver heavy, and every one of them is a running back, wide receiver or mixed decision. WR3 is
 the highest-divergence tier at 22.3%, and WR3 supplies twelve of FLEX1's eighteen players.
 Where users ask most is where the current display is least reliable.
 
 **Do not state that as a proven correlation.** Two observations lining up is not a
 demonstrated relationship, and the position mix is reviewed rather than counted. Present
-it as what it is: the demand is concentrated in the same tier the divergence is, which is
-why the feature is worth building there first.
+it as what it is: multi-slot demand is concentrated in the same tier the divergence is,
+which is why the feature is worth building there first.
 
 **Do not claim a smooth gradient.** RB3 (5.0%) sits below RB2 (6.4%), and WR4 (11.8%)
 below WR3 (22.3%).
