@@ -18,10 +18,15 @@ interface LineupControlsProps {
   gateVariant?: GateVariant;
 }
 
+/**
+ * Ordered as a risk scale rather than by importance, safest on the left, so the control
+ * reads as a dial the user slides rather than three unrelated options. Balanced sits in
+ * the middle, which is both the default and the neutral point of the scale.
+ */
 const GOALS: { value: LineupGoal; label: string }[] = [
+  { value: "safe-floor", label: "Safe Floor" },
   { value: "balanced", label: "Balanced" },
   { value: "most-upside", label: "Most Upside" },
-  { value: "safe-floor", label: "Safe Floor" },
 ];
 
 /**

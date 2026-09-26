@@ -61,9 +61,24 @@ export interface Recommendation {
    * possible sets the shares total 100: one expert, one vote, as now.
    */
   combinationShare: number;
+  /**
+   * The set Balanced would have picked, when the chosen goal changed it.
+   *
+   * Null when the goal is Balanced, or when weighting for ceiling or floor lands on the
+   * same players anyway. A goal that quietly alters the answer without saying so is the
+   * same failure as a percentage that quietly answers a different question.
+   */
+  goalChangedFrom: RankedPlayer[] | null;
 }
 
-/** How far a lineup goal is allowed to move a player's standing, in rank positions. */
+/**
+ * How far a lineup goal may move a player within an expert's ranking, in rank positions.
+ *
+ * The goal expresses the user's risk tolerance, so it is applied to the rankings when
+ * choosing the set: if these experts shared your appetite for ceiling, who would they
+ * start? It is never applied to the numbers reported back, which stay counts of what the
+ * experts actually said.
+ */
 const GOAL_WEIGHT = 0.35;
 
 /**
@@ -91,12 +106,46 @@ function countFirstChoices(panel: Ballot[], ids: string[]): Map<string, number> 
   return votes;
 }
 
+/**
+ * How many experts would start each player, counted from the ballots as given.
+ *
+ * Deliberately unweighted. The lineup goal chooses which set to recommend; it must not
+ * change the numbers reported about the panel, or a sentence like "43 of 46 experts would
+ * start this pair" stops being a statement about experts and becomes a statement about
+ * experts after we re-sorted their rankings for them.
+ */
 function countInclusions(
+  panel: Ballot[],
+  players: RankedPlayer[],
+  startN: number,
+): Map<string, number> {
+  const included = new Map(players.map((p) => [p.id, 0]));
+  for (const ballot of panel) {
+    const ordered = [...players].sort(
+      (a, b) => (ballot.get(a.id) ?? Infinity) - (ballot.get(b.id) ?? Infinity),
+    );
+    for (const player of ordered.slice(0, startN)) {
+      included.set(player.id, (included.get(player.id) ?? 0) + 1);
+    }
+  }
+  return included;
+}
+
+/**
+ * The same count, with each expert's ranking tilted by the lineup goal first.
+ *
+ * Used only to choose the set. Reporting these numbers would turn "43 of 46 experts would
+ * start this pair" into a claim about experts after we re-sorted their rankings for them,
+ * which is the exact failure this prototype exists to correct.
+ */
+function countInclusionsForGoal(
   panel: Ballot[],
   players: RankedPlayer[],
   startN: number,
   goal: LineupGoal,
 ): Map<string, number> {
+  if (goal === "balanced") return countInclusions(panel, players, startN);
+
   const included = new Map(players.map((p) => [p.id, 0]));
   for (const ballot of panel) {
     const ordered = [...players].sort(
@@ -131,13 +180,15 @@ export function recommend(
   const ids = players.map((p) => p.id);
   const panel = buildPanel(players);
   const firstChoices = countFirstChoices(panel, ids);
-  const inclusions = countInclusions(panel, players, startN, goal);
+  // Two counts: one for the numbers on screen, one for deciding who to recommend.
+  const inclusions = countInclusions(panel, players, startN);
+  const selectionCounts = countInclusionsForGoal(panel, players, startN, goal);
 
-  const byInclusion = [...players].sort((a, b) => {
-    const diff = (inclusions.get(b.id) ?? 0) - (inclusions.get(a.id) ?? 0);
+  const bySelection = [...players].sort((a, b) => {
+    const diff = (selectionCounts.get(b.id) ?? 0) - (selectionCounts.get(a.id) ?? 0);
     return diff !== 0 ? diff : (firstChoices.get(b.id) ?? 0) - (firstChoices.get(a.id) ?? 0);
   });
-  const recommended = new Set(byInclusion.slice(0, startN).map((p) => p.id));
+  const recommended = new Set(bySelection.slice(0, startN).map((p) => p.id));
 
   const byFirstChoice = [...players].sort(
     (a, b) => (firstChoices.get(b.id) ?? 0) - (firstChoices.get(a.id) ?? 0),
@@ -158,11 +209,7 @@ export function recommend(
   let exactAgreement = 0;
   for (const ballot of panel) {
     const top = [...players]
-      .sort(
-        (a, b) =>
-          (ballot.get(a.id) ?? Infinity) + goalAdjustment(a, goal) -
-          ((ballot.get(b.id) ?? Infinity) + goalAdjustment(b, goal)),
-      )
+      .sort((a, b) => (ballot.get(a.id) ?? Infinity) - (ballot.get(b.id) ?? Infinity))
       .slice(0, startN);
     if (top.every((p) => recommended.has(p.id))) exactAgreement += 1;
   }
@@ -177,6 +224,16 @@ export function recommend(
     recommended: recommended.has(player.id),
   }));
 
+  // What Balanced would have chosen, so the summary can name what the goal changed.
+  let goalChangedFrom: RankedPlayer[] | null = null;
+  if (goal !== "balanced") {
+    const balanced = recommend(selected, startN, "balanced");
+    if (balanced) {
+      const balancedPick = balanced.results.filter((r) => r.recommended).map((r) => r.player);
+      if (balancedPick.some((p) => !recommended.has(p.id))) goalChangedFrom = balancedPick;
+    }
+  }
+
   return {
     results,
     panelSize: panel.length,
@@ -186,5 +243,6 @@ export function recommend(
     indistinguishable,
     firstChoicePick,
     combinationShare,
+    goalChangedFrom,
   };
 }

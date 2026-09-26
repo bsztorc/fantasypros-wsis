@@ -1,3 +1,4 @@
+import { bustRoom, upsideRoom } from "@/lib/ballots";
 import type { PlayerResult, Recommendation } from "@/lib/engine";
 
 /**
@@ -63,9 +64,17 @@ function summarize(recommendation: Recommendation): string {
   const agreeing = Math.round((combinationShare / 100) * panelSize);
   const [firstStarter, ...otherStarters] = starters;
 
-  const answer =
-    `${agreeing} of ${panelSize} experts would start ${listOf(starters.map((r) => r.player.name))}, ` +
-    `more than any other combination of these ${COUNT_WORD[results.length] ?? results.length}.`;
+  const named = listOf(starters.map((r) => r.player.name));
+
+  // When the goal overrides consensus the recommended set is deliberately not the
+  // best-supported one, so the claim that it leads must go. Saying it anyway would be the
+  // same failure the prototype exists to correct: a number answering a different question
+  // than the sentence around it.
+  const overridden = recommendation.goalChangedFrom !== null;
+  const answer = overridden
+    ? `${agreeing} of ${panelSize} experts would start ${named}.`
+    : `${agreeing} of ${panelSize} experts would start ${named}, more than any other ` +
+      `combination of these ${COUNT_WORD[results.length] ?? results.length}.`;
 
   const why =
     ` ${firstStarter.player.name} is the first choice of ${firstStarter.firstChoiceShare}% of ` +
@@ -75,7 +84,7 @@ function summarize(recommendation: Recommendation): string {
     ) +
     `.`;
 
-  if (benched.length === 0) return answer + why;
+  if (benched.length === 0) return answer + why + goalNote(recommendation);
 
   const challenged = [...benched].sort((a, b) => b.firstChoiceShare - a.firstChoiceShare)[0];
 
@@ -86,11 +95,63 @@ function summarize(recommendation: Recommendation): string {
       answer +
       why +
       ` ${challenged.player.name} divides opinion: ${challenged.firstChoiceShare}% rank him ` +
-      `the best of these, but most of the rest rank him last.`
+      `the best of these, but most of the rest rank him last.` +
+      goalNote(recommendation)
     );
   }
 
-  return answer + why;
+  return answer + why + goalNote(recommendation);
+}
+
+/**
+ * What the lineup goal did to the answer.
+ *
+ * Balanced says nothing: it applies no weight, so there is nothing to explain. The other
+ * two do change the selection, and a control that silently alters the recommendation is
+ * the same problem as a percentage that silently answers a different question.
+ *
+ * The numbers are the real spread behind each player: how far above his average the most
+ * optimistic expert puts him, and how far below the most pessimistic one does.
+ */
+function goalNote(recommendation: Recommendation): string {
+  const { goal, goalChangedFrom, results } = recommendation;
+  if (goal === "balanced") return "";
+
+  const starters = results.filter((r) => r.recommended);
+  const spots = (value: number) => {
+    const rounded = Math.round(value);
+    return `${rounded} ${rounded === 1 ? "spot" : "spots"}`;
+  };
+
+  if (goal === "most-upside") {
+    if (goalChangedFrom) {
+      const added = starters.find((r) => !goalChangedFrom.some((p) => p.id === r.player.id));
+      const dropped = goalChangedFrom.find((p) => !starters.some((r) => r.player.id === p.id));
+      if (added && dropped) {
+        return (
+          ` Most Upside takes ${added.player.name} over ${dropped.name}: fewer experts would start ` +
+          `him, but his best expert ranking is ${spots(upsideRoom(added.player))} above his ` +
+          `average, the widest ceiling here.`
+        );
+      }
+    }
+    const widest = [...starters].sort((a, b) => upsideRoom(b.player) - upsideRoom(a.player))[0];
+    return ` Most Upside does not change the pick, and ${widest.player.name} carries the widest ceiling of these.`;
+  }
+
+  if (goalChangedFrom) {
+    const added = starters.find((r) => !goalChangedFrom.some((p) => p.id === r.player.id));
+    const dropped = goalChangedFrom.find((p) => !starters.some((r) => r.player.id === p.id));
+    if (added && dropped) {
+      return (
+        ` Safe Floor takes ${added.player.name} over ${dropped.name}: fewer experts would start ` +
+        `him, but ${dropped.name}'s worst expert ranking is ${spots(bustRoom(dropped))} below his ` +
+        `average, the steepest drop here.`
+      );
+    }
+  }
+  const steadiest = [...starters].sort((a, b) => bustRoom(a.player) - bustRoom(b.player))[0];
+  return ` Safe Floor does not change the pick, and ${steadiest.player.name} has the least downside of these.`;
 }
 
 /** "a, b and c", or just "a" for a single item. */
