@@ -2,11 +2,11 @@
 
 import { CloseIcon, LockIcon, PlayerSilhouette } from "@/components/ui/icons";
 import { PercentageBadge, PercentageRing } from "@/components/wsis/advice/percentage-ring";
-import type { Consensus, ExpertVote } from "@/lib/consensus";
+import type { PlayerResult, Recommendation } from "@/lib/engine";
 import { bandColumns } from "@/lib/layout";
-import type { Player, Position } from "@/lib/types";
+import type { Player } from "@/lib/types";
 
-const POSITION_TEXT: Record<Position, string> = {
+const POSITION_TEXT: Record<string, string> = {
   QB: "text-[#c58cf0]",
   RB: "text-[#6ea8ff]",
   WR: "text-[#5fd08a]",
@@ -14,6 +14,8 @@ const POSITION_TEXT: Record<Position, string> = {
   K: "text-[#5fc8dd]",
   DST: "text-[#aab3c2]",
 };
+
+const positionText = (position: string) => POSITION_TEXT[position] ?? "text-[#aab3c2]";
 
 function RemoveButton({ player, onRemove }: { player: Player; onRemove: (id: string) => void }) {
   return (
@@ -28,117 +30,153 @@ function RemoveButton({ player, onRemove }: { player: Player; onRemove: (id: str
   );
 }
 
-function ExpertCount({ votes, total }: { votes: number; total: number }) {
+function StartPill() {
   return (
-    <p className="text-[11px] text-white">
-      <span className="font-bold">
-        {votes} of {total}
-      </span>{" "}
-      experts
-    </p>
+    <span className="rounded-full bg-[#22b45a] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+      Start
+    </span>
   );
 }
 
-/** The emphasised card: the player most experts picked first. */
+/**
+ * The two numbers, one above the other.
+ *
+ * The ring is the share of experts who made this player their single first choice, which
+ * is what the tool shows today. Beneath it, once more than one slot is being filled, sits
+ * the share who would actually start him.
+ *
+ * They answer different questions and they are on different scales: first choices total
+ * 100 across a comparison, while start shares total roughly N times that. Showing one and
+ * hiding the other is what lets the current display be read as a ranking.
+ */
+function Numbers({
+  result,
+  startN,
+  total,
+}: {
+  result: PlayerResult;
+  startN: number;
+  total: number;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-1.5">
+      <PercentageRing share={result.firstChoiceShare} leading={result.recommended} />
+      <p className="whitespace-nowrap text-[11px] text-white">
+        <span className="font-bold">
+          {result.firstChoiceVotes} of {total}
+        </span>{" "}
+        first choice
+      </p>
+      {startN > 1 && (
+        <p
+          className={`whitespace-nowrap text-[11px] font-semibold ${
+            result.recommended ? "text-[#22b45a]" : "text-fp-on-navy"
+          }`}
+        >
+          {result.inclusionShare}% would start
+        </p>
+      )}
+    </div>
+  );
+}
+
 function LeaderCard({
-  vote,
+  result,
+  startN,
   total,
   onRemove,
-  mirrored = false,
 }: {
-  vote: ExpertVote;
+  result: PlayerResult;
+  startN: number;
   total: number;
   onRemove: (id: string) => void;
-  mirrored?: boolean;
 }) {
-  const { player, share } = vote;
-
+  const { player } = result;
   return (
-    <div
-      className={[
-        "relative flex h-[190px] min-w-0 flex-1 items-end gap-4 overflow-hidden bg-[#1f438b] px-5 pt-4",
-        mirrored ? "flex-row-reverse" : "",
-      ].join(" ")}
-    >
+    <div className="relative flex h-[200px] min-w-0 flex-1 items-end gap-4 overflow-hidden bg-[#1f438b] px-5 pt-4">
       <RemoveButton player={player} onRemove={onRemove} />
       <PlayerSilhouette className="-mb-6 h-40 w-40 shrink-0 text-white/25" />
-
-      <div className={["flex min-w-0 flex-1 flex-col pb-4", mirrored ? "items-start" : "items-end"].join(" ")}>
-        <p className={["text-[22px] font-bold leading-tight text-white", mirrored ? "text-left" : "text-right"].join(" ")}>
+      <div className="flex min-w-0 flex-1 flex-col items-end pb-4">
+        {startN > 1 && result.recommended && <StartPill />}
+        <p className="mt-1 text-right text-[22px] font-bold leading-tight text-white">
           {player.name}
         </p>
-        <p className="mt-6 whitespace-nowrap text-[13px] text-white/90">
+        <p className="mt-3 whitespace-nowrap text-[13px] text-white/90">
           {player.position} - {player.team}
         </p>
-        <p className="whitespace-nowrap text-[13px] text-white/90">{player.opponent} Sun 1pm ET</p>
+        <p className="whitespace-nowrap text-[13px] text-white/90">{player.opponent}</p>
       </div>
-
-      <div className="flex shrink-0 flex-col items-center gap-1.5 pb-4">
-        <PercentageRing share={share} leading />
-        <ExpertCount votes={vote.votes} total={total} />
+      <div className="shrink-0 pb-4">
+        <Numbers result={result} startN={startN} total={total} />
       </div>
     </div>
   );
 }
 
-/** The mirrored second card, used only when exactly two players are compared. */
 function RunnerUpCard({
-  vote,
+  result,
+  startN,
   total,
   onRemove,
 }: {
-  vote: ExpertVote;
+  result: PlayerResult;
+  startN: number;
   total: number;
   onRemove: (id: string) => void;
 }) {
-  const { player, share } = vote;
-
+  const { player } = result;
   return (
-    <div className="relative flex h-[190px] min-w-0 flex-1 items-end gap-4 overflow-hidden px-5 pt-4">
+    <div className="relative flex h-[200px] min-w-0 flex-1 items-end gap-4 overflow-hidden px-5 pt-4">
       <RemoveButton player={player} onRemove={onRemove} />
-
-      <div className="flex shrink-0 flex-col items-center gap-1.5 pb-4">
-        <PercentageRing share={share} leading={false} />
-        <ExpertCount votes={vote.votes} total={total} />
+      <div className="shrink-0 pb-4">
+        <Numbers result={result} startN={startN} total={total} />
       </div>
-
       <div className="flex min-w-0 flex-1 flex-col items-start pb-4">
-        <p className="text-[22px] font-bold leading-tight text-white">{player.name}</p>
-        <p className="mt-6 whitespace-nowrap text-[13px] text-white/90">
+        {startN > 1 && result.recommended && <StartPill />}
+        <p className="mt-1 text-[22px] font-bold leading-tight text-white">{player.name}</p>
+        <p className="mt-3 whitespace-nowrap text-[13px] text-white/90">
           {player.position} - {player.team}
         </p>
-        <p className="whitespace-nowrap text-[13px] text-white/90">{player.opponent} Sun 1pm ET</p>
+        <p className="whitespace-nowrap text-[13px] text-white/90">{player.opponent}</p>
       </div>
-
       <PlayerSilhouette className="-mb-6 h-40 w-40 shrink-0 text-white/25" />
     </div>
   );
 }
 
-/** The compact card used for every non-leading player once three or more are compared. */
 function CompactCard({
-  vote,
+  result,
+  startN,
   onRemove,
 }: {
-  vote: ExpertVote;
+  result: PlayerResult;
+  startN: number;
   onRemove: (id: string) => void;
 }) {
-  const { player, share } = vote;
-
+  const { player } = result;
   return (
-    <div className="relative flex h-[190px] min-w-0 flex-1 flex-col items-center gap-1.5 overflow-hidden border-l border-white/10 px-3 pt-4">
+    <div className="relative flex h-[200px] min-w-0 flex-1 flex-col items-center gap-1 overflow-hidden border-l border-white/10 px-3 pt-4">
       <RemoveButton player={player} onRemove={onRemove} />
-      <PercentageBadge share={share} />
+      <PercentageBadge share={result.firstChoiceShare} />
       <p className="text-center text-[15px] font-bold leading-tight text-white">{player.name}</p>
-      <p className={`text-[11px] font-medium ${POSITION_TEXT[player.position]}`}>
+      <p className={`text-[11px] font-medium ${positionText(player.position)}`}>
         {player.position} - {player.team}
       </p>
-      <PlayerSilhouette className="-mb-4 mt-auto h-20 w-20 text-white/25" />
+      {startN > 1 && (
+        <p
+          className={`text-[11px] font-semibold ${
+            result.recommended ? "text-[#22b45a]" : "text-fp-on-navy"
+          }`}
+        >
+          {result.inclusionShare}% would start
+        </p>
+      )}
+      {startN > 1 && result.recommended && <StartPill />}
+      <PlayerSilhouette className="-mb-4 mt-auto h-16 w-16 text-white/25" />
     </div>
   );
 }
 
-/** The Add Player strip at the right of the band. */
 function AddPlayerCell({
   canAddPlayer,
   addPlayerLocked,
@@ -174,41 +212,39 @@ function AddPlayerCell({
 }
 
 interface ResultsBandProps {
-  consensus: Consensus;
+  recommendation: Recommendation;
   onRemove: (playerId: string) => void;
   /** False when the state cannot add another player, e.g. signed out at two. */
   canAddPlayer: boolean;
   onAddPlayer: () => void;
-  /** Rendered with a padlock rather than hidden, so the limit is visible. */
+  /** Rendered with a padlock rather than hidden, so the limit stays visible. */
   addPlayerLocked: boolean;
 }
 
 /**
  * The results header.
  *
- * The product uses two layouts. With exactly two players the cards mirror each other at
- * equal weight. From three players up, the leading player keeps a double-width card and
- * the rest collapse into single-width ones, which is precisely the visual hierarchy that
- * invites the ordering to be read as a ranking.
- *
- * From three players the band is a grid sharing its geometry with the comparison tables
- * below, so each player's card sits directly above his own column.
+ * Two layouts, matching the product. With exactly two players the cards mirror each other
+ * at equal weight. From three up the leading player keeps a double-width card and the rest
+ * collapse into single-width ones, sharing a grid with the comparison tables below so each
+ * card sits directly above its own column.
  */
 export function ResultsBand({
-  consensus,
+  recommendation,
   onRemove,
   canAddPlayer,
   onAddPlayer,
   addPlayerLocked,
 }: ResultsBandProps) {
-  const [leader, ...rest] = consensus.votes;
+  const { results, startN, panelSize } = recommendation;
+  const [leader, ...rest] = results;
   if (!leader) return null;
 
-  if (consensus.votes.length === 2) {
+  if (results.length === 2) {
     return (
       <div className="flex items-stretch bg-fp-navy-slot">
-        <LeaderCard vote={leader} total={consensus.totalExperts} onRemove={onRemove} />
-        <RunnerUpCard vote={rest[0]} total={consensus.totalExperts} onRemove={onRemove} />
+        <LeaderCard result={leader} startN={startN} total={panelSize} onRemove={onRemove} />
+        <RunnerUpCard result={rest[0]} startN={startN} total={panelSize} onRemove={onRemove} />
         <AddPlayerCell
           canAddPlayer={canAddPlayer}
           addPlayerLocked={addPlayerLocked}
@@ -221,11 +257,11 @@ export function ResultsBand({
   return (
     <div
       className="grid items-stretch bg-fp-navy-slot"
-      style={{ gridTemplateColumns: bandColumns(consensus.votes.length) }}
+      style={{ gridTemplateColumns: bandColumns(results.length) }}
     >
-      <LeaderCard vote={leader} total={consensus.totalExperts} onRemove={onRemove} />
-      {rest.map((vote) => (
-        <CompactCard key={vote.player.id} vote={vote} onRemove={onRemove} />
+      <LeaderCard result={leader} startN={startN} total={panelSize} onRemove={onRemove} />
+      {rest.map((result) => (
+        <CompactCard key={result.player.id} result={result} startN={startN} onRemove={onRemove} />
       ))}
       <AddPlayerCell
         canAddPlayer={canAddPlayer}

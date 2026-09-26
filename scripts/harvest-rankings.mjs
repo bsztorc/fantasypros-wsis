@@ -33,7 +33,7 @@ import { writeFile, mkdir } from "node:fs/promises";
 const SOURCES = [
   { position: "QB", url: "https://www.fantasypros.com/nfl/rankings/qb.php", keep: 40 },
   { position: "RB", url: "https://www.fantasypros.com/nfl/rankings/half-point-ppr-rb.php", keep: 70 },
-  { position: "WR", url: "https://www.fantasypros.com/nfl/rankings/half-point-ppr-wr.php", keep: 80 },
+  { position: "WR", url: "https://www.fantasypros.com/nfl/rankings/half-point-ppr-wr.php", keep: 120 },
   { position: "TE", url: "https://www.fantasypros.com/nfl/rankings/half-point-ppr-te.php", keep: 40 },
   { position: "FLEX", url: "https://www.fantasypros.com/nfl/rankings/half-point-ppr-flex.php", keep: 150 },
   { position: "SUPERFLEX", url: "https://www.fantasypros.com/nfl/rankings/half-point-ppr-superflex.php", keep: 180 },

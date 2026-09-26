@@ -14,14 +14,16 @@ import {
 import { ConsensusSentiment } from "@/components/wsis/advice/consensus-sentiment";
 import { ResultsBand } from "@/components/wsis/advice/results-band";
 import { SentimentMeter } from "@/components/wsis/advice/sentiment-meter";
-import { LineupControls } from "@/components/wsis/lineup-controls";
 import { SpinTheWheel } from "@/components/wsis/advice/spin-the-wheel";
+import { LineupControls } from "@/components/wsis/lineup-controls";
 import { PlayerSearch } from "@/components/wsis/player-search";
-import { computeConsensus, subsetShares } from "@/lib/consensus";
+import { gateVariantFor } from "@/lib/demo-state";
+import { recommend } from "@/lib/engine";
 import {
   defenseAllowed,
   injuryStatus,
   matchupRating,
+  rankNumber,
   seasonStats,
   sentimentBust,
   sentimentOverall,
@@ -29,17 +31,13 @@ import {
   weather,
 } from "@/lib/fixtures/player-detail";
 import { SCORING_LABEL, WEEK_LABEL } from "@/lib/fixtures/roster";
-import { gateVariantFor } from "@/lib/demo-state";
 import type { DemoState, LineupGoal, Player, StartN } from "@/lib/types";
 
 interface AdviceViewProps {
   players: Player[];
   demoState: DemoState;
-  /** Slots this state allows, which caps how many players can be compared. */
   openSlots: number;
-  /** Premium unlocks the Sentiment meters that Lineup Goal reads. */
   isPremium: boolean;
-  /** Everything the current demo state lets the user search. */
   pool: Player[];
   onSelect: (player: Player) => void;
   goal: LineupGoal;
@@ -58,11 +56,11 @@ function searchPlaceholder(count: number): string {
 }
 
 /**
- * The advice view: what the tool shows after View Advice.
+ * The advice view.
  *
- * This is the current product experience rebuilt. The lineup-aware recommendation only
- * has something to say above two players, and the signed-out state cannot get there,
- * which is the point of demonstrating it here first.
+ * Everything on screen derives from one reconstructed expert panel, so the percentage the
+ * product shows today and the recommendation this prototype adds are two readings of the
+ * same ballots rather than two competing opinions.
  */
 export function AdviceView({
   players,
@@ -79,63 +77,67 @@ export function AdviceView({
   onRemove,
 }: AdviceViewProps) {
   const [tab, setTab] = useState<AdviceTab>("Overview");
-  const consensus = computeConsensus(players);
-  const ordered = consensus.votes.map((vote) => vote.player);
+  const recommendation = recommend(players, startN, goal);
   const signedOut = demoState === "signed-out";
   const canAddPlayer = players.length < openSlots;
 
-  const attempts = ordered.map((player) => defenseAllowed(player).attempts);
-  const yardsAllowed = ordered.map((player) => defenseAllowed(player).yards);
-  const projections = ordered.map((player) => seasonStats(player).projectionAverage);
+  if (!recommendation) {
+    return (
+      <div className="overflow-hidden rounded-lg bg-fp-navy px-8 py-10 text-center">
+        <p className="text-[15px] font-semibold text-white">
+          No expert ranks these players against each other.
+        </p>
+        <p className="mx-auto mt-2 max-w-[440px] text-sm text-fp-on-navy">
+          Kickers and defences are only ranked within their own position, so there is no
+          panel that can express a preference between them and anyone else.
+        </p>
+        <button
+          type="button"
+          onClick={onBack}
+          className="mt-5 cursor-pointer rounded-md bg-fp-blue px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-fp-blue-bright"
+        >
+          Back to selection
+        </button>
+      </div>
+    );
+  }
 
-  const matchupRows: CompareRow[] = [
-    { label: "Opponent", values: ordered.map((player) => player.opponent) },
-    {
-      label: "Matchup Rating",
-      values: ordered.map((player) => <Stars key={player.id} rating={matchupRating(player)} />),
-      bestIndex: indexOfMax(ordered.map((player) => matchupRating(player))),
-    },
-    { label: "Rushing Att Allowed", values: attempts, bestIndex: indexOfMax(attempts) },
-    { label: "Rushing Yds Allowed", values: yardsAllowed, bestIndex: indexOfMax(yardsAllowed) },
-    {
-      label: "Rushing TDs Allowed",
-      values: ordered.map((player) => defenseAllowed(player).touchdowns),
-    },
-  ];
+  const ordered = recommendation.results.map((result) => result.player);
 
-  const pointsRows: CompareRow[] = [
-    { label: "Season Total", values: ordered.map((player) => seasonStats(player).seasonTotal) },
-    { label: "Season Avg.", values: ordered.map((player) => seasonStats(player).seasonAverage) },
-    {
-      label: "Projection Avg.",
-      values: projections,
-      bestIndex: indexOfMax(projections),
-    },
-    { label: "2025 Avg.", values: ordered.map((player) => seasonStats(player).priorYearAverage) },
-  ];
-
-  const expertSubsets: { label: string; salt: number; size: number }[] = [
-    { label: "Top Overall Experts", salt: 61, size: 19 },
-    { label: `Top ${ordered[0].position} Experts`, salt: 67, size: 13 },
-    { label: "Top Player Experts", salt: 71, size: 11 },
-  ];
-
-  const expertAccuracyRows: CompareRow[] = expertSubsets.map((subset) => {
-    const shares = subsetShares(ordered, subset.salt, subset.size);
+  /**
+   * Accuracy subsets, offset from the headline so a subset can disagree with it.
+   *
+   * The product publishes cases where its most accurate experts prefer a different player
+   * than the full pool does. Making every subset agree would quietly delete that.
+   */
+  const expertAccuracyRows: CompareRow[] = [
+    { label: "Top Overall Experts", offset: 9 },
+    { label: `Top ${ordered[0].position} Experts`, offset: -7 },
+    { label: "Top Player Experts", offset: 4 },
+  ].map((subset) => {
+    const shares = recommendation.results.map((result, index) =>
+      Math.max(0, Math.min(100, result.firstChoiceShare + (index === 1 ? subset.offset : -subset.offset / 2))),
+    );
+    const rounded = shares.map((value) => Math.round(value));
     return {
       label: subset.label,
-      values: ordered.map((player, index) =>
-        isPremium ? <span key={player.id}>{shares[index]}%</span> : <LockedValue key={player.id} />,
+      values: recommendation.results.map((result, index) =>
+        isPremium ? (
+          <span key={result.player.id}>{rounded[index]}%</span>
+        ) : (
+          <LockedValue key={result.player.id} />
+        ),
       ),
-      bestIndex: isPremium ? indexOfMax(shares) : undefined,
+      bestIndex: isPremium ? indexOfMax(rounded) : undefined,
     };
   });
-
 
   const sentimentRows: CompareRow[] = [
     {
       label: "Overall",
-      values: ordered.map((player) => <SentimentMeter key={player.id} value={sentimentOverall(player)} />),
+      values: ordered.map((player) => (
+        <SentimentMeter key={player.id} value={sentimentOverall(player)} />
+      )),
     },
     {
       label: "Upside Potential",
@@ -157,6 +159,32 @@ export function AdviceView({
         ),
       ),
     },
+  ];
+
+  const attempts = ordered.map((player) => defenseAllowed(player).attempts);
+  const yardsAllowed = ordered.map((player) => defenseAllowed(player).yards);
+  const projections = ordered.map((player) => seasonStats(player).projectionAverage);
+
+  const matchupRows: CompareRow[] = [
+    { label: "Opponent", values: ordered.map((player) => player.opponent ?? "-") },
+    {
+      label: "Matchup Rating",
+      values: ordered.map((player) => <Stars key={player.id} rating={matchupRating(player)} />),
+      bestIndex: indexOfMax(ordered.map((player) => matchupRating(player))),
+    },
+    { label: "Rushing Att Allowed", values: attempts, bestIndex: indexOfMax(attempts) },
+    { label: "Rushing Yds Allowed", values: yardsAllowed, bestIndex: indexOfMax(yardsAllowed) },
+    {
+      label: "Rushing TDs Allowed",
+      values: ordered.map((player) => defenseAllowed(player).touchdowns),
+    },
+  ];
+
+  const pointsRows: CompareRow[] = [
+    { label: "Season Total", values: ordered.map((player) => seasonStats(player).seasonTotal) },
+    { label: "Season Avg.", values: ordered.map((player) => seasonStats(player).seasonAverage) },
+    { label: "Projection Avg.", values: projections, bestIndex: indexOfMax(projections) },
+    { label: "Consensus Rank", values: ordered.map((player) => `#${rankNumber(player)}`) },
   ];
 
   const miscRows: CompareRow[] = [
@@ -223,7 +251,7 @@ export function AdviceView({
       />
 
       <ResultsBand
-        consensus={consensus}
+        recommendation={recommendation}
         onRemove={onRemove}
         canAddPlayer={canAddPlayer}
         onAddPlayer={onBack}
@@ -235,8 +263,7 @@ export function AdviceView({
       <div className="space-y-4 bg-fp-navy-tab py-5">
         {tab === "Overview" ? (
           <>
-            <ConsensusSentiment consensus={consensus} />
-
+            <ConsensusSentiment recommendation={recommendation} />
             <SpinTheWheel />
             <CompareModule
               title="Most Accurate Experts"

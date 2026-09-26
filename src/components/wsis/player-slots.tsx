@@ -31,7 +31,7 @@ function Slot({
   return (
     <div className="relative flex h-[185px] flex-1 flex-col items-center justify-end overflow-hidden border-r border-fp-navy-divider/60 px-2 pt-3">
       <span className="absolute top-3 text-sm font-semibold text-fp-on-navy">
-        {player ? player.rank : "-"}
+        {player ? player.posRank : "-"}
       </span>
 
       {player && !locked && (
