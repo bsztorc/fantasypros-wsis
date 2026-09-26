@@ -281,7 +281,7 @@ export function AdviceView({
             <CompareModule
               title="Most Accurate Experts"
               rows={expertAccuracyRows}
-              playerNames={ordered.map((player) => player.name)}
+              playerNames={ordered.map((player) => ({ id: player.id, name: player.name }))}
               footer={isPremium ? undefined : <PremiumFooter />}
             />
             <CompareModule

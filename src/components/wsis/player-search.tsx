@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { SearchIcon } from "@/components/ui/icons";
+import { InjuryTag } from "@/components/ui/injury-tag";
 import type { Player } from "@/lib/types";
 
 interface PlayerSearchProps {
@@ -55,7 +56,10 @@ export function PlayerSearch({ pool, selectedIds, onSelect, disabled, placeholde
                 }}
                 className="flex w-full cursor-pointer items-center justify-between px-5 py-2.5 text-left text-sm hover:bg-slate-50"
               >
-                <span className="font-medium text-fp-ink">{player.name}</span>
+                <span className="font-medium text-fp-ink">
+                  {player.name}
+                  <InjuryTag playerId={player.id} />
+                </span>
                 <span className="text-xs text-fp-muted">
                   {player.position} - {player.team} · {player.opponent}
                 </span>

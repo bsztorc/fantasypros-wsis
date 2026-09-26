@@ -1,6 +1,7 @@
 "use client";
 
 import { CloseIcon, LockIcon, PlayerSilhouette } from "@/components/ui/icons";
+import { InjuryTag } from "@/components/ui/injury-tag";
 import { PercentageRing } from "@/components/wsis/advice/percentage-ring";
 import type { PlayerResult, Recommendation } from "@/lib/engine";
 import { bandColumns } from "@/lib/layout";
@@ -42,7 +43,10 @@ function PlayerMeta({ player, align }: { player: Player; align: "left" | "right"
     align === "right" ? "items-end text-right" : align === "left" ? "items-start" : "items-center text-center";
   return (
     <div className={`flex min-w-0 flex-col ${alignment}`}>
-      <p className="text-[20px] font-bold leading-tight text-white">{player.name}</p>
+      <p className="text-[20px] font-bold leading-tight text-white">
+        {player.name}
+        <InjuryTag playerId={player.id} />
+      </p>
       <p className="mt-2 whitespace-nowrap text-[13px] text-white/90">
         {player.position} - {player.team}
       </p>
@@ -95,7 +99,10 @@ function BenchedTile({
     <div className="relative flex h-full min-w-0 flex-col items-center justify-end gap-1 overflow-hidden border-l border-white/10 px-3 pb-4 pt-4 opacity-70">
       <RemoveButton player={player} onRemove={onRemove} />
       <PlayerSilhouette className="h-12 w-12 shrink-0 text-white/20" />
-      <p className="text-center text-[15px] font-bold leading-tight text-white">{player.name}</p>
+      <p className="text-center text-[15px] font-bold leading-tight text-white">
+        {player.name}
+        <InjuryTag playerId={player.id} />
+      </p>
       <p className={`mt-1 text-[11px] font-medium ${positionText(player.position)}`}>
         {player.position} - {player.team}
       </p>

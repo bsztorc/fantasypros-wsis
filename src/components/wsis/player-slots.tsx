@@ -1,6 +1,7 @@
 "use client";
 
 import { CloseIcon, LockIcon, PlayerSilhouette } from "@/components/ui/icons";
+import { InjuryTag } from "@/components/ui/injury-tag";
 import type { Player } from "@/lib/types";
 
 interface PlayerSlotsProps {
@@ -52,7 +53,10 @@ function Slot({
       ) : player ? (
         <div className="flex flex-col items-center gap-1 pb-3">
           <PlayerSilhouette className="h-16 w-16 text-white/20" />
-          <span className="text-sm font-semibold text-white">{player.name}</span>
+          <span className="text-sm font-semibold text-white">
+            {player.name}
+            <InjuryTag playerId={player.id} />
+          </span>
           <span className="text-xs text-fp-on-navy">
             {player.position} - {player.team} · {player.opponent}
           </span>

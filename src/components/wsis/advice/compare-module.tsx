@@ -1,3 +1,4 @@
+import { InjuryTag } from "@/components/ui/injury-tag";
 import { LockIcon } from "@/components/ui/icons";
 import { tableColumns } from "@/lib/layout";
 
@@ -57,18 +58,19 @@ function Row({ label, values, bestIndex }: CompareRow) {
  * Only rendered from three players up. With two, each card already sits directly above
  * its own half and the names would be redundant.
  */
-function PlayerHeaderRow({ names }: { names: string[] }) {
-  if (names.length < 3) return null;
+function PlayerHeaderRow({ players }: { players: { id: string; name: string }[] }) {
+  if (players.length < 3) return null;
 
   return (
     <div
       className="grid items-center border-b border-fp-border bg-white py-3"
-      style={{ gridTemplateColumns: tableColumns(names.length) }}
+      style={{ gridTemplateColumns: tableColumns(players.length) }}
     >
       <span />
-      {names.map((name) => (
-        <span key={name} className="px-3 text-center text-[15px] font-bold text-fp-ink">
-          {name}
+      {players.map((player) => (
+        <span key={player.id} className="px-3 text-center text-[15px] font-bold text-fp-ink">
+          {player.name}
+          <InjuryTag playerId={player.id} />
         </span>
       ))}
     </div>
@@ -84,12 +86,12 @@ export function CompareModule({
   title: string;
   rows: CompareRow[];
   /** Renders the player name header above the title, for the first module on the page. */
-  playerNames?: string[];
+  playerNames?: { id: string; name: string }[];
   footer?: React.ReactNode;
 }) {
   return (
     <section className="overflow-hidden rounded-lg bg-white">
-      {playerNames && <PlayerHeaderRow names={playerNames} />}
+      {playerNames && <PlayerHeaderRow players={playerNames} />}
       {/*
         The section title sits in the label column rather than across the table, small and
         bold. It labels the rows beneath it; the player names above are the headings that
