@@ -6,7 +6,7 @@
  * statements that would have caught them.
  */
 import { recommend } from "../src/lib/engine";
-import { list, type RankedPlayer } from "../src/lib/rankings";
+import { list } from "../src/lib/rankings";
 import { MY_ROSTER } from "../src/lib/fixtures/roster";
 import type { LineupGoal, StartN } from "../src/lib/types";
 
