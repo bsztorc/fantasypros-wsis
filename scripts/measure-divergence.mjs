@@ -10,7 +10,8 @@
  *   TE  two tiers; nobody starts a third-tier tight end
  *
  * Flex is not a tier of its own. It is filled from the players who missed a positional
- * starting slot, which in practice is RB3, WR3, WR4 and TE2 compared across positions.
+ * starting slot, and splits in two: the tier a manager is genuinely torn over, and the
+ * remainder that can legally fill the slot.
  *
  * Ballots are reconstructed from FantasyPros' published dispersion because individual
  * ballots are not published in bulk. Each simulated expert carries a persistent lean, so
@@ -33,16 +34,16 @@ const TIERS_12 = {
   TE: [[1, 12], [13, 24]],
 };
 
-/** The same board grouped two starting slots at a time. */
-const TIERS_24 = {
-  QB: [[1, 24], [25, 32]],
-  RB: [[1, 24], [25, 36]],
-  WR: [[1, 24], [25, 48]],
-  TE: [[1, 24]],
-};
-
-/** Positional bands that feed the flex slot. */
-const FLEX_BANDS = { RB: [25, 36], WR: [25, 48], TE: [13, 24] };
+/**
+ * Flex split into two tiers.
+ *
+ * The first is what a manager is genuinely torn over: the better half of RB3 alongside
+ * the whole of WR3. The second is everything else that can legally fill the slot.
+ */
+const FLEX_TIERS = [
+  { label: "FLEX1 (top RB3 + all WR3)", bands: { RB: [25, 30], WR: [25, 36] } },
+  { label: "FLEX2 (rest of RB3, WR4, TE2)", bands: { RB: [31, 36], WR: [37, 48], TE: [13, 24] } },
+];
 
 function mulberry(seed) {
   return function () {
@@ -134,17 +135,17 @@ console.log(`Week ${data.week} ${data.season}, ${EXPERTS} reconstructed ballots`
 console.log("Three players from the same tier, filling two slots.");
 
 runTiers("BLOCKS OF 12 - one starting slot per team", TIERS_12);
-runTiers("BLOCKS OF 24 - two starting slots per team", TIERS_24);
 
 const flexList = data.positions.FLEX;
 const flexBallots = buildBallots(flexList, CORRELATION, SEED);
-const flexPool = flexList.filter((p) => {
-  const band = FLEX_BANDS[p.position];
-  if (!band) return false;
-  const rank = positionalRank(p);
-  return rank >= band[0] && rank <= band[1];
-});
-
-header("FLEX - RB3, WR3, WR4 and TE2 combined");
-line("FLEX pool", flexPool, flexBallots);
+header("FLEX - split into two tiers");
+for (const tier of FLEX_TIERS) {
+  const pool = flexList.filter((p) => {
+    const band = tier.bands[p.position];
+    if (!band) return false;
+    const rank = positionalRank(p);
+    return rank >= band[0] && rank <= band[1];
+  });
+  line(tier.label, pool, flexBallots);
+}
 console.log();

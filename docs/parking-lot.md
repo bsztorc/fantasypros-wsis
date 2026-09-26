@@ -163,43 +163,38 @@ RB3, WR3, WR4 and TE2, compared across positions.
 | TE1 (1-12) | 6.8% | 15/220 | 1.51 |
 | TE2 (13-24) | 4.5% | 10/220 | 2.21 |
 
-### Blocks of twenty-four
+### Flex, split in two
 
-| Tier | Divergence | Cases | Dispersion |
-|---|---|---|---|
-| QB1 (1-24) | 3.1% | 63/2024 | 1.49 |
-| QB2 (25-32) | 12.5% | 7/56 | 2.37 |
-| RB1 (1-24) | 2.6% | 53/2024 | 1.67 |
-| RB2 (25-36) | 5.0% | 11/220 | 2.54 |
-| WR1 (1-24) | 3.4% | 68/2024 | 1.76 |
-| WR2 (25-48) | 7.1% | 144/2024 | 4.32 |
-| TE1 (1-24) | 2.0% | 40/2024 | 1.86 |
+Flex is filled by whoever missed a positional slot, but not every candidate represents a
+real dilemma. Splitting it separates the decision a manager agonises over from the rest of
+what can legally fill the slot.
 
-### Flex
-
-| Pool | Divergence | Cases | Dispersion |
-|---|---|---|---|
-| RB3 + WR3 + WR4 + TE2 | 7.0% | 1203/17296 | 8.75 |
-
-Forty-eight players, twelve from each contributing tier.
+| Tier | Composition | Divergence | Cases | Dispersion |
+|---|---|---|---|---|
+| **FLEX1** | top half of RB3, all of WR3 | **22.3%** | 182/816 | 8.01 |
+| FLEX2 | rest of RB3, WR4, TE2 | 9.9% | 401/4060 | 9.19 |
 
 ### What to claim, and what not to
 
-**Claim:** divergence concentrates where the decision is genuinely hard. The tiers nobody
-needs help with sit low: QB1 at 1.4%, TE1 at 6.8%, RB1 at 4.5%. WR3, which is the deepest
-genuinely startable tier and a core flex input, is 22.3%. The flex decision itself runs
-7.0% across the whole pool.
+**Lead with this:** in the flex decision managers actually agonise over, the expert
+preferred pair differs from the top two by first-choice share **22.3% of the time**. More
+than one in five. The same figure holds for WR3 measured on its own, which is unsurprising
+since WR3 supplies twelve of FLEX1's eighteen players, and the agreement between two
+independently constructed pools is worth more than either number alone.
 
-**Do not claim a smooth gradient.** RB3 (5.0%) sits below RB2 (6.4%), and WR4 (11.8%) sits
-below WR3 (22.3%). The relationship with uncertainty is real at the extremes and noisy in
-the middle. Asserting a clean trend invites a challenge that costs more than the claim is
-worth.
+**The contrast carries the argument.** QB1 is 1.4%, RB1 is 4.5%, TE1 is 6.8%. The display
+is a fine proxy for the right answer in the tiers where nobody needs help, and wrong more
+than one time in five where they do. That is a better line than any board-wide average,
+and it pre-empts "so it is right most of the time", which is only true of the comparisons
+nobody makes.
 
-**QB3 is a thin sample.** Eight players give 56 comparisons. Quote it as directional or
-not at all.
+**Note FLEX2 is lower despite higher dispersion.** 9.9% against 22.3%, on a wider spread.
+Dispersion alone does not drive divergence; a pool needs players who are genuinely close
+in value. FLEX2 contains many pairings that are lopsided, and lopsided comparisons never
+diverge. State this before someone finds it, because on the surface it looks like it
+undercuts the mechanism when it actually sharpens it.
 
-**The flex figure is conservative.** Across all 48 candidates it includes pairings a
-manager would never agonise over, such as a strong RB3 against a weak TE2, and lopsided
-comparisons never diverge. The real flex decision is usually between two or three players
-of similar value, where the rate is higher. Presenting 7.0% is the defensible floor, not
-the expected case.
+**Do not claim a smooth gradient.** RB3 (5.0%) sits below RB2 (6.4%), and WR4 (11.8%) below
+WR3 (22.3%). The relationship with uncertainty is real at the extremes and noisy between.
+
+**QB3 is a thin sample.** Eight players, 56 comparisons. Directional at best.
