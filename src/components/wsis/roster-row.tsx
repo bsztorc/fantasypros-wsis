@@ -1,6 +1,7 @@
 "use client";
 
 import { CheckCircle } from "@/components/ui/icons";
+import { InjuryTag } from "@/components/ui/injury-tag";
 import { PositionBadge } from "@/components/ui/position-badge";
 import type { Player } from "@/lib/types";
 
@@ -28,7 +29,10 @@ export function RosterRow({ player, selected, selectable, onToggle }: RosterRowP
       ].join(" ")}
     >
       <PositionBadge position={player.position} />
-      <span className="truncate text-sm font-medium text-fp-link">{player.name}</span>
+      <span className="truncate text-sm font-medium text-fp-link">
+        {player.name}
+        <InjuryTag playerId={player.id} />
+      </span>
       <span className="text-[11px] text-fp-muted">
         {player.position} - {player.team}
       </span>

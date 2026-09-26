@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CheckCircle } from "@/components/ui/icons";
+import { InjuryTag } from "@/components/ui/injury-tag";
 import { POSITION_FILTERS, TOP_PLAYERS } from "@/lib/fixtures/top-players";
 import type { Player } from "@/lib/types";
 
@@ -63,7 +64,10 @@ export function TopPlayersPanel({ selectedIds, selectable, onToggle }: TopPlayer
                   <span className="text-[13px] text-fp-ink">
                     {columnIndex * 10 + rowIndex + 1}.
                   </span>
-                  <span className="truncate text-sm font-medium text-fp-link">{player.name}</span>
+                  <span className="truncate text-sm font-medium text-fp-link">
+                    {player.name}
+                    <InjuryTag playerId={player.id} />
+                  </span>
                   <span className="text-[11px] text-fp-muted">
                     {player.position} - {player.team}
                   </span>
