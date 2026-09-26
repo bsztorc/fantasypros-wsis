@@ -136,32 +136,56 @@ into an answer when N is greater than one, and it always explains the result.
 
 ## Divergence measured against roster tiers
 
-How often the expert-preferred pair differs from the top two by first-choice share, in a
-twelve-team league where the top twelve at a position are everyone's starter at that slot.
-Three players from the same tier, filling two slots, against the Week 3 snapshot.
+How often the expert-preferred pair differs from the top two by first-choice share. Three
+players from the same tier, filling two slots, against the Week 3 snapshot, 46
+reconstructed ballots.
 
-| Tier | Divergence | Dispersion |
-|---|---|---|
-| RB1 (1-12) | 1.4% | 1.15 |
-| RB2 (13-24) | 5.0% | 2.20 |
-| RB3 (25-36) | 6.4% | 2.54 |
-| RB4 (37-48) | 36.8% | 4.52 |
-| WR1 (1-12) | 9.5% | 1.36 |
-| WR2 (13-24) | 5.5% | 2.16 |
-| WR3 (25-36) | 23.6% | 4.11 |
-| WR4 (37-48) | 20.0% | 4.53 |
-| FLEX1 (1-12) | 3.2% | 1.27 |
-| FLEX4 (37-48) | 16.4% | 4.78 |
-| FLEX6 (61-72) | 32.7% | 7.94 |
+In a twelve-team league the top twelve at a position are everyone's starter at that slot.
+Flex is not its own tier: it is filled from the players who missed a positional slot, so
+it is modelled as RB3, RB4, WR3 and WR4 compared across positions. Nobody starts a third
+quarterback, so QB stops at QB2.
 
-**The finding is not the average, it is the shape.** Divergence tracks expert uncertainty
-almost perfectly. At the top of the board, where nobody needs advice, first-choice share
-is a fine proxy for the right answer: RB1 and QB1 sit at 1.4%. In the flex range, where
-managers actually agonise, it is wrong between one in six and one in three times.
+### Blocks of twelve
 
-So the current display works where it does not matter and fails where it does. That is a
-better argument than any average, and it is the one to lead with.
+| Tier | Divergence | Cases | Dispersion |
+|---|---|---|---|
+| QB1 (1-12) | 1.4% | 3/220 | 1.00 |
+| QB2 (13-24) | 8.6% | 19/220 | 1.97 |
+| RB1 (1-12) | 4.5% | 10/220 | 1.15 |
+| RB2 (13-24) | 6.4% | 14/220 | 2.20 |
+| RB3 (25-36) | 5.0% | 11/220 | 2.54 |
+| **RB4 (37-48)** | **37.3%** | 82/220 | 4.52 |
+| WR1 (1-12) | 10.9% | 24/220 | 1.36 |
+| WR2 (13-24) | 8.6% | 19/220 | 2.16 |
+| **WR3 (25-36)** | **22.3%** | 49/220 | 4.11 |
+| WR4 (37-48) | 11.8% | 26/220 | 4.53 |
+| TE1 (1-12) | 6.8% | 15/220 | 1.51 |
+| TE2 (13-24) | 4.5% | 10/220 | 2.21 |
+| **FLEX shallow (RB3/WR3)** | **13.3%** | 269/2024 | 8.88 |
+| **FLEX deep (RB4/WR4)** | **11.0%** | 223/2024 | 10.72 |
 
-**Caveat to state rather than bury:** the QB4 tier shows 50%, but that is two divergent
-cases out of four possible combinations, which is noise. Tiers with fewer than roughly
-twenty combinations should not be quoted.
+### Blocks of twenty-four
+
+| Tier | Divergence | Cases | Dispersion |
+|---|---|---|---|
+| QB1 (1-24) | 3.1% | 63/2024 | 1.49 |
+| RB1 (1-24) | 2.6% | 53/2024 | 1.67 |
+| **RB2 (25-48)** | **13.0%** | 264/2024 | 3.53 |
+| WR1 (1-24) | 3.4% | 68/2024 | 1.76 |
+| WR2 (25-48) | 7.1% | 144/2024 | 4.32 |
+| TE1 (1-24) | 2.0% | 40/2024 | 1.86 |
+| FLEX (RB3-4/WR3-4) | 6.0% | 1042/17296 | 9.80 |
+
+### What to claim, and what not to
+
+**Claim:** the divergence is concentrated in the tiers where decisions are genuinely hard.
+QB1, RB1 and TE1 sit between 1.4% and 4.5%, where nobody needs advice. RB4 is 37.3% and
+WR3 is 22.3%. Flex, the decision the feature exists for, runs 11% to 13%.
+
+**Do not claim a smooth gradient.** It is not monotonic. RB3 (5.0%) sits below RB2 (6.4%),
+and WR4 (11.8%) sits below WR3 (22.3%). The trend is real at the extremes and noisy in the
+middle, and overstating it invites a challenge that is easy to make and hard to answer.
+
+**Note on the wider flex pool.** Flex measured across all 48 candidates falls to 6.0%,
+lower than either twelve-band. A wider pool contains more lopsided pairings, and lopsided
+comparisons never diverge. The narrower bands are the realistic decision set.
