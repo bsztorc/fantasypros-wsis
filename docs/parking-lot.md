@@ -198,3 +198,17 @@ undercuts the mechanism when it actually sharpens it.
 WR3 (22.3%). The relationship with uncertainty is real at the extremes and noisy between.
 
 **QB3 is a thin sample.** Eight players, 56 comparisons. Directional at best.
+
+## Pinned: the expert panel is modeled, not measured
+
+The panel thins when positions are mixed, which matches the product: 46 experts for a
+comparison of running backs, 43 once a receiver joins them, against 45 to 46 and 42
+published. The rule is , calibrated against three observed
+comparisons.
+
+It is a model, not data. FantasyPros knows exactly which experts ranked which players; the
+snapshot does not carry that, so the real panel would differ per comparison in ways this
+cannot reproduce. Fine for a prototype, and worth stating plainly rather than letting the
+number look measured.
+
+Revisit if consensus strength gets built, since expert count is what caps it.
