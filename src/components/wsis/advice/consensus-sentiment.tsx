@@ -1,5 +1,4 @@
 import { bustRoom, upsideRoom } from "@/lib/ballots";
-import { DESIGNATION_WORDING, designationFor, isRuledOut } from "@/lib/injuries";
 import type { PlayerResult, Recommendation } from "@/lib/engine";
 
 /**
@@ -78,7 +77,7 @@ function summarize(recommendation: Recommendation): string {
     ) +
     `.`;
 
-  if (benched.length === 0) return answer + why + goalNote(recommendation) + availabilityNote(recommendation);
+  if (benched.length === 0) return answer + why + goalNote(recommendation);
 
   const challenged = [...benched].sort((a, b) => b.firstChoiceShare - a.firstChoiceShare)[0];
 
@@ -90,12 +89,11 @@ function summarize(recommendation: Recommendation): string {
       why +
       ` ${challenged.player.name} divides opinion: ${challenged.firstChoiceShare}% rank him ` +
       `the best of these, but most of the rest rank him last.` +
-      goalNote(recommendation) +
-      availabilityNote(recommendation)
+      goalNote(recommendation)
     );
   }
 
-  return answer + why + goalNote(recommendation) + availabilityNote(recommendation);
+  return answer + why + goalNote(recommendation);
 }
 
 /**
@@ -149,39 +147,6 @@ function goalNote(recommendation: Recommendation): string {
   return steadiest.recommended
     ? ` Safe Floor does not change the pick: ${steadiest.player.name} already has the least downside here.`
     : ` Safe Floor does not change the pick. ${steadiest.player.name} has the least downside here, but not enough to displace ${starters[starters.length - 1].player.name}.`;
-}
-
-/**
- * Availability, when a recommended player carries a designation.
- *
- * Injury uncertainty is the single most common thing users add when they ask for start
- * advice, so a recommendation that ignores it answers a narrower question than the one
- * being asked.
- *
- * What this will not do is predict. A questionable or doubtful player's status usually
- * resolves through the week's practice reports, and the prototype does not hold those, so
- * it reports the designation and stops. Guessing at a likelihood would be inventing the
- * very context the user came looking for. Out, injured reserve, PUP and suspended need no
- * hedging: those players are not playing.
- */
-function availabilityNote(recommendation: Recommendation): string {
-  const flagged = recommendation.results
-    .filter((r) => r.recommended)
-    .map((r) => ({ result: r, designation: designationFor(r.player.id) }))
-    .filter((entry) => entry.designation !== null);
-
-  if (flagged.length === 0) return "";
-
-  const ruledOut = flagged.filter((entry) => isRuledOut(entry.designation!));
-  if (ruledOut.length > 0) {
-    const names = listOf(ruledOut.map((entry) => `${entry.result.player.name} is ${DESIGNATION_WORDING[entry.designation!]}`));
-    return ` ${names}, so the rankings behind this do not reflect a player who will not take the field.`;
-  }
-
-  const names = listOf(
-    flagged.map((entry) => `${entry.result.player.name} is ${DESIGNATION_WORDING[entry.designation!]}`),
-  );
-  return ` ${names}. That is not resolved yet, and this recommendation does not account for whether he plays.`;
 }
 
 /** "a, b and c", or just "a" for a single item. */
