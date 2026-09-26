@@ -91,7 +91,7 @@ than a side effect of where the meters happen to sit today.
 Brandon supplied premium screenshots on 2026-09-25, replacing two inferences with facts.
 
 - **The scale has five named levels**, not three: Very Low, Low, Moderate, High, Very High.
-- **Moderate is grey**, not amber. Colour tracks whether the level favours the player.
+- **Moderate is gray**, not amber. Colour tracks whether the level favours the player.
 - **Bust Risk is inverted**, which the earlier guess had right: a high bust risk renders
   red, a very low one green.
 - **Most Accurate Experts shows percentages, not ranks**, and they are first-choice shares
@@ -103,7 +103,7 @@ prefers **Hampton**. The product already publishes a case where a subset of expe
 disagrees with the headline number.
 
 This is worth using in the write-up. It is not an edge case invented to make a point: it
-is the product's own data showing that a single percentage summarises votes rather than
+is the product's own data showing that a single percentage summarizes votes rather than
 settling the question. The prototype models it with `subsetShares`, where each subset
 perturbs the weighting so it can legitimately disagree with the headline.
 
@@ -133,3 +133,82 @@ scale. The summary is load-bearing for the feature, not decoration beside it.
 Note the scope this implies. The prototype does not change how players are ranked or how
 the head-to-head consensus is computed. It changes how existing ranking data is aggregated
 into an answer when N is greater than one, and it always explains the result.
+
+## Divergence measured against roster tiers
+
+How often the expert-preferred pair differs from the top two by first-choice share. Three
+players from the same tier, filling two slots, against the Week 3 snapshot, 46
+reconstructed ballots.
+
+Tiers follow how rosters and rankings actually work, not even blocks. QB caps at 32
+because only 32 quarterbacks start in the NFL. RB stops at RB3 and TE at TE2, because
+beyond that nobody is a startable option. WR runs to four tiers, since the position goes
+deeper than any other. Flex is filled from the players who missed a positional slot:
+RB3, WR3, WR4 and TE2, compared across positions.
+
+### Blocks of twelve
+
+| Tier | Divergence | Cases | Dispersion |
+|---|---|---|---|
+| QB1 (1-12) | 1.4% | 3/220 | 1.00 |
+| QB2 (13-24) | 8.6% | 19/220 | 1.97 |
+| QB3 (25-32) | 12.5% | 7/56 | 2.37 |
+| RB1 (1-12) | 4.5% | 10/220 | 1.15 |
+| RB2 (13-24) | 6.4% | 14/220 | 2.20 |
+| RB3 (25-36) | 5.0% | 11/220 | 2.54 |
+| WR1 (1-12) | 10.9% | 24/220 | 1.36 |
+| WR2 (13-24) | 8.6% | 19/220 | 2.16 |
+| **WR3 (25-36)** | **22.3%** | 49/220 | 4.11 |
+| WR4 (37-48) | 11.8% | 26/220 | 4.53 |
+| TE1 (1-12) | 6.8% | 15/220 | 1.51 |
+| TE2 (13-24) | 4.5% | 10/220 | 2.21 |
+
+### Flex, split in two
+
+Flex is filled by whoever missed a positional slot, but not every candidate represents a
+real dilemma. Splitting it separates the decision a manager agonises over from the rest of
+what can legally fill the slot.
+
+| Tier | Composition | Divergence | Cases | Dispersion |
+|---|---|---|---|---|
+| **FLEX1** | top half of RB3, all of WR3 | **22.3%** | 182/816 | 8.01 |
+| FLEX2 | rest of RB3, WR4, TE2 | 9.9% | 401/4060 | 9.19 |
+
+### What to claim, and what not to
+
+**Lead with this:** in the flex decision managers actually agonise over, the expert
+preferred pair differs from the top two by first-choice share **22.3% of the time**. More
+than one in five. The same figure holds for WR3 measured on its own, which is unsurprising
+since WR3 supplies twelve of FLEX1's eighteen players, and the agreement between two
+independently constructed pools is worth more than either number alone.
+
+**The contrast carries the argument.** QB1 is 1.4%, RB1 is 4.5%, TE1 is 6.8%. The display
+is a fine proxy for the right answer in the tiers where nobody needs help, and wrong more
+than one time in five where they do. That is a better line than any board-wide average,
+and it pre-empts "so it is right most of the time", which is only true of the comparisons
+nobody makes.
+
+**Note FLEX2 is lower despite higher dispersion.** 9.9% against 22.3%, on a wider spread.
+Dispersion alone does not drive divergence; a pool needs players who are genuinely close
+in value. FLEX2 contains many pairings that are lopsided, and lopsided comparisons never
+diverge. State this before someone finds it, because on the surface it looks like it
+undercuts the mechanism when it actually sharpens it.
+
+**Do not claim a smooth gradient.** RB3 (5.0%) sits below RB2 (6.4%), and WR4 (11.8%) below
+WR3 (22.3%). The relationship with uncertainty is real at the extremes and noisy between.
+
+**QB3 is a thin sample.** Eight players, 56 comparisons. Directional at best.
+
+## Pinned: the expert panel is modeled, not measured
+
+The panel thins when positions are mixed, which matches the product: 46 experts for a
+comparison of running backs, 43 once a receiver joins them, against 45 to 46 and 42
+published. The rule is 46 experts minus 3 for each position beyond the first, calibrated against
+three observed comparisons.
+
+It is a model, not data. FantasyPros knows exactly which experts ranked which players; the
+snapshot does not carry that, so the real panel would differ per comparison in ways this
+cannot reproduce. Fine for a prototype, and worth stating plainly rather than letting the
+number look measured.
+
+Revisit if consensus strength gets built, since expert count is what caps it.

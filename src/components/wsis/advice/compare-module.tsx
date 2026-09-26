@@ -1,7 +1,7 @@
 import { LockIcon } from "@/components/ui/icons";
 import { tableColumns } from "@/lib/layout";
 
-/** A labelled row of per-player values, used by every comparison module. */
+/** A labeled row of per-player values, used by every comparison module. */
 export interface CompareRow {
   label: string;
   values: React.ReactNode[];
@@ -90,7 +90,17 @@ export function CompareModule({
   return (
     <section className="overflow-hidden rounded-lg bg-white">
       {playerNames && <PlayerHeaderRow names={playerNames} />}
-      <h3 className="px-5 py-3 text-center text-[15px] font-bold text-fp-ink">{title}</h3>
+      {/*
+        The section title sits in the label column rather than across the table, small and
+        bold. It labels the rows beneath it; the player names above are the headings that
+        span columns, and letting the two compete flattens the hierarchy.
+      */}
+      <div
+        className="grid items-center border-b border-fp-border py-2.5"
+        style={{ gridTemplateColumns: tableColumns(rows[0]?.values.length ?? 1) }}
+      >
+        <h3 className="px-3 text-right text-[13px] font-bold text-fp-ink">{title}</h3>
+      </div>
       {rows.map((row) => (
         <Row key={row.label} {...row} />
       ))}

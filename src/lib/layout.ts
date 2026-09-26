@@ -2,31 +2,24 @@
  * Shared column geometry for the advice view.
  *
  * The results band and the comparison tables below it have to line up, otherwise a
- * player's card sits over a different column than his own numbers. Measured from the
- * product: the leading player's card spans two column units and every other player's
- * spans one, so the leader's card ends exactly where his data column does.
+ * player's card sits over a different column than his own numbers.
  *
- * Both grids reserve the same fixed strip on the right for Add Player, and both divide
- * the remaining space into the same number of fractional units. The tables leave that
- * strip empty, since nothing sits beneath it.
+ * Both grids divide the width identically: a leading column, one column per player, then
+ * a fixed strip on the right for Add Player which the tables leave empty. In the tables
+ * the leading column holds the row labels. In the band it holds the recommendation
+ * percentage, which needs somewhere to live that belongs to no single player, because
+ * above one slot the percentage describes a set rather than an individual.
  */
 
 /** Width of the Add Player strip at the right of the results band. */
 export const ADD_PLAYER_WIDTH = 104;
 
-/**
- * Columns for the results band: a double-width leader, single-width runners, then the
- * fixed Add Player strip. Totals `playerCount + 1` fractional units.
- */
+/** Columns for the results band. Matches `tableColumns` exactly. */
 export function bandColumns(playerCount: number): string {
-  return `2fr repeat(${playerCount - 1}, 1fr) ${ADD_PLAYER_WIDTH}px`;
+  return `repeat(${playerCount + 1}, 1fr) ${ADD_PLAYER_WIDTH}px`;
 }
 
-/**
- * Columns for a comparison table: a label column, one per player, then an empty strip
- * matching Add Player. Also totals `playerCount + 1` fractional units, which is what
- * makes the two grids share boundaries.
- */
+/** Columns for a comparison table: label, one per player, then the empty strip. */
 export function tableColumns(playerCount: number): string {
   return `repeat(${playerCount + 1}, 1fr) ${ADD_PLAYER_WIDTH}px`;
 }

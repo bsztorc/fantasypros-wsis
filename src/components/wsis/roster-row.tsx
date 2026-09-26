@@ -33,7 +33,7 @@ export function RosterRow({ player, selected, selectable, onToggle }: RosterRowP
         {player.position} - {player.team}
       </span>
       <span className="text-[11px] text-fp-muted">{player.opponent}</span>
-      <span className="text-[11px] text-fp-muted">{player.rank}</span>
+      <span className="text-[11px] text-fp-muted">{player.posRank}</span>
       <CheckCircle
         className={`h-[18px] w-[18px] ${selected ? "text-fp-blue" : "text-slate-300"}`}
       />

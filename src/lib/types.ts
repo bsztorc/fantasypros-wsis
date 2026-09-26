@@ -1,19 +1,14 @@
-/** Roster position, used for badge colour and eligibility. */
+/** Roster position, used for badge color and eligibility. */
 export type Position = "QB" | "RB" | "WR" | "TE" | "K" | "DST";
 
 /** A player as the comparison tool knows them. */
-export interface Player {
-  id: string;
-  /** Display name, abbreviated the way FantasyPros renders it. */
-  name: string;
-  position: Position;
-  /** NFL team abbreviation. */
-  team: string;
-  /** This week's opponent, pre-formatted, e.g. "at PIT" or "vs. NYJ". */
-  opponent: string;
-  /** Expert consensus positional rank, e.g. "RB1". */
-  rank: string;
-}
+/**
+ * A player as the comparison tool knows them.
+ *
+ * This is the shape the rankings snapshot provides, so every screen renders real Week 3
+ * data including the dispersion the recommendation engine reads.
+ */
+export type { RankedPlayer as Player } from "@/lib/rankings";
 
 /** Which demo state the prototype is presenting. */
 export type DemoState = "signed-out" | "signed-in-unsynced" | "premium-synced";

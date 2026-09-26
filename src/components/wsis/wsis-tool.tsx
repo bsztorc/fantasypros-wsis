@@ -26,7 +26,7 @@ const MINIMUM_FOR_ADVICE = 2;
  *
  * All three access states render from this one component. Switching state resets the
  * comparison so each walkthrough starts clean, which is a demo convenience rather than
- * proposed product behaviour.
+ * proposed product behavior.
  */
 export function WsisTool() {
   const [demoState, setDemoState] = useState<DemoState>("premium-synced");
