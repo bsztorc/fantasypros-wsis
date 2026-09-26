@@ -18,14 +18,36 @@
  * persistent lean, so their ranking hangs together across players instead of being independent
  * noise.
  *
- * Run with: node scripts/measure-divergence.mjs
+ * REPORTED AS A RANGE, AND THAT IS NOT HEDGING.
+ *
+ * The published dispersion constrains a panel without determining it, so any one reconstruction
+ * is one of many consistent with the same data. A single run produced 13.7% for the flex tier
+ * and reporting that as the rate would have been reporting a property of the seed. The same
+ * tier runs from roughly 14% to 30% across the grid below.
+ *
+ * What survives every reconstruction is the ordering, which is the actual finding: the flex
+ * decision diverges far more often than the top of any position. That holds in all
+ * twenty-four runs, and it is the claim the feature rests on.
+ *
+ * Quote ranges from this script. Do not quote a single figure from it.
+ *
+ * Run with: npm run check:divergence
  */
 
 import { readFile } from "node:fs/promises";
 
 const EXPERTS = 46;
-const CORRELATION = 0.45;
-const SEED = 20260925;
+
+/**
+ * The grid the range is measured over.
+ *
+ * Correlation is how much of a rank comes from the expert's own lean rather than
+ * player-specific noise. The prototype itself runs at 0.45; the outer two values are here to
+ * show the finding does not depend on that choice. Seeds are arbitrary and fixed, so the range
+ * is reproducible.
+ */
+const CORRELATIONS = [0.25, 0.45, 0.65];
+const SEEDS = [20260925, 1, 7777, 20261001, 424242, 8675309, 31337, 90210];
 
 /** Tiers as a twelve-team league fills them. */
 const TIERS_12 = {
@@ -105,40 +127,73 @@ function measure(players, rankings, startN = 2) {
 const data = JSON.parse(await readFile("src/lib/fixtures/rankings-week3.json", "utf8"));
 const positionalRank = (p) => Number(String(p.posRank).replace(/\D/g, ""));
 
-function header(title) {
-  console.log(`\n${title}`);
-  console.log(`  ${"Tier".padEnd(24)}${"N".padStart(4)}${"Diverge".padStart(9)}${"Cases".padStart(14)}${"Dispersion".padStart(12)}`);
-  console.log("  " + "-".repeat(63));
+const median = (values) => {
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = sorted.length >> 1;
+  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+};
+
+/**
+ * Measure one tier across the whole grid.
+ *
+ * `source` is the list the panel is reconstructed over, which is not the same as the tier
+ * being measured: an expert ranks the whole board, and the tier is a slice of it.
+ */
+function sweep(source, players) {
+  const rates = [];
+  let cases = 0;
+  for (const correlation of CORRELATIONS) {
+    for (const seed of SEEDS) {
+      const result = measure(players, buildExpertRankings(source, correlation, seed));
+      rates.push(result.pct);
+      cases = result.total;
+    }
+  }
+  return {
+    low: Math.min(...rates),
+    mid: median(rates),
+    high: Math.max(...rates),
+    cases,
+    dispersion: players.reduce((s, p) => s + p.deviation, 0) / players.length,
+  };
 }
 
-function line(label, players, rankings) {
-  const result = measure(players, rankings);
-  const dispersion = players.reduce((s, p) => s + p.deviation, 0) / players.length;
-  const thin = result.total < 100 ? "  (thin sample)" : "";
+function header(title) {
+  console.log(`\n${title}`);
   console.log(
-    `  ${label.padEnd(24)}${String(players.length).padStart(4)}${(result.pct.toFixed(1) + "%").padStart(9)}` +
-      `${(result.diverged + "/" + result.total).padStart(14)}${dispersion.toFixed(2).padStart(12)}${thin}`,
+    `  ${"Tier".padEnd(24)}${"N".padStart(4)}${"Range".padStart(16)}${"Median".padStart(9)}` +
+      `${"Cases".padStart(8)}${"Dispersion".padStart(12)}`,
+  );
+  console.log("  " + "-".repeat(72));
+}
+
+function line(label, source, players) {
+  const r = sweep(source, players);
+  const range = `${r.low.toFixed(1)} - ${r.high.toFixed(1)}%`;
+  const thin = r.cases < 100 ? "  (thin sample)" : "";
+  console.log(
+    `  ${label.padEnd(24)}${String(players.length).padStart(4)}${range.padStart(16)}` +
+      `${(r.mid.toFixed(1) + "%").padStart(9)}${String(r.cases).padStart(8)}` +
+      `${r.dispersion.toFixed(2).padStart(12)}${thin}`,
   );
 }
 
-function runTiers(title, tiers) {
-  header(title);
-  for (const [position, bands] of Object.entries(tiers)) {
-    const list = data.positions[position];
-    const rankings = buildExpertRankings(list, CORRELATION, SEED);
-    bands.forEach(([low, high], index) =>
-      line(`${position}${index + 1} (${low}-${high})`, list.slice(low - 1, high), rankings),
-    );
-  }
-}
-
+const runs = CORRELATIONS.length * SEEDS.length;
 console.log(`Week ${data.week} ${data.season}, ${EXPERTS} reconstructed expert rankings`);
 console.log("Three players from the same tier, filling two slots.");
+console.log(
+  `Range across ${CORRELATIONS.length} correlation settings and ${SEEDS.length} seeds, ${runs} reconstructions per tier.`,
+);
 
-runTiers("BLOCKS OF 12 - one starting slot per team", TIERS_12);
+header("BLOCKS OF 12 - one starting slot per team");
+for (const [position, bands] of Object.entries(TIERS_12)) {
+  const list = data.positions[position];
+  bands.forEach(([low, high], index) =>
+    line(`${position}${index + 1} (${low}-${high})`, list, list.slice(low - 1, high)),
+  );
+}
 
 const flexList = data.positions.FLEX;
-const flexRankings = buildExpertRankings(flexList, CORRELATION, SEED);
 header("FLEX - split into two tiers");
 for (const tier of FLEX_TIERS) {
   const pool = flexList.filter((p) => {
@@ -147,6 +202,6 @@ for (const tier of FLEX_TIERS) {
     const rank = positionalRank(p);
     return rank >= band[0] && rank <= band[1];
   });
-  line(tier.label, pool, flexRankings);
+  line(tier.label, flexList, pool);
 }
 console.log();
