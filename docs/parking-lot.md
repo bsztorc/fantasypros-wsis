@@ -203,8 +203,8 @@ WR3 (22.3%). The relationship with uncertainty is real at the extremes and noisy
 
 The panel thins when positions are mixed, which matches the product: 46 experts for a
 comparison of running backs, 43 once a receiver joins them, against 45 to 46 and 42
-published. The rule is , calibrated against three observed
-comparisons.
+published. The rule is 46 experts minus 3 for each position beyond the first, calibrated against
+three observed comparisons.
 
 It is a model, not data. FantasyPros knows exactly which experts ranked which players; the
 snapshot does not carry that, so the real panel would differ per comparison in ways this
