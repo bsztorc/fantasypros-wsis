@@ -102,7 +102,20 @@ export function AdviceView({
     );
   }
 
-  const ordered = recommendation.results.map((result) => result.player);
+  /**
+   * Column order, shared with the results band.
+   *
+   * Above one slot the band groups the recommended players first, so the tables have to
+   * follow or a player's card sits over someone else's numbers.
+   */
+  const orderedResults =
+    startN > 1
+      ? [
+          ...recommendation.results.filter((result) => result.recommended),
+          ...recommendation.results.filter((result) => !result.recommended),
+        ]
+      : recommendation.results;
+  const ordered = orderedResults.map((result) => result.player);
 
   /**
    * Accuracy subsets, offset from the headline so a subset can disagree with it.
@@ -115,13 +128,13 @@ export function AdviceView({
     { label: `Top ${ordered[0].position} Experts`, offset: -7 },
     { label: "Top Player Experts", offset: 4 },
   ].map((subset) => {
-    const shares = recommendation.results.map((result, index) =>
+    const shares = orderedResults.map((result, index) =>
       Math.max(0, Math.min(100, result.firstChoiceShare + (index === 1 ? subset.offset : -subset.offset / 2))),
     );
     const rounded = shares.map((value) => Math.round(value));
     return {
       label: subset.label,
-      values: recommendation.results.map((result, index) =>
+      values: orderedResults.map((result, index) =>
         isPremium ? (
           <span key={result.player.id}>{rounded[index]}%</span>
         ) : (

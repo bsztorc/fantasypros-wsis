@@ -52,6 +52,15 @@ export interface Recommendation {
   indistinguishable: boolean;
   /** Players the first-choice ordering would have picked, for explaining a divergence. */
   firstChoicePick: RankedPlayer[];
+  /**
+   * Share of experts whose own top N is exactly the recommended set.
+   *
+   * This is the answer to the question the user asked, on the same scale as the number the
+   * product shows today. At N of 1 it returns the existing first-choice share unchanged,
+   * because the existing percentage is this measure with N hardcoded to one. Across all
+   * possible sets the shares total 100: one expert, one vote, as now.
+   */
+  combinationShare: number;
 }
 
 /** How far a lineup goal is allowed to move a player's standing, in rank positions. */
@@ -145,6 +154,20 @@ export function recommend(
 
   const diverges = !indistinguishable && firstChoicePick.some((p) => !recommended.has(p.id));
 
+  // How many experts would start exactly this set, rather than merely include a member.
+  let exactAgreement = 0;
+  for (const ballot of panel) {
+    const top = [...players]
+      .sort(
+        (a, b) =>
+          (ballot.get(a.id) ?? Infinity) + goalAdjustment(a, goal) -
+          ((ballot.get(b.id) ?? Infinity) + goalAdjustment(b, goal)),
+      )
+      .slice(0, startN);
+    if (top.every((p) => recommended.has(p.id))) exactAgreement += 1;
+  }
+  const combinationShare = Math.round((exactAgreement / panel.length) * 100);
+
   const results: PlayerResult[] = byFirstChoice.map((player) => ({
     player,
     firstChoiceVotes: firstChoices.get(player.id) ?? 0,
@@ -162,5 +185,6 @@ export function recommend(
     diverges,
     indistinguishable,
     firstChoicePick,
+    combinationShare,
   };
 }

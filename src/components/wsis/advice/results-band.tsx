@@ -1,7 +1,7 @@
 "use client";
 
 import { CloseIcon, LockIcon, PlayerSilhouette } from "@/components/ui/icons";
-import { PercentageBadge, PercentageRing } from "@/components/wsis/advice/percentage-ring";
+import { PercentageRing } from "@/components/wsis/advice/percentage-ring";
 import type { PlayerResult, Recommendation } from "@/lib/engine";
 import { bandColumns } from "@/lib/layout";
 import type { Player } from "@/lib/types";
@@ -17,162 +17,81 @@ const POSITION_TEXT: Record<string, string> = {
 
 const positionText = (position: string) => POSITION_TEXT[position] ?? "text-[#aab3c2]";
 
+/** Two players are a pair; three or more are a group. */
+function starterNoun(count: number): string {
+  if (count === 1) return "him";
+  if (count === 2) return "this pair";
+  return "this group";
+}
+
 function RemoveButton({ player, onRemove }: { player: Player; onRemove: (id: string) => void }) {
   return (
     <button
       type="button"
       onClick={() => onRemove(player.id)}
       aria-label={`Remove ${player.name} from the comparison`}
-      className="absolute right-3 top-2 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-white/90 transition-colors hover:bg-white/10 hover:text-white"
+      className="absolute right-2 top-2 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-white/90 transition-colors hover:bg-white/10 hover:text-white"
     >
       <CloseIcon className="h-4 w-4" />
     </button>
   );
 }
 
-function StartPill() {
+function PlayerMeta({ player, align }: { player: Player; align: "left" | "right" | "center" }) {
+  const alignment =
+    align === "right" ? "items-end text-right" : align === "left" ? "items-start" : "items-center text-center";
   return (
-    <span className="rounded-full bg-[#22b45a] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
-      Start
-    </span>
+    <div className={`flex min-w-0 flex-col ${alignment}`}>
+      <p className="text-[20px] font-bold leading-tight text-white">{player.name}</p>
+      <p className="mt-2 whitespace-nowrap text-[13px] text-white/90">
+        {player.position} - {player.team}
+      </p>
+      <p className="whitespace-nowrap text-[13px] text-white/90">{player.opponent}</p>
+    </div>
   );
 }
 
 /**
- * The two numbers, one above the other.
+ * One tile inside the recommended group.
  *
- * The ring is the share of experts who made this player their single first choice, which
- * is what the tool shows today. Beneath it, once more than one slot is being filled, sits
- * the share who would actually start him.
- *
- * They answer different questions and they are on different scales: first choices total
- * 100 across a comparison, while start shares total roughly N times that. Showing one and
- * hiding the other is what lets the current display be read as a ranking.
+ * Every recommended player gets the same tile. They are a set, not an order: the tool was
+ * asked which players to start, not which is better, so ranking them against each other
+ * would answer a question nobody asked.
  */
-function Numbers({
+function StarterTile({
   result,
-  startN,
-  total,
+  onRemove,
 }: {
   result: PlayerResult;
-  startN: number;
-  total: number;
+  onRemove: (id: string) => void;
 }) {
   return (
-    <div className="flex flex-col items-center gap-1.5">
-      <PercentageRing share={result.firstChoiceShare} leading={result.recommended} />
-      <p className="whitespace-nowrap text-[11px] text-white">
-        <span className="font-bold">
-          {result.firstChoiceVotes} of {total}
-        </span>{" "}
-        first choice
-      </p>
-      {startN > 1 && (
-        <p
-          className={`whitespace-nowrap text-[11px] font-semibold ${
-            result.recommended ? "text-[#22b45a]" : "text-fp-on-navy"
-          }`}
-        >
-          {result.inclusionShare}% would start
-        </p>
-      )}
+    <div className="relative flex h-full min-w-0 flex-col items-center justify-end gap-1 overflow-hidden px-3 pb-4 pt-4">
+      <RemoveButton player={result.player} onRemove={onRemove} />
+      <PlayerSilhouette className="h-16 w-16 shrink-0 text-white/25" />
+      <PlayerMeta player={result.player} align="center" />
     </div>
   );
 }
 
-function LeaderCard({
+/** A player the recommendation leaves out. No percentage: the answer is the set. */
+function BenchedTile({
   result,
-  startN,
-  total,
   onRemove,
 }: {
   result: PlayerResult;
-  startN: number;
-  total: number;
   onRemove: (id: string) => void;
 }) {
   const { player } = result;
   return (
-    <div className="relative flex h-[200px] min-w-0 flex-1 items-end gap-4 overflow-hidden bg-[#1f438b] px-5 pt-4">
+    <div className="relative flex h-full min-w-0 flex-col items-center gap-1 overflow-hidden border-l border-white/10 px-3 pt-4 opacity-70">
       <RemoveButton player={player} onRemove={onRemove} />
-      <PlayerSilhouette className="-mb-6 h-40 w-40 shrink-0 text-white/25" />
-      <div className="flex min-w-0 flex-1 flex-col items-end pb-4">
-        {startN > 1 && result.recommended && <StartPill />}
-        <p className="mt-1 text-right text-[22px] font-bold leading-tight text-white">
-          {player.name}
-        </p>
-        <p className="mt-3 whitespace-nowrap text-[13px] text-white/90">
-          {player.position} - {player.team}
-        </p>
-        <p className="whitespace-nowrap text-[13px] text-white/90">{player.opponent}</p>
-      </div>
-      <div className="shrink-0 pb-4">
-        <Numbers result={result} startN={startN} total={total} />
-      </div>
-    </div>
-  );
-}
-
-function RunnerUpCard({
-  result,
-  startN,
-  total,
-  onRemove,
-}: {
-  result: PlayerResult;
-  startN: number;
-  total: number;
-  onRemove: (id: string) => void;
-}) {
-  const { player } = result;
-  return (
-    <div className="relative flex h-[200px] min-w-0 flex-1 items-end gap-4 overflow-hidden px-5 pt-4">
-      <RemoveButton player={player} onRemove={onRemove} />
-      <div className="shrink-0 pb-4">
-        <Numbers result={result} startN={startN} total={total} />
-      </div>
-      <div className="flex min-w-0 flex-1 flex-col items-start pb-4">
-        {startN > 1 && result.recommended && <StartPill />}
-        <p className="mt-1 text-[22px] font-bold leading-tight text-white">{player.name}</p>
-        <p className="mt-3 whitespace-nowrap text-[13px] text-white/90">
-          {player.position} - {player.team}
-        </p>
-        <p className="whitespace-nowrap text-[13px] text-white/90">{player.opponent}</p>
-      </div>
-      <PlayerSilhouette className="-mb-6 h-40 w-40 shrink-0 text-white/25" />
-    </div>
-  );
-}
-
-function CompactCard({
-  result,
-  startN,
-  onRemove,
-}: {
-  result: PlayerResult;
-  startN: number;
-  onRemove: (id: string) => void;
-}) {
-  const { player } = result;
-  return (
-    <div className="relative flex h-[200px] min-w-0 flex-1 flex-col items-center gap-1 overflow-hidden border-l border-white/10 px-3 pt-4">
-      <RemoveButton player={player} onRemove={onRemove} />
-      <PercentageBadge share={result.firstChoiceShare} />
-      <p className="text-center text-[15px] font-bold leading-tight text-white">{player.name}</p>
+      <p className="mt-6 text-center text-[15px] font-bold leading-tight text-white">{player.name}</p>
       <p className={`text-[11px] font-medium ${positionText(player.position)}`}>
         {player.position} - {player.team}
       </p>
-      {startN > 1 && (
-        <p
-          className={`text-[11px] font-semibold ${
-            result.recommended ? "text-[#22b45a]" : "text-fp-on-navy"
-          }`}
-        >
-          {result.inclusionShare}% would start
-        </p>
-      )}
-      {startN > 1 && result.recommended && <StartPill />}
-      <PlayerSilhouette className="-mb-4 mt-auto h-16 w-16 text-white/25" />
+      <p className="text-[11px] text-fp-on-navy">{player.opponent}</p>
+      <PlayerSilhouette className="-mb-4 mt-auto h-14 w-14 text-white/20" />
     </div>
   );
 }
@@ -211,6 +130,59 @@ function AddPlayerCell({
   );
 }
 
+/* -------------------------------------------------------------------------- */
+/* Two players: the product's mirrored layout, left untouched                  */
+/* -------------------------------------------------------------------------- */
+
+function MirroredPair({
+  results,
+  panelSize,
+  onRemove,
+}: {
+  results: PlayerResult[];
+  panelSize: number;
+  onRemove: (id: string) => void;
+}) {
+  const [leader, other] = results;
+  return (
+    <>
+      <div className="relative flex h-[200px] min-w-0 flex-1 items-end gap-4 overflow-hidden bg-[#1f438b] px-5 pt-4">
+        <RemoveButton player={leader.player} onRemove={onRemove} />
+        <PlayerSilhouette className="-mb-6 h-40 w-40 shrink-0 text-white/25" />
+        <div className="flex min-w-0 flex-1 flex-col items-end pb-4">
+          <PlayerMeta player={leader.player} align="right" />
+        </div>
+        <div className="flex shrink-0 flex-col items-center gap-1.5 pb-4">
+          <PercentageRing share={leader.firstChoiceShare} leading />
+          <p className="whitespace-nowrap text-[11px] text-white">
+            <span className="font-bold">
+              {leader.firstChoiceVotes} of {panelSize}
+            </span>{" "}
+            experts
+          </p>
+        </div>
+      </div>
+
+      <div className="relative flex h-[200px] min-w-0 flex-1 items-end gap-4 overflow-hidden px-5 pt-4">
+        <RemoveButton player={other.player} onRemove={onRemove} />
+        <div className="flex shrink-0 flex-col items-center gap-1.5 pb-4">
+          <PercentageRing share={other.firstChoiceShare} leading={false} />
+          <p className="whitespace-nowrap text-[11px] text-white">
+            <span className="font-bold">
+              {other.firstChoiceVotes} of {panelSize}
+            </span>{" "}
+            experts
+          </p>
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col items-start pb-4">
+          <PlayerMeta player={other.player} align="left" />
+        </div>
+        <PlayerSilhouette className="-mb-6 h-40 w-40 shrink-0 text-white/25" />
+      </div>
+    </>
+  );
+}
+
 interface ResultsBandProps {
   recommendation: Recommendation;
   onRemove: (playerId: string) => void;
@@ -224,10 +196,14 @@ interface ResultsBandProps {
 /**
  * The results header.
  *
- * Two layouts, matching the product. With exactly two players the cards mirror each other
- * at equal weight. From three up the leading player keeps a double-width card and the rest
- * collapse into single-width ones, sharing a grid with the comparison tables below so each
- * card sits directly above its own column.
+ * Two players keep the product's mirrored layout. From three up, the players the tool
+ * recommends are joined into one tile and share a single percentage: the share of experts
+ * whose own top N is exactly that set.
+ *
+ * That percentage is not a new measure. At one slot it returns the number the product
+ * already shows, because the existing percentage is this one with N fixed at one. Asking
+ * for two slots changes the question, and the answer becomes a group rather than a winner,
+ * so the group is what the layout presents.
  */
 export function ResultsBand({
   recommendation,
@@ -236,15 +212,13 @@ export function ResultsBand({
   onAddPlayer,
   addPlayerLocked,
 }: ResultsBandProps) {
-  const { results, startN, panelSize } = recommendation;
-  const [leader, ...rest] = results;
-  if (!leader) return null;
+  const { results, panelSize, combinationShare } = recommendation;
+  if (results.length === 0) return null;
 
   if (results.length === 2) {
     return (
       <div className="flex items-stretch bg-fp-navy-slot">
-        <LeaderCard result={leader} startN={startN} total={panelSize} onRemove={onRemove} />
-        <RunnerUpCard result={rest[0]} startN={startN} total={panelSize} onRemove={onRemove} />
+        <MirroredPair results={results} panelSize={panelSize} onRemove={onRemove} />
         <AddPlayerCell
           canAddPlayer={canAddPlayer}
           addPlayerLocked={addPlayerLocked}
@@ -254,15 +228,40 @@ export function ResultsBand({
     );
   }
 
+  const starters = results.filter((result) => result.recommended);
+  const benched = results.filter((result) => !result.recommended);
+  const groupSpan = starters.length + 1;
+
   return (
     <div
-      className="grid items-stretch bg-fp-navy-slot"
+      className="grid h-[200px] items-stretch bg-fp-navy-slot"
       style={{ gridTemplateColumns: bandColumns(results.length) }}
     >
-      <LeaderCard result={leader} startN={startN} total={panelSize} onRemove={onRemove} />
-      {rest.map((result) => (
-        <CompactCard key={result.player.id} result={result} startN={startN} onRemove={onRemove} />
+      {/* The recommended set: one tile, one percentage, equal weight inside. */}
+      <div
+        className="grid bg-[#1f438b]"
+        style={{ gridColumn: `1 / span ${groupSpan}`, gridTemplateColumns: `repeat(${groupSpan}, 1fr)` }}
+      >
+        <div className="flex flex-col items-center justify-center gap-1.5 px-2">
+          <PercentageRing share={combinationShare} leading />
+          <p className="text-center text-[11px] leading-tight text-white">
+            <span className="font-bold">
+              {Math.round((combinationShare / 100) * panelSize)} of {panelSize}
+            </span>{" "}
+            experts
+            <br />
+            start {starterNoun(starters.length)}
+          </p>
+        </div>
+        {starters.map((result) => (
+          <StarterTile key={result.player.id} result={result} onRemove={onRemove} />
+        ))}
+      </div>
+
+      {benched.map((result) => (
+        <BenchedTile key={result.player.id} result={result} onRemove={onRemove} />
       ))}
+
       <AddPlayerCell
         canAddPlayer={canAddPlayer}
         addPlayerLocked={addPlayerLocked}

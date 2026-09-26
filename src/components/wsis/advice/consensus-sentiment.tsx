@@ -18,9 +18,6 @@ function summarise(recommendation: Recommendation): string {
   const [first, second] = results;
   if (!first || !second) return "";
 
-  const picks = results.filter((r) => r.recommended);
-  const dropped = results.find((r) => !r.recommended && r.firstChoiceShare >= second.firstChoiceShare);
-
   if (startN === 1) {
     const gap = first.firstChoiceShare - second.firstChoiceShare;
     const strength = gap >= 30 ? "clearly prefer" : gap >= 12 ? "prefer" : "slightly prefer";
@@ -31,33 +28,39 @@ function summarise(recommendation: Recommendation): string {
     );
   }
 
+  const picks = results.filter((r) => r.recommended);
+  const left = results.filter((r) => !r.recommended);
+  const names = picks.map((r) => r.player.name);
+  const pairing = names.length === 2 ? names.join(" and ") : names.join(", ");
+
   if (recommendation.indistinguishable) {
-    const zeros = results.filter((r) => r.firstChoiceShare === 0).map((r) => r.player.name);
+    const zeros = left.filter((r) => r.firstChoiceShare === 0).map((r) => r.player.name);
     return (
       `${first.player.name} takes every first-place vote, so ${zeros.join(" and ")} both show 0%. ` +
       `That percentage counts first choices only, and neither was anyone's first choice. ` +
-      `Counting who each expert would actually start in ${startN} slots separates them: ` +
-      `${picks.map((r) => `${r.player.name} ${r.inclusionShare}%`).join(", ")}.`
+      `Counting who each expert would actually start in ${startN} slots puts ${pairing} together, ` +
+      `which ${recommendation.combinationShare}% of the panel would do.`
     );
   }
 
-  if (recommendation.diverges && dropped) {
+  const strongest = left.sort((a, b) => b.firstChoiceShare - a.firstChoiceShare)[0];
+
+  if (recommendation.diverges && strongest) {
+    const lastPick = picks[picks.length - 1];
     return (
-      `${dropped.player.name} shows ${dropped.firstChoiceShare}% because ` +
-      `${dropped.firstChoiceVotes} of ${panelSize} experts rank him best of these. Most of the rest ` +
-      `rank him last, so only ${dropped.inclusionShare}% would start him in ${startN} slots. ` +
-      `${picks[picks.length - 1].player.name} is nobody's favourite at ` +
-      `${picks[picks.length - 1].firstChoiceShare}%, and ` +
-      `${picks[picks.length - 1].inclusionShare}% would start him. For ${startN} slots the experts ` +
-      `pair ${picks.map((r) => r.player.name).join(" with ")}.`
+      `${recommendation.combinationShare}% of experts would start ${pairing}, more than any other ` +
+      `combination. On first-place votes alone ${strongest.player.name} looks like the better ` +
+      `second option: ${strongest.firstChoiceVotes} of ${panelSize} experts rank him best of these. ` +
+      `Most of the rest rank him last, so he is rarely anyone's second choice. ` +
+      `${lastPick.player.name} is nobody's favourite and almost everybody's acceptable second.`
     );
   }
 
   return (
-    `The vote splits ${results.map((r) => `${r.firstChoiceShare}%`).join(" / ")} across ` +
-    `${results.length} players, and ${first.firstChoiceVotes} of ${panelSize} experts made ` +
-    `${first.player.name} their first choice. Counting who each expert would start in ` +
-    `${startN} slots gives ${picks.map((r) => `${r.player.name} ${r.inclusionShare}%`).join(" and ")}.`
+    `${recommendation.combinationShare}% of experts would start ${pairing}, more than any other ` +
+    `combination of these ${results.length}. ${first.player.name} leads the first-place vote at ` +
+    `${first.firstChoiceShare}%, and the pairing holds when you count who each expert would ` +
+    `actually start rather than who they would pick first.`
   );
 }
 
