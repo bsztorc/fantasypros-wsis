@@ -88,7 +88,7 @@ export function AdviceView({
           No expert ranks these players against each other.
         </p>
         <p className="mx-auto mt-2 max-w-[440px] text-sm text-fp-on-navy">
-          Kickers and defences are only ranked within their own position, so there is no
+          Kickers and defenses are only ranked within their own position, so there is no
           panel that can express a preference between them and anyone else.
         </p>
         <button

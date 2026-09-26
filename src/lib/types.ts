@@ -1,4 +1,4 @@
-/** Roster position, used for badge colour and eligibility. */
+/** Roster position, used for badge color and eligibility. */
 export type Position = "QB" | "RB" | "WR" | "TE" | "K" | "DST";
 
 /** A player as the comparison tool knows them. */

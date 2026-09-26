@@ -21,24 +21,17 @@ import type { PlayerResult, Recommendation } from "@/lib/engine";
 
 const COUNT_WORD = ["", "one", "two", "three", "four", "five"];
 
-function names(results: PlayerResult[]): string {
-  const list = results.map((result) => result.player.name);
-  if (list.length <= 1) return list[0] ?? "";
-  return `${list.slice(0, -1).join(", ")} and ${list[list.length - 1]}`;
-}
-
 /**
- * How a player's support behaves as slots open up.
+ * How a player's support changes as slots open up.
  *
  * A divisive player gains almost nothing: the experts who like him already had him first,
- * and the rest have him last, so he is rarely anyone's middle pick. A dependable player
- * gains a great deal, being almost nobody's favourite and almost everybody's next choice.
+ * and the rest have him last, so he is rarely anyone's middle pick.
  */
 function gain(result: PlayerResult): number {
   return result.inclusionShare - result.firstChoiceShare;
 }
 
-function summarise(recommendation: Recommendation): string {
+function summarize(recommendation: Recommendation): string {
   const { results, panelSize, startN, combinationShare } = recommendation;
   if (results.length < 2) return "";
 
@@ -47,53 +40,64 @@ function summarise(recommendation: Recommendation): string {
   const [leader] = results;
 
   if (startN === 1) {
-    const [, second] = results;
-    const margin = leader.firstChoiceShare - second.firstChoiceShare;
-    const strength = margin >= 30 ? "clearly" : margin >= 12 ? "" : "narrowly";
+    const rest = results.slice(1);
+
+    // A runaway favorite leaves everyone else on nought, which reads as though the rest are
+    // equally bad. They are not being compared at all: nobody ranked any of them first.
+    if (rest.every((result) => result.firstChoiceShare === 0)) {
+      return (
+        `All ${panelSize} experts make ${leader.player.name} their first choice, so the ` +
+        `${COUNT_WORD[rest.length] ?? rest.length} others each show 0%. That counts first ` +
+        `picks only, and says nothing about which of them to start next to him.`
+      );
+    }
+
     return (
       `${leader.firstChoiceVotes} of ${panelSize} experts make ${leader.player.name} their ` +
-      `first choice${strength ? `, ${strength} ahead of` : `, ahead of`} ${second.player.name}. ` +
-      `That counts first picks only. Raise the slots you are filling and the question changes ` +
-      `from who is best to who you should start.`
+      `first choice, ahead of ` +
+      listOf(rest.map((result) => `${result.player.name} at ${result.firstChoiceShare}%`)) +
+      `.`
     );
   }
 
   const agreeing = Math.round((combinationShare / 100) * panelSize);
+  const [firstStarter, ...otherStarters] = starters;
+
   const answer =
-    `${agreeing} of ${panelSize} experts would start exactly ${names(starters)}, ` +
+    `${agreeing} of ${panelSize} experts would start ${listOf(starters.map((r) => r.player.name))}, ` +
     `more than any other combination of these ${COUNT_WORD[results.length] ?? results.length}.`;
 
-  if (benched.length === 0) return answer;
+  const why =
+    ` ${firstStarter.player.name} is the first choice of ${firstStarter.firstChoiceShare}% of ` +
+    `experts, and ` +
+    listOf(
+      otherStarters.map((r) => `${r.inclusionShare}% would also start ${r.player.name}`),
+    ) +
+    `.`;
 
-  // The exclusion a reader is most likely to challenge is the one with the strongest
-  // showing on first-place votes, because that is the number the tool shows at one slot.
+  if (benched.length === 0) return answer + why;
+
   const challenged = [...benched].sort((a, b) => b.firstChoiceShare - a.firstChoiceShare)[0];
-  const dependable = [...starters].sort((a, b) => gain(b) - gain(a))[0];
 
-  if (challenged.firstChoiceVotes === 0) {
+  // A divisive player is the interesting exclusion: he looks like the obvious next pick on
+  // first-place votes alone, and is the reason the two questions give different answers.
+  if (gain(challenged) <= 8 && challenged.firstChoiceShare > 0) {
     return (
-      `${answer} ${leader.player.name} is the first pick on almost every ballot, so first ` +
-      `choices alone cannot separate the rest. Counting who each expert would actually start ` +
-      `does: ${dependable.player.name} appears in ${dependable.inclusionVotes} of ${panelSize} ` +
-      `expert lineups, ${challenged.player.name} in ${challenged.inclusionVotes}.`
+      answer +
+      why +
+      ` ${challenged.player.name} divides opinion: ${challenged.firstChoiceShare}% rank him ` +
+      `the best of these, but most of the rest rank him last.`
     );
   }
 
-  if (gain(challenged) <= 8) {
-    return (
-      `${answer} ${challenged.player.name} is left out because opinion on him splits: ` +
-      `${challenged.firstChoiceVotes} of ${panelSize} experts rank him the best of these and ` +
-      `most of the rest rank him last, so he is rarely anyone's middle pick. ` +
-      `${dependable.player.name} is the opposite: almost nobody's favourite, and in ` +
-      `${dependable.inclusionVotes} expert lineups.`
-    );
-  }
+  return answer + why;
+}
 
-  return (
-    `${answer} ${challenged.player.name} is the closest alternative, in ` +
-    `${challenged.inclusionVotes} of ${panelSize} expert lineups against ` +
-    `${dependable.inclusionVotes} for ${dependable.player.name}.`
-  );
+/** "a, b and c", or just "a" for a single item. */
+function listOf(items: string[]): string {
+  if (items.length === 0) return "";
+  if (items.length === 1) return items[0];
+  return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
 }
 
 const QUESTION_CHIPS: { emoji: string; ask: (name: string) => string }[] = [
@@ -119,7 +123,7 @@ export function ConsensusSentiment({ recommendation }: { recommendation: Recomme
       </div>
 
       <div className="mt-3 rounded-md border border-fp-border bg-[#fafbfc] p-4">
-        <p className="text-sm leading-relaxed text-fp-ink">{summarise(recommendation)}</p>
+        <p className="text-sm leading-relaxed text-fp-ink">{summarize(recommendation)}</p>
         <button
           type="button"
           className="mt-2 cursor-pointer text-sm font-medium text-fp-link hover:underline"

@@ -91,7 +91,7 @@ than a side effect of where the meters happen to sit today.
 Brandon supplied premium screenshots on 2026-09-25, replacing two inferences with facts.
 
 - **The scale has five named levels**, not three: Very Low, Low, Moderate, High, Very High.
-- **Moderate is grey**, not amber. Colour tracks whether the level favours the player.
+- **Moderate is gray**, not amber. Colour tracks whether the level favours the player.
 - **Bust Risk is inverted**, which the earlier guess had right: a high bust risk renders
   red, a very low one green.
 - **Most Accurate Experts shows percentages, not ranks**, and they are first-choice shares
@@ -103,7 +103,7 @@ prefers **Hampton**. The product already publishes a case where a subset of expe
 disagrees with the headline number.
 
 This is worth using in the write-up. It is not an edge case invented to make a point: it
-is the product's own data showing that a single percentage summarises votes rather than
+is the product's own data showing that a single percentage summarizes votes rather than
 settling the question. The prototype models it with `subsetShares`, where each subset
 perturbs the weighting so it can legitimately disagree with the headline.
 

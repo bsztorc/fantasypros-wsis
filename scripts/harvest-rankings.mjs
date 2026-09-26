@@ -27,7 +27,7 @@ import { writeFile, mkdir } from "node:fs/promises";
  * They are season-long draft rankings, not Week 3, and mixing them in would put
  * preseason opinion behind a week 3 recommendation.
  *
- * FantasyPros publishes no weekly list that ranks kickers and defences alongside
+ * FantasyPros publishes no weekly list that ranks kickers and defenses alongside
  * quarterbacks, which is why Superflex is the widest weekly aggregate available.
  */
 const SOURCES = [

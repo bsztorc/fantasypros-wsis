@@ -39,7 +39,7 @@ export interface DefenseAllowed {
   touchdowns: number;
 }
 
-/** What the opponent defence has been giving up. Invented. */
+/** What the opponent defense has been giving up. Invented. */
 export function defenseAllowed(player: Player): DefenseAllowed {
   const rating = matchupRating(player);
   return {

@@ -68,7 +68,7 @@ function Slot({
  * The four-slot comparison strip with the View Advice button.
  *
  * Signed-out users see two open slots and two padlocks, which is the current product
- * behaviour and the reason that state cannot express a multi-slot decision.
+ * behavior and the reason that state cannot express a multi-slot decision.
  */
 export function PlayerSlots({
   players,

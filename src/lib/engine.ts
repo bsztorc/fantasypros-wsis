@@ -6,7 +6,7 @@ import type { LineupGoal, StartN } from "@/lib/types";
  * The recommendation engine.
  *
  * The existing tool counts, for each expert, the single player they ranked highest. That
- * answers "who is each expert's favourite". When a manager is filling two slots the
+ * answers "who is each expert's favorite". When a manager is filling two slots the
  * question changes to "who would each expert start", and the same ballots answer it
  * differently: count how often a player appears in an expert's top N.
  *
@@ -44,7 +44,7 @@ export interface Recommendation {
   /**
    * True when first-choice votes tie at the selection boundary.
    *
-   * A dominant favourite takes every first-place vote, leaving the remaining players on
+   * A dominant favorite takes every first-place vote, leaving the remaining players on
    * nought percent each. The existing display then offers nothing to choose between them:
    * not a wrong ordering, no ordering at all. This is a stronger finding than divergence
    * and must not be reported as one, because there is no ranking here to differ from.
@@ -115,7 +115,7 @@ function countInclusions(
  * Run the comparison.
  *
  * Returns null when no single ranking list covers every selected player, which happens
- * when a kicker or defence is compared against anyone else. No expert ranks those
+ * when a kicker or defense is compared against anyone else. No expert ranks those
  * together, so there is no panel that can express a preference.
  */
 export function recommend(

@@ -68,7 +68,7 @@ export function playerById(id: string): RankedPlayer | undefined {
  * This is not a convenience. Only experts who ranked all of the compared players can
  * express a preference between them, so the list choice determines the expert pool, and
  * mixing positions genuinely narrows it. A quarterback alongside running backs forces the
- * superflex list; kickers and defences are only ever ranked against their own position.
+ * superflex list; kickers and defenses are only ever ranked against their own position.
  */
 export function listFor(players: RankedPlayer[]): ListName | null {
   const positions = new Set(players.map((p) => p.position));

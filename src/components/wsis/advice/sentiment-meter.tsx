@@ -1,9 +1,9 @@
 /**
  * A five-segment sentiment meter, reproduced from the unlocked premium view.
  *
- * The scale has five named levels and the colour follows whether the level is good for
+ * The scale has five named levels and the color follows whether the level is good for
  * the player, not whether the number is high. Bust Risk therefore runs the other way: a
- * high bust risk is red and a very low one is green. Moderate is grey on every row.
+ * high bust risk is red and a very low one is green. Moderate is gray on every row.
  */
 export type SentimentLevel = 1 | 2 | 3 | 4 | 5;
 

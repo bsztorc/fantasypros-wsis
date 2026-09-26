@@ -1,7 +1,7 @@
 import { LockIcon } from "@/components/ui/icons";
 import { tableColumns } from "@/lib/layout";
 
-/** A labelled row of per-player values, used by every comparison module. */
+/** A labeled row of per-player values, used by every comparison module. */
 export interface CompareRow {
   label: string;
   values: React.ReactNode[];

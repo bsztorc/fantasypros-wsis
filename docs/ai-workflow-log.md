@@ -34,10 +34,10 @@ accidentally target `main`.
 **Prompt:** recreate the current Who Should I Start? landing page so the prototype reads as
 the real product, add a demo-state switcher, and add the two new controls.
 
-**What the agent did well:** rather than eyedropping colours from the concept PNG, it read
+**What the agent did well:** rather than eyedropping colors from the concept PNG, it read
 computed styles off the live FantasyPros page (Poppins, the `#061F47` panel, the 48px pill
 search input) and sampled the concept image pixel by pixel with .NET for the values the
-live page could not show, including the position badge colours. The Start N gating rule was
+live page could not show, including the position badge colors. The Start N gating rule was
 built as a pure function and verified against four cases in the browser.
 
 **What needed correcting:**
@@ -169,7 +169,7 @@ agent had asked for because it was guessing at the gated meters.
 
 **What the agent had wrong:**
 - The sentiment scale is five named levels, not a three-way high/medium/low split.
-- Moderate renders grey, not amber.
+- Moderate renders gray, not amber.
 - Most Accurate Experts shows percentages, not rank numbers.
 - The comparison tables carry a player name header row, which the agent had not
   implemented at all.
@@ -198,7 +198,7 @@ Calibrated against the product instead of guessed again: a 13.9 to 11.4 projecti
 produces a 58 to 42 split there, implying an exponent near 1.6. At 1.7 the same four-player
 comparison gives 53 / 24 / 13 / 9, which is the shape the product actually produces.
 
-The agent had written that exponent to make a favourite look decisive, which is precisely
+The agent had written that exponent to make a favorite look decisive, which is precisely
 the wrong instinct for a prototype whose argument is that the headline number overstates
 how settled the question is.
 
