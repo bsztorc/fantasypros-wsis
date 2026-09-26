@@ -65,16 +65,9 @@ function summarize(recommendation: Recommendation): string {
   const [firstStarter, ...otherStarters] = starters;
 
   const named = listOf(starters.map((r) => r.player.name));
-
-  // When the goal overrides consensus the recommended set is deliberately not the
-  // best-supported one, so the claim that it leads must go. Saying it anyway would be the
-  // same failure the prototype exists to correct: a number answering a different question
-  // than the sentence around it.
-  const overridden = recommendation.goalChangedFrom !== null;
-  const answer = overridden
-    ? `${agreeing} of ${panelSize} experts would start ${named}.`
-    : `${agreeing} of ${panelSize} experts would start ${named}, more than any other ` +
-      `combination of these ${COUNT_WORD[results.length] ?? results.length}.`;
+  const answer =
+    `${agreeing} of ${panelSize} experts would start ${named}, more than any other ` +
+    `combination of these ${COUNT_WORD[results.length] ?? results.length}.`;
 
   const why =
     ` ${firstStarter.player.name} is the first choice of ${firstStarter.firstChoiceShare}% of ` +
@@ -129,9 +122,8 @@ function goalNote(recommendation: Recommendation): string {
       const dropped = goalChangedFrom.find((p) => !starters.some((r) => r.player.id === p.id));
       if (added && dropped) {
         return (
-          ` Most Upside takes ${added.player.name} over ${dropped.name}: fewer experts would start ` +
-          `him, but his best expert ranking is ${spots(upsideRoom(added.player))} above his ` +
-          `average, the widest ceiling here.`
+          ` Most Upside puts ${added.player.name} in ahead of ${dropped.name}: his best expert ` +
+          `ranking is ${spots(upsideRoom(added.player))} above his average, the widest ceiling here.`
         );
       }
     }
@@ -144,9 +136,8 @@ function goalNote(recommendation: Recommendation): string {
     const dropped = goalChangedFrom.find((p) => !starters.some((r) => r.player.id === p.id));
     if (added && dropped) {
       return (
-        ` Safe Floor takes ${added.player.name} over ${dropped.name}: fewer experts would start ` +
-        `him, but ${dropped.name}'s worst expert ranking is ${spots(bustRoom(dropped))} below his ` +
-        `average, the steepest drop here.`
+        ` Safe Floor puts ${added.player.name} in ahead of ${dropped.name}: ${dropped.name}'s worst ` +
+        `expert ranking is ${spots(bustRoom(dropped))} below his average, the steepest drop here.`
       );
     }
   }

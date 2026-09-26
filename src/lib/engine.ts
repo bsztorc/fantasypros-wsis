@@ -94,66 +94,50 @@ function goalAdjustment(player: RankedPlayer, goal: LineupGoal): number {
   return 0;
 }
 
-function countFirstChoices(panel: Ballot[], ids: string[]): Map<string, number> {
-  const votes = new Map(ids.map((id) => [id, 0]));
+/**
+ * One expert's ranking, seen through the lineup goal.
+ *
+ * Balanced applies nothing, so at Balanced every number on screen is a plain count of
+ * what the experts said, and a single-slot comparison reproduces the product exactly.
+ * Choosing Most Upside or Safe Floor declares a lens, and every figure is then computed
+ * through it: the user asked what these rankings say about ceiling, so answering with
+ * unweighted counts would be answering a question they did not ask.
+ */
+function orderBallot(
+  ballot: Ballot,
+  players: RankedPlayer[],
+  goal: LineupGoal,
+): RankedPlayer[] {
+  return [...players].sort(
+    (a, b) =>
+      (ballot.get(a.id) ?? Infinity) + goalAdjustment(a, goal) -
+      ((ballot.get(b.id) ?? Infinity) + goalAdjustment(b, goal)),
+  );
+}
+
+function countFirstChoices(
+  panel: Ballot[],
+  players: RankedPlayer[],
+  goal: LineupGoal,
+): Map<string, number> {
+  const votes = new Map(players.map((p) => [p.id, 0]));
   for (const ballot of panel) {
-    let best: string | null = null;
-    for (const id of ids) {
-      if (best === null || (ballot.get(id) ?? Infinity) < (ballot.get(best) ?? Infinity)) best = id;
-    }
-    if (best) votes.set(best, (votes.get(best) ?? 0) + 1);
+    const best = orderBallot(ballot, players, goal)[0];
+    if (best) votes.set(best.id, (votes.get(best.id) ?? 0) + 1);
   }
   return votes;
 }
 
-/**
- * How many experts would start each player, counted from the ballots as given.
- *
- * Deliberately unweighted. The lineup goal chooses which set to recommend; it must not
- * change the numbers reported about the panel, or a sentence like "43 of 46 experts would
- * start this pair" stops being a statement about experts and becomes a statement about
- * experts after we re-sorted their rankings for them.
- */
+/** How many experts would start each player, seen through the lineup goal. */
 function countInclusions(
-  panel: Ballot[],
-  players: RankedPlayer[],
-  startN: number,
-): Map<string, number> {
-  const included = new Map(players.map((p) => [p.id, 0]));
-  for (const ballot of panel) {
-    const ordered = [...players].sort(
-      (a, b) => (ballot.get(a.id) ?? Infinity) - (ballot.get(b.id) ?? Infinity),
-    );
-    for (const player of ordered.slice(0, startN)) {
-      included.set(player.id, (included.get(player.id) ?? 0) + 1);
-    }
-  }
-  return included;
-}
-
-/**
- * The same count, with each expert's ranking tilted by the lineup goal first.
- *
- * Used only to choose the set. Reporting these numbers would turn "43 of 46 experts would
- * start this pair" into a claim about experts after we re-sorted their rankings for them,
- * which is the exact failure this prototype exists to correct.
- */
-function countInclusionsForGoal(
   panel: Ballot[],
   players: RankedPlayer[],
   startN: number,
   goal: LineupGoal,
 ): Map<string, number> {
-  if (goal === "balanced") return countInclusions(panel, players, startN);
-
   const included = new Map(players.map((p) => [p.id, 0]));
   for (const ballot of panel) {
-    const ordered = [...players].sort(
-      (a, b) =>
-        (ballot.get(a.id) ?? Infinity) + goalAdjustment(a, goal) -
-        ((ballot.get(b.id) ?? Infinity) + goalAdjustment(b, goal)),
-    );
-    for (const player of ordered.slice(0, startN)) {
+    for (const player of orderBallot(ballot, players, goal).slice(0, startN)) {
       included.set(player.id, (included.get(player.id) ?? 0) + 1);
     }
   }
@@ -177,15 +161,12 @@ export function recommend(
   const players = inSharedList(selected);
   if (!players) return null;
 
-  const ids = players.map((p) => p.id);
   const panel = buildPanel(players);
-  const firstChoices = countFirstChoices(panel, ids);
-  // Two counts: one for the numbers on screen, one for deciding who to recommend.
-  const inclusions = countInclusions(panel, players, startN);
-  const selectionCounts = countInclusionsForGoal(panel, players, startN, goal);
+  const firstChoices = countFirstChoices(panel, players, goal);
+  const inclusions = countInclusions(panel, players, startN, goal);
 
   const bySelection = [...players].sort((a, b) => {
-    const diff = (selectionCounts.get(b.id) ?? 0) - (selectionCounts.get(a.id) ?? 0);
+    const diff = (inclusions.get(b.id) ?? 0) - (inclusions.get(a.id) ?? 0);
     return diff !== 0 ? diff : (firstChoices.get(b.id) ?? 0) - (firstChoices.get(a.id) ?? 0);
   });
   const recommended = new Set(bySelection.slice(0, startN).map((p) => p.id));
@@ -208,9 +189,7 @@ export function recommend(
   // How many experts would start exactly this set, rather than merely include a member.
   let exactAgreement = 0;
   for (const ballot of panel) {
-    const top = [...players]
-      .sort((a, b) => (ballot.get(a.id) ?? Infinity) - (ballot.get(b.id) ?? Infinity))
-      .slice(0, startN);
+    const top = orderBallot(ballot, players, goal).slice(0, startN);
     if (top.every((p) => recommended.has(p.id))) exactAgreement += 1;
   }
   const combinationShare = Math.round((exactAgreement / panel.length) * 100);
