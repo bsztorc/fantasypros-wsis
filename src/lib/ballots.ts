@@ -9,15 +9,31 @@ import type { RankedPlayer } from "@/lib/rankings";
  * individual ballots in bulk. This rebuilds a panel whose disagreement matches the
  * published dispersion.
  *
- * Validated against the product: for Hampton against Hubbard this produces 27 first-place
- * votes to 19, where FantasyPros publishes 26 to 20.
+ * Validated against the product: for Hampton against Hubbard this produces 24 first-place
+ * votes of 46, where FantasyPros publishes 26. Re-check with
+ * `npx tsx scripts/validate-against-product.ts` after any change here.
  *
  * Every value is deterministic. The same players always produce the same panel, so a
  * walkthrough can be repeated and a screenshot still matches the page.
  */
 
 /** Experts on the panel when every compared player shares a position. */
-export const PANEL_SIZE = 46;
+export const BASE_PANEL_SIZE = 46;
+
+/**
+ * How many experts can express a preference between these players.
+ *
+ * Not a constant. Only an expert who ranked every player in the comparison has an opinion
+ * about the order of all of them, and experts do not all rank every position. Mixing
+ * positions therefore thins the panel.
+ *
+ * Calibrated against the product, which reports 45 to 46 experts for a comparison of
+ * running backs and 42 once a wide receiver joins them.
+ */
+export function panelSizeFor(players: RankedPlayer[]): number {
+  const positions = new Set(players.map((p) => p.position));
+  return Math.max(12, BASE_PANEL_SIZE - 3 * (positions.size - 1));
+}
 
 /** How much of a rank comes from the expert's own lean rather than player-specific noise. */
 const CORRELATION = 0.45;
@@ -47,7 +63,7 @@ function normalFrom(next: () => number): number {
  * disagreement clusters, and independent noise would understate how often a comparison is
  * genuinely close.
  */
-export function buildPanel(players: RankedPlayer[], panelSize = PANEL_SIZE): Ballot[] {
+export function buildPanel(players: RankedPlayer[], panelSize = panelSizeFor(players)): Ballot[] {
   if (players.length === 0) return [];
 
   const spread = players.reduce((sum, p) => sum + p.deviation, 0) / players.length || 1;
