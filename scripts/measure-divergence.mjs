@@ -1,20 +1,22 @@
 /**
  * How often does the expert-preferred pair differ from the top two by first-choice share?
  *
- * Measured the way a manager meets the decision. In a twelve-team league the top twelve
- * at a position are everyone's starter at that slot, the next twelve are the second
- * starter, and so on. People choose between players at the same slot, not across the
- * board, so a comparison spanning tiers tells us nothing.
+ * Measured the way a manager meets the decision, in a twelve-team league.
  *
- * Flex is not its own tier. It is filled from the players who did not make a positional
- * starting slot, which in practice means RB3, RB4, WR3 and WR4, compared against each
- * other across positions.
+ * Tiers follow how rosters and rankings actually work rather than even blocks:
+ *   QB  three tiers, capped at 32, because only 32 quarterbacks start in the NFL
+ *   RB  three tiers; beyond RB36 a back is not a startable option
+ *   WR  four tiers, because wide receivers go deeper than any other position
+ *   TE  two tiers; nobody starts a third-tier tight end
  *
- * Nobody starts a third quarterback, so QB stops at QB2.
+ * Flex is not a tier of its own. It is filled from the players who missed a positional
+ * starting slot, which in practice is RB3, WR3, WR4 and TE2 compared across positions.
  *
  * Ballots are reconstructed from FantasyPros' published dispersion because individual
  * ballots are not published in bulk. Each simulated expert carries a persistent lean, so
  * their ballot hangs together across players instead of being independent noise.
+ *
+ * Run with: node scripts/measure-divergence.mjs
  */
 
 import { readFile } from "node:fs/promises";
@@ -22,6 +24,25 @@ import { readFile } from "node:fs/promises";
 const EXPERTS = 46;
 const CORRELATION = 0.45;
 const SEED = 20260925;
+
+/** Tiers as a twelve-team league fills them. */
+const TIERS_12 = {
+  QB: [[1, 12], [13, 24], [25, 32]],
+  RB: [[1, 12], [13, 24], [25, 36]],
+  WR: [[1, 12], [13, 24], [25, 36], [37, 48]],
+  TE: [[1, 12], [13, 24]],
+};
+
+/** The same board grouped two starting slots at a time. */
+const TIERS_24 = {
+  QB: [[1, 24], [25, 32]],
+  RB: [[1, 24], [25, 36]],
+  WR: [[1, 24], [25, 48]],
+  TE: [[1, 24]],
+};
+
+/** Positional bands that feed the flex slot. */
+const FLEX_BANDS = { RB: [25, 36], WR: [25, 48], TE: [13, 24] };
 
 function mulberry(seed) {
   return function () {
@@ -80,61 +101,50 @@ function measure(players, ballots, startN = 2) {
 }
 
 const data = JSON.parse(await readFile("src/lib/fixtures/rankings-week3.json", "utf8"));
-const posNumber = (p) => Number(String(p.posRank).replace(/\D/g, ""));
+const positionalRank = (p) => Number(String(p.posRank).replace(/\D/g, ""));
 
-/** Flex candidates: the FLEX list, restricted to players in a given positional band. */
-function flexBand(fromRank, toRank) {
-  return data.positions.FLEX.filter((p) => {
-    if (p.position !== "RB" && p.position !== "WR") return false;
-    const n = posNumber(p);
-    return n >= fromRank && n <= toRank;
-  });
-}
-
-function row(label, players, ballots) {
-  const r = measure(players, ballots);
-  const dispersion = players.reduce((s, p) => s + p.deviation, 0) / players.length;
-  return { label, n: players.length, pct: r.pct, diverged: r.diverged, total: r.total, dispersion };
-}
-
-function print(title, rows) {
+function header(title) {
   console.log(`\n${title}`);
-  console.log(`  ${"Tier".padEnd(22)}${"Players".padStart(8)}${"Diverge".padStart(10)}${"Cases".padStart(14)}${"Dispersion".padStart(12)}`);
-  console.log(`  ${"-".repeat(64)}`);
-  for (const r of rows) {
-    const flag = r.total < 20 ? "  (too few to quote)" : "";
-    console.log(
-      `  ${r.label.padEnd(22)}${String(r.n).padStart(8)}${(r.pct.toFixed(1) + "%").padStart(10)}` +
-        `${(r.diverged + "/" + r.total).padStart(14)}${r.dispersion.toFixed(2).padStart(12)}${flag}`,
+  console.log(`  ${"Tier".padEnd(24)}${"N".padStart(4)}${"Diverge".padStart(9)}${"Cases".padStart(14)}${"Dispersion".padStart(12)}`);
+  console.log("  " + "-".repeat(63));
+}
+
+function line(label, players, ballots) {
+  const result = measure(players, ballots);
+  const dispersion = players.reduce((s, p) => s + p.deviation, 0) / players.length;
+  const thin = result.total < 100 ? "  (thin sample)" : "";
+  console.log(
+    `  ${label.padEnd(24)}${String(players.length).padStart(4)}${(result.pct.toFixed(1) + "%").padStart(9)}` +
+      `${(result.diverged + "/" + result.total).padStart(14)}${dispersion.toFixed(2).padStart(12)}${thin}`,
+  );
+}
+
+function runTiers(title, tiers) {
+  header(title);
+  for (const [position, bands] of Object.entries(tiers)) {
+    const list = data.positions[position];
+    const ballots = buildBallots(list, CORRELATION, SEED);
+    bands.forEach(([low, high], index) =>
+      line(`${position}${index + 1} (${low}-${high})`, list.slice(low - 1, high), ballots),
     );
   }
 }
 
-// ---- Blocks of 12 -------------------------------------------------------
-const rows12 = [];
-for (const [pos, tiers] of [["QB", 2], ["RB", 4], ["WR", 4], ["TE", 2]]) {
-  const list = data.positions[pos];
-  const ballots = buildBallots(list, CORRELATION, SEED);
-  for (let t = 0; t < tiers; t++) {
-    const block = list.slice(t * 12, t * 12 + 12);
-    if (block.length >= 3) rows12.push(row(`${pos}${t + 1} (${t * 12 + 1}-${t * 12 + block.length})`, block, ballots));
-  }
-}
-const flexBallots = buildBallots(data.positions.FLEX, CORRELATION, SEED);
-rows12.push(row("FLEX shallow (RB3/WR3)", flexBand(25, 36), flexBallots));
-rows12.push(row("FLEX deep (RB4/WR4)", flexBand(37, 48), flexBallots));
-print("BLOCKS OF 12 - one starter slot per team in a 12-team league", rows12);
+console.log(`Week ${data.week} ${data.season}, ${EXPERTS} reconstructed ballots`);
+console.log("Three players from the same tier, filling two slots.");
 
-// ---- Blocks of 24 -------------------------------------------------------
-const rows24 = [];
-for (const [pos, tiers] of [["QB", 1], ["RB", 2], ["WR", 2], ["TE", 1]]) {
-  const list = data.positions[pos];
-  const ballots = buildBallots(list, CORRELATION, SEED);
-  for (let t = 0; t < tiers; t++) {
-    const block = list.slice(t * 24, t * 24 + 24);
-    if (block.length >= 3) rows24.push(row(`${pos}${t + 1} (${t * 24 + 1}-${t * 24 + block.length})`, block, ballots));
-  }
-}
-rows24.push(row("FLEX (RB3-4/WR3-4)", flexBand(25, 48), flexBallots));
-print("BLOCKS OF 24 - two starter slots per team in a 12-team league", rows24);
+runTiers("BLOCKS OF 12 - one starting slot per team", TIERS_12);
+runTiers("BLOCKS OF 24 - two starting slots per team", TIERS_24);
+
+const flexList = data.positions.FLEX;
+const flexBallots = buildBallots(flexList, CORRELATION, SEED);
+const flexPool = flexList.filter((p) => {
+  const band = FLEX_BANDS[p.position];
+  if (!band) return false;
+  const rank = positionalRank(p);
+  return rank >= band[0] && rank <= band[1];
+});
+
+header("FLEX - RB3, WR3, WR4 and TE2 combined");
+line("FLEX pool", flexPool, flexBallots);
 console.log();

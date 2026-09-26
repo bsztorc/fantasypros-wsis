@@ -140,10 +140,11 @@ How often the expert-preferred pair differs from the top two by first-choice sha
 players from the same tier, filling two slots, against the Week 3 snapshot, 46
 reconstructed ballots.
 
-In a twelve-team league the top twelve at a position are everyone's starter at that slot.
-Flex is not its own tier: it is filled from the players who missed a positional slot, so
-it is modelled as RB3, RB4, WR3 and WR4 compared across positions. Nobody starts a third
-quarterback, so QB stops at QB2.
+Tiers follow how rosters and rankings actually work, not even blocks. QB caps at 32
+because only 32 quarterbacks start in the NFL. RB stops at RB3 and TE at TE2, because
+beyond that nobody is a startable option. WR runs to four tiers, since the position goes
+deeper than any other. Flex is filled from the players who missed a positional slot:
+RB3, WR3, WR4 and TE2, compared across positions.
 
 ### Blocks of twelve
 
@@ -151,41 +152,54 @@ quarterback, so QB stops at QB2.
 |---|---|---|---|
 | QB1 (1-12) | 1.4% | 3/220 | 1.00 |
 | QB2 (13-24) | 8.6% | 19/220 | 1.97 |
+| QB3 (25-32) | 12.5% | 7/56 | 2.37 |
 | RB1 (1-12) | 4.5% | 10/220 | 1.15 |
 | RB2 (13-24) | 6.4% | 14/220 | 2.20 |
 | RB3 (25-36) | 5.0% | 11/220 | 2.54 |
-| **RB4 (37-48)** | **37.3%** | 82/220 | 4.52 |
 | WR1 (1-12) | 10.9% | 24/220 | 1.36 |
 | WR2 (13-24) | 8.6% | 19/220 | 2.16 |
 | **WR3 (25-36)** | **22.3%** | 49/220 | 4.11 |
 | WR4 (37-48) | 11.8% | 26/220 | 4.53 |
 | TE1 (1-12) | 6.8% | 15/220 | 1.51 |
 | TE2 (13-24) | 4.5% | 10/220 | 2.21 |
-| **FLEX shallow (RB3/WR3)** | **13.3%** | 269/2024 | 8.88 |
-| **FLEX deep (RB4/WR4)** | **11.0%** | 223/2024 | 10.72 |
 
 ### Blocks of twenty-four
 
 | Tier | Divergence | Cases | Dispersion |
 |---|---|---|---|
 | QB1 (1-24) | 3.1% | 63/2024 | 1.49 |
+| QB2 (25-32) | 12.5% | 7/56 | 2.37 |
 | RB1 (1-24) | 2.6% | 53/2024 | 1.67 |
-| **RB2 (25-48)** | **13.0%** | 264/2024 | 3.53 |
+| RB2 (25-36) | 5.0% | 11/220 | 2.54 |
 | WR1 (1-24) | 3.4% | 68/2024 | 1.76 |
 | WR2 (25-48) | 7.1% | 144/2024 | 4.32 |
 | TE1 (1-24) | 2.0% | 40/2024 | 1.86 |
-| FLEX (RB3-4/WR3-4) | 6.0% | 1042/17296 | 9.80 |
+
+### Flex
+
+| Pool | Divergence | Cases | Dispersion |
+|---|---|---|---|
+| RB3 + WR3 + WR4 + TE2 | 7.0% | 1203/17296 | 8.75 |
+
+Forty-eight players, twelve from each contributing tier.
 
 ### What to claim, and what not to
 
-**Claim:** the divergence is concentrated in the tiers where decisions are genuinely hard.
-QB1, RB1 and TE1 sit between 1.4% and 4.5%, where nobody needs advice. RB4 is 37.3% and
-WR3 is 22.3%. Flex, the decision the feature exists for, runs 11% to 13%.
+**Claim:** divergence concentrates where the decision is genuinely hard. The tiers nobody
+needs help with sit low: QB1 at 1.4%, TE1 at 6.8%, RB1 at 4.5%. WR3, which is the deepest
+genuinely startable tier and a core flex input, is 22.3%. The flex decision itself runs
+7.0% across the whole pool.
 
-**Do not claim a smooth gradient.** It is not monotonic. RB3 (5.0%) sits below RB2 (6.4%),
-and WR4 (11.8%) sits below WR3 (22.3%). The trend is real at the extremes and noisy in the
-middle, and overstating it invites a challenge that is easy to make and hard to answer.
+**Do not claim a smooth gradient.** RB3 (5.0%) sits below RB2 (6.4%), and WR4 (11.8%) sits
+below WR3 (22.3%). The relationship with uncertainty is real at the extremes and noisy in
+the middle. Asserting a clean trend invites a challenge that costs more than the claim is
+worth.
 
-**Note on the wider flex pool.** Flex measured across all 48 candidates falls to 6.0%,
-lower than either twelve-band. A wider pool contains more lopsided pairings, and lopsided
-comparisons never diverge. The narrower bands are the realistic decision set.
+**QB3 is a thin sample.** Eight players give 56 comparisons. Quote it as directional or
+not at all.
+
+**The flex figure is conservative.** Across all 48 candidates it includes pairings a
+manager would never agonise over, such as a strong RB3 against a weak TE2, and lopsided
+comparisons never diverge. The real flex decision is usually between two or three players
+of similar value, where the rate is higher. Presenting 7.0% is the defensible floor, not
+the expected case.
