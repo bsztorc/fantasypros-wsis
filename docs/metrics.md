@@ -25,11 +25,24 @@ Sample of 100 start/sit requests from Reddit and Sleeper threads.
 **Do not add these two.** 27% and 31% are overlapping sets. "58% unserved" is wrong and
 will be caught.
 
-**What the 27% does not say.** It is the share across all requests, including positions
-where a multi-slot question is impossible. Among RB, WR and FLEX requests, where filling
-two slots from the same group can actually happen, the share should be materially higher.
-That re-cut has not been done, so do not assert it. If asked, the honest answer is that
-27% is the conservative floor.
+**What the 27% does not say.** It is the observed rate across the sample, nothing more.
+
+Do not describe it as a conservative floor on the grounds that some positions cannot be
+multi-slot. That reasoning is wrong. A superflex or flex slot accepts QB, RB, WR and TE,
+so a multi-slot question is possible at every offensive position. Only DST is structurally
+single-slot, and no DST posts appear in the sample, so DST is not in the denominator
+either.
+
+**The re-cut worth doing is by decision type, not by position.** The brief suggests
+excluding QB, TE, K and DST to isolate "positions where multi-slot is even possible", but
+that would discard legitimate superflex cases. The meaningful split is whether the poster
+is filling a flex or superflex slot, where several positions compete for one spot, or a
+strict positional slot. Until that is cut, 27% stands on its own with no adjustment
+claimed in either direction.
+
+**Open work Brandon is doing:** quantifying how often users ask flex-specific advice
+against other positions or neutral phrasing, from the same advice threads. Until that
+lands, no claim about flex being the most-asked decision.
 
 **Dominant theme in the extra context:** injury uncertainty, specifically whether a
 questionable player will suit up and the problem of not knowing before a Sunday or Monday
@@ -102,9 +115,9 @@ different and false: it reads as flex accounting for 22.3% of all divergence acr
 board. The 22.3% is a **rate within flex comparisons**, not flex's share of a total.
 
 **One claim not yet evidenced.** That flex is the position users ask about most is
-plausible and not established by the sample. Either re-cut the sample to support it or
-drop the clause. As it stands the tier data shows where divergence is highest, not where
-demand is highest.
+plausible and not established by the sample. Brandon is quantifying it from the advice
+threads. Until it lands, the tier data shows where divergence is highest, not where
+demand is highest, and the two should not be conflated.
 
 **Do not claim a smooth gradient.** RB3 (5.0%) sits below RB2 (6.4%), and WR4 (11.8%)
 below WR3 (22.3%).
