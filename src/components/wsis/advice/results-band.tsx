@@ -74,7 +74,15 @@ function StarterTile({
   );
 }
 
-/** A player the recommendation leaves out. No percentage: the answer is the set. */
+/**
+ * A player the recommendation leaves out.
+ *
+ * No percentage: the answer is the set, and his honest figures are pair-dependent, so any
+ * single number on his card alone would misstate them. Headshot above the name, matching
+ * the recommended tiles, at a smaller scale to keep the hierarchy. The live product puts
+ * the headshot below on its non-leading cards; the inconsistency reads as a mistake here,
+ * so the prototype is deliberately tidier than the thing it copies.
+ */
 function BenchedTile({
   result,
   onRemove,
@@ -84,14 +92,14 @@ function BenchedTile({
 }) {
   const { player } = result;
   return (
-    <div className="relative flex h-full min-w-0 flex-col items-center gap-1 overflow-hidden border-l border-white/10 px-3 pt-4 opacity-70">
+    <div className="relative flex h-full min-w-0 flex-col items-center justify-end gap-1 overflow-hidden border-l border-white/10 px-3 pb-4 pt-4 opacity-70">
       <RemoveButton player={player} onRemove={onRemove} />
-      <p className="mt-6 text-center text-[15px] font-bold leading-tight text-white">{player.name}</p>
-      <p className={`text-[11px] font-medium ${positionText(player.position)}`}>
+      <PlayerSilhouette className="h-12 w-12 shrink-0 text-white/20" />
+      <p className="text-center text-[15px] font-bold leading-tight text-white">{player.name}</p>
+      <p className={`mt-1 text-[11px] font-medium ${positionText(player.position)}`}>
         {player.position} - {player.team}
       </p>
       <p className="text-[11px] text-fp-on-navy">{player.opponent}</p>
-      <PlayerSilhouette className="-mb-4 mt-auto h-14 w-14 text-white/20" />
     </div>
   );
 }

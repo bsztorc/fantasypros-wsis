@@ -1,4 +1,4 @@
-import type { Recommendation } from "@/lib/engine";
+import type { PlayerResult, Recommendation } from "@/lib/engine";
 
 /**
  * Stub of the product's existing Coach AI summary.
@@ -12,55 +12,87 @@ import type { Recommendation } from "@/lib/engine";
  * and drops it at three or more. That is backwards. The comparison gets harder as players
  * are added and the gap between the headline percentage and the supporting data widens,
  * so the explanation is withdrawn exactly when it is most needed. Here it always renders.
+ *
+ * The summary states the answer first and then justifies the one exclusion a reader will
+ * question. It quotes only expert counts, never a percentage the screen is not showing:
+ * above one slot the individual shares are deliberately absent, and explaining the result
+ * in terms of numbers a reader cannot see is worse than not explaining it.
  */
+
+const COUNT_WORD = ["", "one", "two", "three", "four", "five"];
+
+function names(results: PlayerResult[]): string {
+  const list = results.map((result) => result.player.name);
+  if (list.length <= 1) return list[0] ?? "";
+  return `${list.slice(0, -1).join(", ")} and ${list[list.length - 1]}`;
+}
+
+/**
+ * How a player's support behaves as slots open up.
+ *
+ * A divisive player gains almost nothing: the experts who like him already had him first,
+ * and the rest have him last, so he is rarely anyone's middle pick. A dependable player
+ * gains a great deal, being almost nobody's favourite and almost everybody's next choice.
+ */
+function gain(result: PlayerResult): number {
+  return result.inclusionShare - result.firstChoiceShare;
+}
+
 function summarise(recommendation: Recommendation): string {
-  const { results, panelSize, startN } = recommendation;
-  const [first, second] = results;
-  if (!first || !second) return "";
+  const { results, panelSize, startN, combinationShare } = recommendation;
+  if (results.length < 2) return "";
+
+  const starters = results.filter((result) => result.recommended);
+  const benched = results.filter((result) => !result.recommended);
+  const [leader] = results;
 
   if (startN === 1) {
-    const gap = first.firstChoiceShare - second.firstChoiceShare;
-    const strength = gap >= 30 ? "clearly prefer" : gap >= 12 ? "prefer" : "slightly prefer";
+    const [, second] = results;
+    const margin = leader.firstChoiceShare - second.firstChoiceShare;
+    const strength = margin >= 30 ? "clearly" : margin >= 12 ? "" : "narrowly";
     return (
-      `Experts ${strength} ${first.player.name}. That is a first-choice vote, not a verdict: ` +
-      `${first.firstChoiceVotes} of ${panelSize} experts picked him, and ` +
-      `${panelSize - first.firstChoiceVotes} picked someone else.`
+      `${leader.firstChoiceVotes} of ${panelSize} experts make ${leader.player.name} their ` +
+      `first choice${strength ? `, ${strength} ahead of` : `, ahead of`} ${second.player.name}. ` +
+      `That counts first picks only. Raise the slots you are filling and the question changes ` +
+      `from who is best to who you should start.`
     );
   }
 
-  const picks = results.filter((r) => r.recommended);
-  const left = results.filter((r) => !r.recommended);
-  const names = picks.map((r) => r.player.name);
-  const pairing = names.length === 2 ? names.join(" and ") : names.join(", ");
+  const agreeing = Math.round((combinationShare / 100) * panelSize);
+  const answer =
+    `${agreeing} of ${panelSize} experts would start exactly ${names(starters)}, ` +
+    `more than any other combination of these ${COUNT_WORD[results.length] ?? results.length}.`;
 
-  if (recommendation.indistinguishable) {
-    const zeros = left.filter((r) => r.firstChoiceShare === 0).map((r) => r.player.name);
+  if (benched.length === 0) return answer;
+
+  // The exclusion a reader is most likely to challenge is the one with the strongest
+  // showing on first-place votes, because that is the number the tool shows at one slot.
+  const challenged = [...benched].sort((a, b) => b.firstChoiceShare - a.firstChoiceShare)[0];
+  const dependable = [...starters].sort((a, b) => gain(b) - gain(a))[0];
+
+  if (challenged.firstChoiceVotes === 0) {
     return (
-      `${first.player.name} takes every first-place vote, so ${zeros.join(" and ")} both show 0%. ` +
-      `That percentage counts first choices only, and neither was anyone's first choice. ` +
-      `Counting who each expert would actually start in ${startN} slots puts ${pairing} together, ` +
-      `which ${recommendation.combinationShare}% of the panel would do.`
+      `${answer} ${leader.player.name} is the first pick on almost every ballot, so first ` +
+      `choices alone cannot separate the rest. Counting who each expert would actually start ` +
+      `does: ${dependable.player.name} appears in ${dependable.inclusionVotes} of ${panelSize} ` +
+      `expert lineups, ${challenged.player.name} in ${challenged.inclusionVotes}.`
     );
   }
 
-  const strongest = left.sort((a, b) => b.firstChoiceShare - a.firstChoiceShare)[0];
-
-  if (recommendation.diverges && strongest) {
-    const lastPick = picks[picks.length - 1];
+  if (gain(challenged) <= 8) {
     return (
-      `${recommendation.combinationShare}% of experts would start ${pairing}, more than any other ` +
-      `combination. On first-place votes alone ${strongest.player.name} looks like the better ` +
-      `second option: ${strongest.firstChoiceVotes} of ${panelSize} experts rank him best of these. ` +
-      `Most of the rest rank him last, so he is rarely anyone's second choice. ` +
-      `${lastPick.player.name} is nobody's favourite and almost everybody's acceptable second.`
+      `${answer} ${challenged.player.name} is left out because opinion on him splits: ` +
+      `${challenged.firstChoiceVotes} of ${panelSize} experts rank him the best of these and ` +
+      `most of the rest rank him last, so he is rarely anyone's middle pick. ` +
+      `${dependable.player.name} is the opposite: almost nobody's favourite, and in ` +
+      `${dependable.inclusionVotes} expert lineups.`
     );
   }
 
   return (
-    `${recommendation.combinationShare}% of experts would start ${pairing}, more than any other ` +
-    `combination of these ${results.length}. ${first.player.name} leads the first-place vote at ` +
-    `${first.firstChoiceShare}%, and the pairing holds when you count who each expert would ` +
-    `actually start rather than who they would pick first.`
+    `${answer} ${challenged.player.name} is the closest alternative, in ` +
+    `${challenged.inclusionVotes} of ${panelSize} expert lineups against ` +
+    `${dependable.inclusionVotes} for ${dependable.player.name}.`
   );
 }
 
