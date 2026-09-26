@@ -17,16 +17,19 @@ The math is not wrong. The input model is narrower than the decision the user ar
 
 ## Status
 
-The landing page and the signed-out advice view are built. The lineup-aware recommendation is not.
+The tool runs on real 2026 Week 3 rankings and computes its recommendations. Three items
+from the brief's core list are still open.
 
 | Area | State |
 |---|---|
 | Landing page, three demo states | built |
-| Start N and Lineup Goal controls | built, gating logic verified |
-| Advice view, signed out, two players | built |
-| Advice view, three and four players | not started |
-| Recommendation engine | not started |
-| Dev spec | not started |
+| Start N and Lineup Goal controls | built, gating verified |
+| Advice view, two through four players | built |
+| Recommendation engine | built, invariants verified across 2289 comparisons |
+| Real Week 3 data, 395 players | built |
+| Consensus strength | not started |
+| Availability risk in the reasoning | not started |
+| Matchup-aware reasoning, synced | not started |
 
 ## What is real vs. stubbed
 
