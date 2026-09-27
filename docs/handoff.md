@@ -109,9 +109,14 @@ separate.
   two numbers already on screen. Goes in the write-up, where the real insight lives: a
   small panel caps how strong a consensus can honestly be called, so 100% of 12 experts is
   weaker than 70% of 46.
-- **Team-aware reasoning: not built.** Final rosters are announced ninety minutes before
-  kickoff, which kills the reassuring half. The remaining half is premium analysis a free
-  user cannot know they are missing. Write-up.
+- **Team-aware reasoning: built, synced states only.** Reversed on 2026-09-26. The earlier
+  call was that final rosters are announced ninety minutes before kickoff, which kills the
+  reassuring half of it. That still holds, and is why none of this tells the user a player
+  will be fine. What it does say is the part already knowable from the snapshot: a
+  designation that will not resolve until after the rest of the user's week has finished,
+  and what their own bench can do about it. On the demo roster that reads: D. Smith is
+  questionable, plays Monday night, and every other receiver the user rosters has already
+  played by then. See `src/lib/team-context.ts`.
 - **Inferred lineup goal and matchup-margin reasoning: not built.** Both need league and
   matchup state that does not exist, and inventing it would put fabricated data behind a
   recommendation. Everything else invented in the prototype is inert dressing. Write-up.

@@ -99,6 +99,7 @@ export function WsisTool() {
             demoState={demoState}
             openSlots={capabilities.openSlots}
             isPremium={capabilities.isPremium}
+            isSynced={capabilities.hasRoster}
             pool={searchPool}
             onSelect={handleToggle}
             goal={goal}

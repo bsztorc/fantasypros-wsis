@@ -1,5 +1,6 @@
 import { bustRoom, upsideRoom } from "@/lib/expert-rankings";
 import type { PlayerResult, Recommendation } from "@/lib/engine";
+import { availabilityNote, availabilityRisk } from "@/lib/team-context";
 
 /**
  * Stub of the product's existing Coach AI summary.
@@ -14,10 +15,11 @@ import type { PlayerResult, Recommendation } from "@/lib/engine";
  * are added and the gap between the headline percentage and the supporting data widens,
  * so the explanation is withdrawn exactly when it is most needed. Here it always renders.
  *
- * The summary states the answer first and then justifies the one exclusion a reader will
- * question. It quotes only expert counts, never a percentage the screen is not showing:
- * above one slot the individual shares are deliberately absent, and explaining the result
- * in terms of numbers a reader cannot see is worse than not explaining it.
+ * The summary answers in this order: what to start, why those players, why each of the
+ * others is out, what the lineup goal changed, and what the user's own roster adds. It
+ * quotes only expert counts, never a percentage the screen is not showing: above one slot
+ * the individual shares are deliberately absent, and explaining the result in terms of
+ * numbers a reader cannot see is worse than not explaining it.
  */
 
 const COUNT_WORD = ["", "one", "two", "three", "four", "five"];
@@ -32,13 +34,87 @@ function gain(result: PlayerResult): number {
   return result.inclusionShare - result.firstChoiceShare;
 }
 
-function summarize(recommendation: Recommendation): string {
+/**
+ * Why one player did not make the lineup.
+ *
+ * Every excluded player gets a reason. Leaving that to the reader is what the current
+ * display does: it shows an ordering, says nothing about what the ordering means, and lets
+ * them infer that second place is the next best start. Each reason is stated in the same
+ * expert counts the recommendation itself is built from.
+ */
+function whyNotStarted(result: PlayerResult, weakestStarter: PlayerResult | undefined): string {
+  const name = result.player.name;
+
+  if (result.inclusionShare === 0) {
+    return `no expert would start ${name} over these`;
+  }
+
+  if (result.firstChoiceShare === 0) {
+    // Broad support with no first-place votes is a real position, and "only" misdescribes it
+    // once the share passes half. He is not disliked, he is nobody's favourite.
+    if (weakestStarter && result.inclusionShare >= 40) {
+      return (
+        `nobody ranks ${name} the best of these, and while ${result.inclusionShare}% would ` +
+        `still start him that trails ${weakestStarter.inclusionShare}% for ` +
+        `${weakestStarter.player.name}`
+      );
+    }
+    return (
+      `nobody ranks ${name} the best of these, and only ${result.inclusionShare}% would start ` +
+      `him at all`
+    );
+  }
+
+  // A divisive player is the interesting exclusion: he looks like the obvious next pick on
+  // first-place votes alone, and is the reason the two questions give different answers.
+  if (gain(result) <= 8) {
+    return (
+      `${name} splits the panel: ${result.firstChoiceShare}% rank him the best of these, but ` +
+      `most of the rest rank him last, so he is seldom anyone's second pick`
+    );
+  }
+
+  if (!weakestStarter) {
+    return `${result.inclusionShare}% would start ${name}, short of a slot`;
+  }
+
+  const margin = weakestStarter.inclusionShare - result.inclusionShare;
+  if (margin <= 10) {
+    return (
+      `${name} is the closest call: ${result.inclusionShare}% would start him against ` +
+      `${weakestStarter.inclusionShare}% for ${weakestStarter.player.name}`
+    );
+  }
+
+  return (
+    `${name} trails on the same question: ${result.inclusionShare}% would start him against ` +
+    `${weakestStarter.inclusionShare}% for ${weakestStarter.player.name}`
+  );
+}
+
+/** Every exclusion, as one sentence. */
+function exclusions(recommendation: Recommendation): string {
+  const starters = recommendation.results.filter((result) => result.recommended);
+  const benched = recommendation.results.filter((result) => !result.recommended);
+  if (benched.length === 0) return "";
+
+  const weakestStarter = [...starters].sort((a, b) => a.inclusionShare - b.inclusionShare)[0];
+
+  const reasons = [...benched]
+    .sort((a, b) => b.inclusionShare - a.inclusionShare)
+    .map((result) => whyNotStarted(result, weakestStarter));
+
+  const lead = benched.length === 1 ? "The one left out:" : "The others:";
+  return ` ${lead} ${listOf(reasons)}.`;
+}
+
+function summarize(recommendation: Recommendation, isSynced: boolean): string {
   const { results, panelSize, startN, combinationShare } = recommendation;
   if (results.length < 2) return "";
 
   const starters = results.filter((result) => result.recommended);
-  const benched = results.filter((result) => !result.recommended);
   const [leader] = results;
+  const team = isSynced ? teamNote(recommendation) : "";
 
   if (startN === 1) {
     const rest = results.slice(1);
@@ -49,7 +125,9 @@ function summarize(recommendation: Recommendation): string {
       return (
         `All ${panelSize} experts make ${leader.player.name} their first choice, so the ` +
         `${COUNT_WORD[rest.length] ?? rest.length} others each show 0%. That counts first ` +
-        `picks only, and says nothing about which of them to start next to him.`
+        `picks only, and says nothing about which of them to start next to him.` +
+        goalNote(recommendation) +
+        team
       );
     }
 
@@ -57,7 +135,9 @@ function summarize(recommendation: Recommendation): string {
       `${leader.firstChoiceVotes} of ${panelSize} experts make ${leader.player.name} their ` +
       `first choice, ahead of ` +
       listOf(rest.map((result) => `${result.player.name} at ${result.firstChoiceShare}%`)) +
-      `.`
+      `.` +
+      goalNote(recommendation) +
+      team
     );
   }
 
@@ -72,36 +152,20 @@ function summarize(recommendation: Recommendation): string {
   const why =
     ` ${firstStarter.player.name} is the first choice of ${firstStarter.firstChoiceShare}% of ` +
     `experts, and ` +
-    listOf(
-      otherStarters.map((r) => `${r.inclusionShare}% would also start ${r.player.name}`),
-    ) +
+    listOf(otherStarters.map((r) => `${r.inclusionShare}% would also start ${r.player.name}`)) +
     `.`;
 
-  if (benched.length === 0) return answer + why + goalNote(recommendation);
-
-  const challenged = [...benched].sort((a, b) => b.firstChoiceShare - a.firstChoiceShare)[0];
-
-  // A divisive player is the interesting exclusion: he looks like the obvious next pick on
-  // first-place votes alone, and is the reason the two questions give different answers.
-  if (gain(challenged) <= 8 && challenged.firstChoiceShare > 0) {
-    return (
-      answer +
-      why +
-      ` ${challenged.player.name} divides opinion: ${challenged.firstChoiceShare}% rank him ` +
-      `the best of these, but most of the rest rank him last.` +
-      goalNote(recommendation)
-    );
-  }
-
-  return answer + why + goalNote(recommendation);
+  return answer + why + exclusions(recommendation) + goalNote(recommendation) + team;
 }
 
 /**
  * What the lineup goal did to the answer.
  *
  * Balanced says nothing: it applies no weight, so there is nothing to explain. The other
- * two do change the selection, and a control that silently alters the recommendation is
- * the same problem as a percentage that silently answers a different question.
+ * two can change the selection, and a control that silently alters the recommendation is
+ * the same problem as a percentage that silently answers a different question. When the
+ * goal does change the pick it is named as a swap, in the order a reader would ask it: who
+ * came in, who went out, and what about the rankings made that happen.
  *
  * The numbers are the real spread behind each player: how far above his average the most
  * optimistic expert puts him, and how far below the most pessimistic one does.
@@ -111,21 +175,27 @@ function goalNote(recommendation: Recommendation): string {
   if (goal === "balanced") return "";
 
   const starters = results.filter((r) => r.recommended);
-  const spots = (value: number) => {
+  const places = (value: number) => {
     const rounded = Math.round(value);
-    return `${rounded} ${rounded === 1 ? "spot" : "spots"}`;
+    return `${rounded} ${rounded === 1 ? "place" : "places"}`;
   };
 
+  const added = goalChangedFrom
+    ? starters.find((r) => !goalChangedFrom.some((p) => p.id === r.player.id))
+    : undefined;
+  const dropped = goalChangedFrom
+    ? goalChangedFrom.find((p) => !starters.some((r) => r.player.id === p.id))
+    : undefined;
+
   if (goal === "most-upside") {
-    if (goalChangedFrom) {
-      const added = starters.find((r) => !goalChangedFrom.some((p) => p.id === r.player.id));
-      const dropped = goalChangedFrom.find((p) => !starters.some((r) => r.player.id === p.id));
-      if (added && dropped) {
-        return (
-          ` Most Upside puts ${added.player.name} in ahead of ${dropped.name}: his best expert ` +
-          `ranking is ${spots(upsideRoom(added.player))} above his average, the widest ceiling here.`
-        );
-      }
+    if (added && dropped) {
+      return (
+        ` You asked for upside, and it changed the answer: ${added.player.name} comes in for ` +
+        `${dropped.name}. Where experts disagree about ${added.player.name} they disagree in his ` +
+        `favour, with his most optimistic ranking ${places(upsideRoom(added.player))} above his ` +
+        `average, the widest gap here. ${dropped.name} is the steadier of the two, which is why ` +
+        `Balanced starts him instead.`
+      );
     }
     const widest = [...results].sort((a, b) => upsideRoom(b.player) - upsideRoom(a.player))[0];
     return widest.recommended
@@ -133,20 +203,30 @@ function goalNote(recommendation: Recommendation): string {
       : ` Most Upside does not change the pick. ${widest.player.name} has the widest ceiling here, but not enough to displace ${starters[starters.length - 1].player.name}.`;
   }
 
-  if (goalChangedFrom) {
-    const added = starters.find((r) => !goalChangedFrom.some((p) => p.id === r.player.id));
-    const dropped = goalChangedFrom.find((p) => !starters.some((r) => r.player.id === p.id));
-    if (added && dropped) {
-      return (
-        ` Safe Floor puts ${added.player.name} in ahead of ${dropped.name}: ${dropped.name}'s worst ` +
-        `expert ranking is ${spots(bustRoom(dropped))} below his average, the steepest drop here.`
-      );
-    }
+  if (added && dropped) {
+    return (
+      ` You asked for a safe floor, and it changed the answer: ${added.player.name} comes in for ` +
+      `${dropped.name}. ${dropped.name} is the bigger risk of the two, with his most pessimistic ` +
+      `ranking ${places(bustRoom(dropped))} below his average, the steepest drop here. ` +
+      `${added.player.name} gives up some ceiling to avoid it.`
+    );
   }
   const steadiest = [...results].sort((a, b) => bustRoom(a.player) - bustRoom(b.player))[0];
   return steadiest.recommended
     ? ` Safe Floor does not change the pick: ${steadiest.player.name} already has the least downside here.`
     : ` Safe Floor does not change the pick. ${steadiest.player.name} has the least downside here, but not enough to displace ${starters[starters.length - 1].player.name}.`;
+}
+
+/** Roster-aware reasoning. Synced states only, because it reads the user's team. */
+function teamNote(recommendation: Recommendation): string {
+  const players = recommendation.results.map((result) => result.player);
+  const recommendedIds = new Set(
+    recommendation.results
+      .filter((result) => result.recommended)
+      .map((result) => result.player.id),
+  );
+  const risk = availabilityRisk(players, recommendedIds);
+  return risk ? availabilityNote(risk) : "";
 }
 
 /** "a, b and c", or just "a" for a single item. */
@@ -162,7 +242,14 @@ const QUESTION_CHIPS: { emoji: string; ask: (name: string) => string }[] = [
   { emoji: "\u{1F4C8}", ask: (name) => `Does ${name} have top-5 upside at his position?` },
 ];
 
-export function ConsensusSentiment({ recommendation }: { recommendation: Recommendation }) {
+export function ConsensusSentiment({
+  recommendation,
+  isSynced,
+}: {
+  recommendation: Recommendation;
+  /** League synced. Gates the roster-aware half, which has no roster to read without it. */
+  isSynced: boolean;
+}) {
   const leader = recommendation.results[0];
   if (!leader || recommendation.results.length < 2) return null;
 
@@ -179,7 +266,9 @@ export function ConsensusSentiment({ recommendation }: { recommendation: Recomme
       </div>
 
       <div className="mt-3 rounded-md border border-fp-border bg-[#fafbfc] p-4">
-        <p className="text-sm leading-relaxed text-fp-ink">{summarize(recommendation)}</p>
+        <p className="text-sm leading-relaxed text-fp-ink">
+          {summarize(recommendation, isSynced)}
+        </p>
         <button
           type="button"
           className="mt-2 cursor-pointer text-sm font-medium text-fp-link hover:underline"
