@@ -38,8 +38,6 @@ interface AdviceViewProps {
   demoState: DemoState;
   openSlots: number;
   isPremium: boolean;
-  /** League synced. Unlocks the roster-aware half of the summary. */
-  isSynced: boolean;
   pool: Player[];
   onSelect: (player: Player) => void;
   goal: LineupGoal;
@@ -69,7 +67,6 @@ export function AdviceView({
   demoState,
   openSlots,
   isPremium,
-  isSynced,
   pool,
   onSelect,
   goal,
@@ -284,7 +281,7 @@ export function AdviceView({
       <div className="space-y-4 bg-fp-navy-tab p-5">
         {tab === "Overview" ? (
           <>
-            <ConsensusSentiment recommendation={recommendation} isSynced={isSynced} />
+            <ConsensusSentiment recommendation={recommendation} />
             <SpinTheWheel />
             <CompareModule
               title="Most Accurate Experts"

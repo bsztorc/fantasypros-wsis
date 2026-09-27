@@ -1,6 +1,5 @@
 import { bustRoom, upsideRoom } from "@/lib/expert-rankings";
 import type { PlayerResult, Recommendation } from "@/lib/engine";
-import { availabilityNote, availabilityRisk } from "@/lib/team-context";
 
 /**
  * Stub of the product's existing Coach AI summary.
@@ -163,20 +162,19 @@ function answerParagraph(recommendation: Recommendation): string {
 /**
  * The summary, as paragraphs.
  *
- * The first answers the question: who to start, on what support, and why the others are
- * out. Everything after it is context the user did not ask for and may not need, so each
- * piece gets its own paragraph rather than being run into the answer. Read as one block it
- * all looked like part of the recommendation, and the injury note in particular is not: it
- * is a fact about their week that they have to weigh themselves.
+ * It explains the recommendation and nothing else: who to start, on what support, why the
+ * others are out, and what the lineup goal contributes when one is set.
+ *
+ * NO ROSTER REASONING. A version of this carried a third paragraph about injury
+ * designations and kickoff times for synced users. It was cut deliberately. Those facts are
+ * already available to the product's own AI summary, so narrating them here adds nothing a
+ * prompt could not: it changed what the tool said rather than what the tool computed. Start
+ * N changes what is computed, which is why it is the idea this prototype is built on.
  */
-function summarize(recommendation: Recommendation, isSynced: boolean): string[] {
+function summarize(recommendation: Recommendation): string[] {
   if (recommendation.results.length < 2) return [];
 
-  return [
-    answerParagraph(recommendation),
-    goalNote(recommendation),
-    isSynced ? teamNote(recommendation) : "",
-  ]
+  return [answerParagraph(recommendation), goalNote(recommendation)]
     .map((paragraph) => paragraph.trim())
     .filter((paragraph) => paragraph.length > 0);
 }
@@ -229,18 +227,6 @@ function goalNote(recommendation: Recommendation): string {
   return steadiest.recommended ? `${lead}.` : `${lead}, but not enough according to experts.`;
 }
 
-/** Roster-aware reasoning. Synced states only, because it reads the user's team. */
-function teamNote(recommendation: Recommendation): string {
-  const players = recommendation.results.map((result) => result.player);
-  const recommendedIds = new Set(
-    recommendation.results
-      .filter((result) => result.recommended)
-      .map((result) => result.player.id),
-  );
-  const risk = availabilityRisk(players, recommendedIds);
-  return risk ? availabilityNote(risk) : "";
-}
-
 /** "a, b and c", or just "a" for a single item. */
 function listOf(items: string[]): string {
   if (items.length === 0) return "";
@@ -254,14 +240,7 @@ const QUESTION_CHIPS: { emoji: string; ask: (name: string) => string }[] = [
   { emoji: "\u{1F4C8}", ask: (name) => `Does ${name} have top-5 upside at his position?` },
 ];
 
-export function ConsensusSentiment({
-  recommendation,
-  isSynced,
-}: {
-  recommendation: Recommendation;
-  /** League synced. Gates the roster-aware half, which has no roster to read without it. */
-  isSynced: boolean;
-}) {
+export function ConsensusSentiment({ recommendation }: { recommendation: Recommendation }) {
   const leader = recommendation.results[0];
   if (!leader || recommendation.results.length < 2) return null;
 
@@ -279,7 +258,7 @@ export function ConsensusSentiment({
 
       <div className="mt-3 rounded-md border border-fp-border bg-[#fafbfc] p-4">
         <div className="space-y-3 text-sm leading-relaxed text-fp-ink">
-          {summarize(recommendation, isSynced).map((paragraph) => (
+          {summarize(recommendation).map((paragraph) => (
             <p key={paragraph.slice(0, 40)}>{paragraph}</p>
           ))}
         </div>

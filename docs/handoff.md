@@ -109,14 +109,31 @@ separate.
   two numbers already on screen. Goes in the write-up, where the real insight lives: a
   small panel caps how strong a consensus can honestly be called, so 100% of 12 experts is
   weaker than 70% of 46.
-- **Team-aware reasoning: built, synced states only.** Reversed on 2026-09-26. The earlier
-  call was that final rosters are announced ninety minutes before kickoff, which kills the
-  reassuring half of it. That still holds, and is why none of this tells the user a player
-  will be fine. What it does say is the part already knowable from the snapshot: a
-  designation that will not resolve until after the rest of the user's week has finished,
-  and what their own bench can do about it. On the demo roster that reads: D. Smith is
-  questionable, plays Monday night, and every other receiver the user rosters has already
-  played by then. See `src/lib/team-context.ts`.
+- **Team-aware reasoning: not built. Built once, then cut, and the cut is the decision that
+  stands.** Do not put it back without reading this.
+
+  It was built on 2026-09-26 as a synced-only paragraph in the summary: a designation that
+  will not resolve until after the rest of the user's week has finished, and what their own
+  bench could do about it. It worked, and it was cut on 2026-09-27 for two reasons that have
+  nothing to do with whether it worked.
+
+  **It changes what the tool says, not what the tool computes.** The roster, the designation
+  and the kickoff time all already exist, and the product's own AI summary can reach them. A
+  reviewer can say "Coach AI could do that with a prompt change" and be right. Start N does
+  not have that problem: it counts how often a player appears in an expert's top N, and that
+  number is not calculated anywhere in the product today, so no summary can narrate it.
+
+  **It cost more spec than the feature being pitched.** Nineteen branches, and three data
+  sources the tool does not otherwise touch: roster state, injury feed, kickoff schedule.
+  Start N and Lineup Goal both run entirely on the rankings and dispersion already on the
+  page. That line is worth stating out loud in the write-up.
+
+  It belongs on the proposed-improvements list instead, where it is the strongest candidate:
+  injury uncertainty was the dominant theme in the extra context users volunteered. Proposing
+  it and not building it is the prioritization the assignment asks for.
+
+  **Injury designations beside player names stay.** That is a different thing: it makes
+  injuries visible, it costs nothing, and it fixes a real defect in the live product.
 - **Inferred lineup goal and matchup-margin reasoning: not built.** Both need league and
   matchup state that does not exist, and inventing it would put fabricated data behind a
   recommendation. Everything else invented in the prototype is inert dressing. Write-up.
