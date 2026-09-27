@@ -2,7 +2,7 @@
 
 import { CloseIcon, LockIcon, PlayerSilhouette } from "@/components/ui/icons";
 import { InjuryTag } from "@/components/ui/injury-tag";
-import { PercentageRing } from "@/components/wsis/advice/percentage-ring";
+import { PercentageBadge, PercentageRing } from "@/components/wsis/advice/percentage-ring";
 import type { PlayerResult, Recommendation } from "@/lib/engine";
 import { bandColumns } from "@/lib/layout";
 import type { Player } from "@/lib/types";
@@ -81,23 +81,34 @@ function StarterTile({
 /**
  * A player the recommendation leaves out.
  *
- * No percentage: the answer is the set, and his honest figures are pair-dependent, so any
- * single number on his card alone would misstate them. Headshot above the name, matching
- * the recommended tiles, at a smaller scale to keep the hierarchy. The live product puts
- * the headshot below on its non-leading cards; the inconsistency reads as a mistake here,
- * so the prototype is deliberately tidier than the thing it copies.
+ * At one slot he keeps his badge, because at one slot the number is honest: it is the share
+ * of experts who made him their first choice, which is exactly what the product shows today
+ * and exactly the question being asked.
+ *
+ * Above one slot the badge goes. The answer is then a set, and his individual figures are
+ * dependent on which other players are in the comparison, so a single number on his card
+ * alone would misstate them.
+ *
+ * Headshot above the name, matching the recommended tiles, at a smaller scale to keep the
+ * hierarchy. The live product puts the headshot below on its non-leading cards; the
+ * inconsistency reads as a mistake here, so the prototype is deliberately tidier than the
+ * thing it copies.
  */
 function BenchedTile({
   result,
   onRemove,
+  share,
 }: {
   result: PlayerResult;
   onRemove: (id: string) => void;
+  /** First-choice share, at one slot only. Omitted above one slot. */
+  share?: number;
 }) {
   const { player } = result;
   return (
     <div className="relative flex h-full min-w-0 flex-col items-center justify-end gap-1 overflow-hidden border-l border-white/10 px-3 pb-4 pt-4 opacity-70">
       <RemoveButton player={player} onRemove={onRemove} />
+      {share !== undefined && <PercentageBadge share={share} />}
       <PlayerSilhouette className="h-12 w-12 shrink-0 text-white/20" />
       <p className="text-center text-[15px] font-bold leading-tight text-white">
         {player.name}
@@ -219,6 +230,13 @@ interface ResultsBandProps {
  * already shows, because the existing percentage is this one with N fixed at one. Asking
  * for two slots changes the question, and the answer becomes a group rather than a winner,
  * so the group is what the layout presents.
+ *
+ * WHICH IS WHY ONE SLOT KEEPS EVERY PERCENTAGE. At one slot the question has not changed,
+ * so the band has no reason to look different from the product: the leader takes the ring,
+ * and the others keep their first-choice badges. Dropping them was a mistake, and the wrong
+ * kind of mistake for this prototype to make. The argument is that the existing display
+ * answers the wrong question above one slot, not that it is wrong to begin with, so the
+ * one-slot case has to be left exactly as it is for the comparison to mean anything.
  */
 export function ResultsBand({
   recommendation,
@@ -227,7 +245,7 @@ export function ResultsBand({
   onAddPlayer,
   addPlayerLocked,
 }: ResultsBandProps) {
-  const { results, panelSize, combinationShare } = recommendation;
+  const { results, panelSize, combinationShare, startN } = recommendation;
   if (results.length === 0) return null;
 
   if (results.length === 2) {
@@ -274,7 +292,12 @@ export function ResultsBand({
       </div>
 
       {benched.map((result) => (
-        <BenchedTile key={result.player.id} result={result} onRemove={onRemove} />
+        <BenchedTile
+          key={result.player.id}
+          result={result}
+          onRemove={onRemove}
+          share={startN === 1 ? result.firstChoiceShare : undefined}
+        />
       ))}
 
       <AddPlayerCell
