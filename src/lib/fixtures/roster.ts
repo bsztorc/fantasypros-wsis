@@ -12,12 +12,19 @@ import { playerById, SNAPSHOT, type RankedPlayer } from "@/lib/rankings";
  * Pittman is left out: he is injured, and a roster that starts an injured player invites
  * a question that has nothing to do with the feature.
  *
+ * Barkley is replaced by C. Brown at a near-identical rank, and B. Thomas Jr. by D. Adams.
+ * The Barkley swap is what makes the availability reasoning work: he was in the same Monday
+ * night game as D. Smith, so "every other player on your roster has already played by then"
+ * was false while he was on it, and the note had to fall back to naming the position. With
+ * C. Brown at RB9 playing Sunday afternoon, D. Smith is the only player on the roster whose
+ * game has not finished, which is the whole point being demonstrated.
+ *
  * Every player is real and every rank comes from the Week 3 snapshot.
  */
 const ROSTER_IDS = [
   "19196", // J. Burrow
   "22968", // J. Gibbs
-  "17240", // S. Barkley
+  "25324", // C. Brown
   "25403", // J. Love
   "16421", // A. Kamara
   "23163", // D. London
@@ -25,9 +32,9 @@ const ROSTER_IDS = [
   "25333", // M. Wilson
   "19794", // R. Bateman
   "19222", // D. Smith
+  "12123", // D. Adams
   "27331", // KC Concepcion Jr.
   "25337", // T. Tucker
-  "23000", // B. Thomas Jr.
   "26434", // T. Warren
   "8260", //  SEA DST
   "19058", // C. McLaughlin

@@ -56,9 +56,6 @@ export function kickoffSlot(player: RankedPlayer): string | null {
   return `${day} morning`;
 }
 
-const positionalRank = (player: RankedPlayer) =>
-  Number(String(player.posRank).replace(/\D/g, "")) || Number.MAX_SAFE_INTEGER;
-
 /** The position, as a manager would say it rather than as a table column. */
 const POSITION_NOUN: Record<string, string> = {
   QB: "quarterback",
@@ -76,24 +73,24 @@ export interface AvailabilityRisk {
   /** "questionable" or "doubtful". Never a settled status: see below. */
   wording: string;
   slot: string;
-  /** No other player on the roster kicks off later, so waiting costs the whole week. */
+  /** No player on the roster kicks off later, so waiting on him costs the whole week. */
   isLastOfWeek: boolean;
+  /** The roster holds someone else at his position, whether or not they have played. */
+  hasBenchAtPosition: boolean;
   /**
-   * Best player at the position, on the roster, not in the comparison, still to kick off.
+   * Everyone else at the position kicked off before this game.
    *
-   * Still to kick off is the part that matters. A replacement whose game has already
-   * started is not a replacement: the user cannot wait for the news and then use him, so
-   * naming him as cover would be advice they cannot act on.
+   * The decisive fact. A replacement whose game has already started is not a replacement:
+   * the user cannot wait for the news and then act on it, so cover that has played is the
+   * same as no cover at all.
    */
-  cover: RankedPlayer | null;
-  /** Everyone at the position still to play carries a designation of their own. */
-  allCoverUnresolved: boolean;
-  /** How far below the risky player the cover is ranked, in places at the position. */
-  rankGap: number;
-  /** Best player at the position on the bench, whether or not his game has started. */
-  bestOnBench: RankedPlayer | null;
-  /** True when every other player at the position has kicked off before this game. */
   benchAlreadyPlayed: boolean;
+  /** The same, across the whole roster rather than just his position. */
+  wholeRosterAlreadyPlayed: boolean;
+  /** Someone at the position is still to play and carries no designation of their own. */
+  hasCleanCover: boolean;
+  /** Cover exists but every one of them is carrying a designation too. */
+  allCoverUnresolved: boolean;
 }
 
 /**
@@ -128,17 +125,13 @@ export function availabilityRisk(
   if (!slot) return null;
 
   const kickoff = top.player.kickoff ?? 0;
-  const comparedIds = new Set(compared.map((player) => player.id));
-  const bench = MY_ROSTER.filter(
-    (player) => player.position === top.player.position && !comparedIds.has(player.id),
-  ).sort((a, b) => positionalRank(a) - positionalRank(b));
-
-  const stillToPlay = bench.filter((player) => (player.kickoff ?? 0) >= kickoff);
+  const others = MY_ROSTER.filter((player) => player.id !== top.player.id);
+  const bench = others.filter((player) => player.position === top.player.position);
+  const benchStillToPlay = bench.filter((player) => (player.kickoff ?? 0) >= kickoff);
 
   // Cover has to be someone who is themselves available. A questionable replacement for a
   // questionable starter is not a plan, it is the same problem twice.
-  const clean = stillToPlay.filter((player) => designationFor(player.id) === null);
-  const cover = clean[0] ?? null;
+  const clean = benchStillToPlay.filter((player) => designationFor(player.id) === null);
   const latestOnRoster = Math.max(...MY_ROSTER.map((player) => player.kickoff ?? 0));
 
   return {
@@ -146,21 +139,25 @@ export function availabilityRisk(
     wording: DESIGNATION_WORDING[top.designation],
     slot,
     isLastOfWeek: kickoff >= latestOnRoster,
-    cover,
-    allCoverUnresolved: stillToPlay.length > 0 && clean.length === 0,
-    rankGap: cover ? positionalRank(cover) - positionalRank(top.player) : 0,
-    bestOnBench: bench[0] ?? null,
-    benchAlreadyPlayed: bench.length > 0 && stillToPlay.length === 0,
+    hasBenchAtPosition: bench.length > 0,
+    benchAlreadyPlayed: bench.length > 0 && benchStillToPlay.length === 0,
+    wholeRosterAlreadyPlayed: others.every((player) => (player.kickoff ?? 0) < kickoff),
+    hasCleanCover: clean.length > 0,
+    allCoverUnresolved: benchStillToPlay.length > 0 && clean.length === 0,
   };
 }
 
 /**
  * The availability risk as a sentence.
  *
- * States the designation, when it resolves, and what the user's own bench can actually do
- * about it. It stops there. It does not predict whether he plays, because nothing in this
- * snapshot knows, and a recommendation dressed up as foresight is the failure this whole
- * prototype is arguing against.
+ * Names nobody but the player in question. An earlier version named the best cover on the
+ * bench, which reads as a recommendation to go and start that player: a second piece of
+ * advice, attached to a decision the user did not ask about, in the middle of the answer to
+ * the one they did.
+ *
+ * It states the designation, when it resolves, and whether the roster can cover it. It stops
+ * there. It does not predict whether he plays, because nothing in this snapshot knows, and a
+ * recommendation dressed up as foresight is the failure this prototype is arguing against.
  */
 export function availabilityNote(risk: AvailabilityRisk): string {
   const {
@@ -168,51 +165,48 @@ export function availabilityNote(risk: AvailabilityRisk): string {
     wording,
     slot,
     isLastOfWeek,
-    cover,
-    allCoverUnresolved,
-    rankGap,
-    bestOnBench,
+    hasBenchAtPosition,
     benchAlreadyPlayed,
+    wholeRosterAlreadyPlayed,
+    hasCleanCover,
+    allCoverUnresolved,
   } = risk;
+
   const noun = nounFor(player.position);
+  const closer = ` His injury situation is worth considering.`;
 
   const timing = isLastOfWeek
-    ? `${player.name} is ${wording} and plays ${slot}, the last game of your week.`
-    : `${player.name} is ${wording} and does not play until ${slot}.`;
+    ? ` Note for your team: ${player.name} is ${wording} to play ${slot}, the last game of` +
+      ` your week.`
+    : ` Note for your team: ${player.name} is ${wording} to play ${slot}.`;
 
-  if (!bestOnBench) {
-    return ` On your roster: ${timing} You have no other ${noun} to replace him with.`;
+  if (!hasBenchAtPosition) {
+    return `${timing} You have no other ${noun} on your roster to replace him with.${closer}`;
   }
 
   if (benchAlreadyPlayed) {
+    // Only claim the whole roster when the whole roster is true of it. On this snapshot a
+    // running back is in the same Monday night game, so the unqualified version is wrong.
+    const scope = wholeRosterAlreadyPlayed ? "player" : noun;
     return (
-      ` On your roster: ${timing} Every other ${noun} you roster has already played by then,` +
-      ` ${bestOnBench.name} at ${bestOnBench.posRank} included, so if he is ruled out there is` +
-      ` nothing left to put in the slot.`
+      `${timing} Every other ${scope} on your roster has already played by then, so if he is` +
+      ` ruled out you'll have no players to replace him with.${closer}`
     );
   }
 
   if (allCoverUnresolved) {
     return (
-      ` On your roster: ${timing} Every ${noun} on your bench who is still to play is carrying` +
-      ` a designation of his own, so there is no clean replacement to fall back on.`
+      `${timing} Every ${noun} on your bench who is still to play is carrying a designation of` +
+      ` his own, so there is no clean replacement to fall back on.${closer}`
     );
   }
 
-  if (!cover) {
-    return ` On your roster: ${timing} You have no other ${noun} to replace him with.`;
-  }
-
-  if (rankGap >= 20) {
+  if (hasCleanCover) {
     return (
-      ` On your roster: ${timing} If he is ruled out, the best cover still to play is` +
-      ` ${cover.name} at ${cover.posRank}, ${rankGap} places lower, so there is no` +
-      ` like-for-like replacement here.`
+      `${timing} If he is ruled out you have cover at the position that has not played yet.` +
+      `${closer}`
     );
   }
 
-  return (
-    ` On your roster: ${timing} If he is ruled out, ${cover.name} at ${cover.posRank} is still` +
-    ` to play and can take the slot, ${rankGap} places lower.`
-  );
+  return `${timing} You have no other ${noun} on your roster to replace him with.${closer}`;
 }

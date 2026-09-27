@@ -159,64 +159,59 @@ function summarize(recommendation: Recommendation, isSynced: boolean): string {
 }
 
 /**
- * What the lineup goal did to the answer.
+ * What the lineup goal says about the answer.
  *
- * Balanced says nothing: it applies no weight, so there is nothing to explain. The other
- * two can change the selection, and a control that silently alters the recommendation is
- * the same problem as a percentage that silently answers a different question. When the
- * goal does change the pick it is named as a swap, in the order a reader would ask it: who
- * came in, who went out, and what about the rankings made that happen.
+ * Balanced says nothing: it applies no weight, so there is nothing to explain.
  *
- * The numbers are the real spread behind each player: how far above his average the most
- * optimistic expert puts him, and how far below the most pessimistic one does.
+ * NO CAUSAL CLAIM, DELIBERATELY. An earlier version opened with "you asked for upside, and
+ * it changed the answer". The tool cannot know that. It has no idea what goal the user
+ * arrived on, and someone who landed on Most Upside and stayed there changed nothing. What
+ * the tool does know is the spread behind each player, so that is what it states: a fact
+ * about the rankings, not a story about the user's session.
+ *
+ * The numbers are the real spread: how far above his average the most optimistic expert
+ * puts a player, and how far below the most pessimistic one does.
  */
 function goalNote(recommendation: Recommendation): string {
   const { goal, goalChangedFrom, results } = recommendation;
   if (goal === "balanced") return "";
 
-  const starters = results.filter((r) => r.recommended);
-  const places = (value: number) => {
+  const spots = (value: number) => {
     const rounded = Math.round(value);
-    return `${rounded} ${rounded === 1 ? "place" : "places"}`;
+    return `${rounded} ${rounded === 1 ? "spot" : "spots"}`;
   };
 
-  const added = goalChangedFrom
-    ? starters.find((r) => !goalChangedFrom.some((p) => p.id === r.player.id))
-    : undefined;
+  // What Balanced would start instead, stated as a difference between two settings rather
+  // than as something the user did.
+  const starters = results.filter((r) => r.recommended);
   const dropped = goalChangedFrom
     ? goalChangedFrom.find((p) => !starters.some((r) => r.player.id === p.id))
     : undefined;
+  const balancedNote = dropped ? ` Balanced starts ${dropped.name} here instead.` : "";
 
   if (goal === "most-upside") {
-    if (added && dropped) {
-      return (
-        ` You asked for upside, and it changed the answer: ${added.player.name} comes in for ` +
-        `${dropped.name}. Where experts disagree about ${added.player.name} they disagree in his ` +
-        `favour, with his most optimistic ranking ${places(upsideRoom(added.player))} above his ` +
-        `average, the widest gap here. ${dropped.name} is the steadier of the two, which is why ` +
-        `Balanced starts him instead.`
-      );
-    }
     const widest = [...results].sort((a, b) => upsideRoom(b.player) - upsideRoom(a.player))[0];
+    const room = upsideRoom(widest.player);
+    if (room <= 0) return "";
+
+    const base =
+      ` Among all experts, ${widest.player.name}'s highest rank is ${spots(room)} above his ` +
+      `average, giving him the most upside of these.`;
     return widest.recommended
-      ? ` Most Upside does not change the pick: ${widest.player.name} already has the widest ceiling here.`
-      : ` Most Upside does not change the pick. ${widest.player.name} has the widest ceiling here, but not enough to displace ${starters[starters.length - 1].player.name}.`;
+      ? base + balancedNote
+      : base + ` It is not enough support to take a slot.`;
   }
 
-  if (added && dropped) {
-    return (
-      ` You asked for a safe floor, and it changed the answer: ${added.player.name} comes in for ` +
-      `${dropped.name}. ${dropped.name} is the bigger risk of the two, with his most pessimistic ` +
-      `ranking ${places(bustRoom(dropped))} below his average, the steepest drop here. ` +
-      `${added.player.name} gives up some ceiling to avoid it.`
-    );
-  }
   const steadiest = [...results].sort((a, b) => bustRoom(a.player) - bustRoom(b.player))[0];
-  return steadiest.recommended
-    ? ` Safe Floor does not change the pick: ${steadiest.player.name} already has the least downside here.`
-    : ` Safe Floor does not change the pick. ${steadiest.player.name} has the least downside here, but not enough to displace ${starters[starters.length - 1].player.name}.`;
-}
+  const drop = bustRoom(steadiest.player);
 
+  const base =
+    ` Among all experts, ${steadiest.player.name}'s lowest rank is ${spots(drop)} below his ` +
+    `average, the smallest drop of these, giving him the safest floor.`;
+  return steadiest.recommended
+    ? base + balancedNote
+    : base + ` It is not enough support to take a slot.`;
+}
 /** Roster-aware reasoning. Synced states only, because it reads the user's team. */
 function teamNote(recommendation: Recommendation): string {
   const players = recommendation.results.map((result) => result.player);
