@@ -142,10 +142,13 @@ Django libraries. Less prose, explicit structure, testable criteria, named edge 
 `docs/metrics.md` holds every number with its source and what it does not say. Three
 things are worth building an argument on:
 
-1. **Divergence concentrates where decisions are hard.** QB1 1.4%, RB1 4.5%, TE1 6.8%.
-   WR3 22.3%. The flex tier managers actually agonize over: 22.3%. The display works where
-   it does not matter and fails where it does. Do not claim a smooth gradient, it is noisy
-   in the middle.
+1. **Divergence concentrates where decisions are hard.** Medians across twenty-four
+   reconstructions: QB1 0.9%, RB1 2.5%, TE1 1.8%, against 21.6% for the flex tier managers
+   agonise over. The display works where it does not matter and fails where it does.
+   **Quote ranges, never a single figure:** flex runs 13.7% to 30.5% depending on how the
+   panel is reconstructed, and an earlier draft's 22.3% was a property of the seed. What holds
+   in every run is the ordering, not the level. Do not claim a smooth gradient either;
+   adjacent tiers overlap and some invert.
 2. **A real comparison where the headline contradicts its own evidence.** Hampton leads the
    vote at 43% while Hubbard leads every accuracy-filtered expert subset (58 / 54 / 40),
    both sentiment meters, and season production. Hampton wins on exactly two rows,

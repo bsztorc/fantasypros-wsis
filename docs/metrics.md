@@ -120,47 +120,79 @@ offer an expert count as proof of accuracy.
 
 ### Divergence rate: how often the expert-preferred pair differs from the top two by first-choice share
 
-| Tier | Rate |
-|---|---|
-| QB1 | 1.4% |
-| RB1 | 4.5% |
-| TE1 | 6.8% |
-| WR2 | 8.6% |
-| WR4 | 11.8% |
-| **WR3** | **22.3%** |
-| **FLEX1** (top half RB3 + all WR3) | **22.3%** |
-| FLEX2 (rest of RB3, WR4, TE2) | 9.9% |
+**Reported as a range, and the reason matters more than the numbers.** The published
+dispersion constrains a reconstructed panel without determining it, so any single run is one
+of many panels consistent with the same published data. An earlier draft of this file quoted
+22.3% for the flex tier. That figure was a property of the random seed rather than of
+FantasyPros' rankings, and a reviewer re-running the script with a different seed would not
+have reproduced it. **22.3% is superseded. Do not use it.**
+
+Twenty-four reconstructions per tier, three correlation settings by eight fixed seeds.
+Reproducible with `npm run check:divergence`.
+
+| Tier | Range | Median |
+|---|---|---|
+| **FLEX1** (top half RB3 + all WR3) | **13.7 - 30.5%** | **21.6%** |
+| WR3 | 13.2 - 29.1% | 20.9% |
+| WR4 | 8.2 - 20.9% | 14.1% |
+| FLEX2 (rest of RB3, WR4, TE2) | 9.7 - 16.0% | 12.7% |
+| WR1 | 4.5 - 11.4% | 6.6% |
+| TE2 | 1.8 - 11.4% | 6.4% |
+| RB2 | 3.2 - 9.5% | 6.1% |
+| RB3 | 4.1 - 12.7% | 6.1% |
+| WR2 | 1.4 - 10.0% | 5.0% |
+| QB2 | 0.9 - 6.4% | 3.6% |
+| RB1 | 0.5 - 4.1% | 2.5% |
+| TE1 | 0.0 - 7.7% | 1.8% |
+| QB1 | 0.0 - 3.6% | 0.9% |
+
+QB3 is deliberately absent: eight players and fifty-six comparisons, too thin to report. The
+script prints it and marks it thin.
 
 **The headline, worded correctly:**
 
-> In the flex decision managers actually agonise over, the pair experts would start
-> differs from the top two by first-choice share **22.3% of the time**.
+> In the flex decision managers agonise over, the pair experts would start differs from the
+> top two by first-choice share **between 14% and 30% of the time**, median 22%, depending on
+> how the expert panel is reconstructed.
 
-**Wordings to avoid.** "Flex represents 22.3% of the ranking divergence" says something
-different and false: it reads as flex accounting for 22.3% of all divergence across the
-board. The 22.3% is a **rate within flex comparisons**, not flex's share of a total.
+**What survives every reconstruction is the ordering**, which is what the feature rests on:
 
-**Demand and divergence point at the same place.** The multi-slot requests are wide
-receiver heavy, and every one of them is a running back, wide receiver or mixed decision. WR3 is
-the highest-divergence tier at 22.3%, and WR3 supplies twelve of FLEX1's eighteen players.
-Where users ask most is where the current display is least reliable.
+- FLEX1 diverges more often than FLEX2 in all 24 runs.
+- FLEX1 diverges more often than every top-of-position tier, QB1, RB1, WR1 and TE1, in all 24
+  runs.
+- WR3 is the highest of the twelve-player blocks in 20 of the 24 runs.
+
+**Wordings to avoid.**
+
+- **Any single figure.** The range is the result. Quoting one number invites a reviewer to
+  reproduce it, and they will not.
+- **"An order of magnitude higher than the top of a position."** True at the medians, roughly
+  22% against 1% to 3%, but in the least favourable run the gap narrows to 1.6x. Say several
+  times higher, or quote the medians and say so.
+- **"Flex represents 22% of the ranking divergence."** Says something different and false: it
+  reads as flex accounting for 22% of all divergence across the board. It is a **rate within
+  flex comparisons**, not flex's share of a total.
+- **"WR3 is the highest-divergence tier"** unqualified. It is the highest twelve-player block
+  in 20 of 24 runs, and FLEX1 sits above it.
+
+**Demand and divergence point at the same place.** The multi-slot requests are wide receiver
+heavy, and every one of them is a running back, wide receiver or mixed decision. WR3 is the
+highest-diverging twelve-player block in most runs, and WR3 supplies twelve of FLEX1's
+eighteen players. Where users ask most is where the current display is least reliable.
 
 **Do not state that as a proven correlation.** Two observations lining up is not a
 demonstrated relationship, and the position mix is reviewed rather than counted. Present
 it as what it is: multi-slot demand is concentrated in the same tier the divergence is,
 which is why the feature is worth building there first.
 
-**Do not claim a smooth gradient.** RB3 (5.0%) sits below RB2 (6.4%), and WR4 (11.8%)
-below WR3 (22.3%).
+**Do not claim a smooth gradient.** Adjacent tiers overlap heavily and some invert outright:
+WR2's median (5.0%) sits below WR1's (6.6%), RB2 and RB3 share a median at 6.1%, and TE1
+(1.8%) sits below QB2 (3.6%). Only the flex tier and WR3 separate cleanly from the rest.
 
-**Expect this question:** FLEX2 has higher dispersion than FLEX1 (9.19 against 8.01) but
-lower divergence. Dispersion alone does not drive divergence; the players also have to be
-close in value. FLEX2 contains many lopsided pairings, and lopsided comparisons never
-diverge.
-
-**Robustness.** The rate holds between 1.8% and 2.8% board-wide across correlation
-settings and random seeds, so it is a property of the published dispersion rather than of
-the model.
+**Expect this question:** FLEX2 has higher dispersion than FLEX1 (10.46 against 8.10) and yet
+diverges less, in all 24 runs. Dispersion alone does not drive divergence; the players also
+have to be close in value. FLEX2 contains many lopsided pairings, and lopsided comparisons
+never diverge.
 
 ---
 
@@ -171,8 +203,9 @@ Given without the inputs, since FantasyPros holds them:
 > (share of comparisons with 3+ players) × (divergence rate) × (weekly comparison volume)
 > = decisions per week where the user likely starts the wrong second player
 
-The middle term is the one this repo supplies: **22.3%** for the flex tier, which is the
-comparison the feature exists for.
+The middle term is the one this repo supplies: **13.7% to 30.5%, median 21.6%** for the flex
+tier, which is the comparison the feature exists for. Run the sizing at the low end of the
+range rather than the median if it needs to be conservative.
 
 ---
 
