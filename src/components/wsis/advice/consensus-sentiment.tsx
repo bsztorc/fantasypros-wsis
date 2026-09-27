@@ -214,19 +214,19 @@ function goalNote(recommendation: Recommendation): string {
     const room = upsideRoom(widest.player);
     if (room <= 0) return "";
 
-    const base =
-      ` Among all experts, ${widest.player.name}'s highest rank is ${spots(room)} above his ` +
-      `average, giving him the most upside of these.`;
-    return widest.recommended ? base : base + ` It is not enough support to take a slot.`;
+    const lead =
+      `Among all experts, ${widest.player.name}'s highest rank is ${spots(room)} above his ` +
+      `average, giving him the most upside of these`;
+    return widest.recommended ? `${lead}.` : `${lead}, but not enough according to experts.`;
   }
 
   const steadiest = [...results].sort((a, b) => bustRoom(a.player) - bustRoom(b.player))[0];
   const drop = bustRoom(steadiest.player);
 
-  const base =
-    ` Among all experts, ${steadiest.player.name}'s lowest rank is ${spots(drop)} below his ` +
-    `average, the smallest drop of these, giving him the safest floor.`;
-  return steadiest.recommended ? base : base + ` It is not enough support to take a slot.`;
+  const lead =
+    `Among all experts, ${steadiest.player.name}'s lowest rank is ${spots(drop)} below his ` +
+    `average, the smallest drop of these, giving him the safest floor`;
+  return steadiest.recommended ? `${lead}.` : `${lead}, but not enough according to experts.`;
 }
 
 /** Roster-aware reasoning. Synced states only, because it reads the user's team. */
