@@ -246,6 +246,21 @@ separate.
   Gating the core feature contradicts it.
 - **Sync conversion is demonstrated, not built.** The demo-state switcher is the argument:
   two locked slots become four, no roster becomes a roster, one goal becomes three.
+- **Hero copy stays inside the artwork. Rendering it live was tried and reverted.**
+
+  The banner is a screenshot crop of FantasyPros' Research pillar and cannot be re-exported
+  larger, so the page upscales it and the baked text softens. Live text stays crisp, which
+  made a single live line read as darker than its neighbours even though the colours were
+  identical: sampled from the artwork, the headline and the label are both #16191d, the
+  value the live text used, and the tagline was pure black.
+
+  Every run was taken out and rendered live instead, positioned in percentages and sized in
+  `cqw`, landing within two pixels of the ink it replaced. It measured right and still looked
+  wrong, because the eye was reading rasterisation rather than geometry. One uniformly
+  softened image beats a mix of soft artwork and crisp live text.
+
+  The cost is the hover underline on "Try it now", which the live version had. Worth another
+  look only if a higher-resolution source for that banner ever turns up.
 
 ---
 
