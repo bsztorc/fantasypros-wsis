@@ -72,14 +72,62 @@ for (const players of sets) {
   }
 }
 
-// Balanced must be untouched by the goal machinery.
-for (const players of sets.slice(0, 200)) {
-  const a = recommend(players, 1, "balanced");
-  const b = recommend(players, 1, "balanced");
-  if (JSON.stringify(a?.results.map((x) => x.firstChoiceVotes)) !== JSON.stringify(b?.results.map((x) => x.firstChoiceVotes)))
-    fail("balanced is not deterministic");
+/**
+ * The answer depends on the set of players, never on the order they were chosen in.
+ *
+ * This check exists because the engine failed it in production. The panel seed was built
+ * from the players in the order given, and each player drew from the sequence at the
+ * position it sat in, so the same three receivers returned six different answers depending
+ * on which name was clicked first: Wilson led at 67% one way round, Bateman led at 59%
+ * another. It surfaced only when a walkthrough written against one ordering was replayed
+ * against another.
+ *
+ * The check that used to sit here called `recommend` twice with the same array and compared
+ * the results, which is why it never caught this. Calling a pure function twice the same way
+ * proves nothing. Permuting the input is the test that means something.
+ */
+function permutations<T>(items: T[]): T[][] {
+  if (items.length <= 1) return [items];
+  return items.flatMap((item, i) =>
+    permutations([...items.slice(0, i), ...items.slice(i + 1)]).map((rest) => [item, ...rest]),
+  );
+}
+
+/** Order-insensitive: the facts about each player, plus the figures for the group. */
+function signature(result: NonNullable<ReturnType<typeof recommend>>): string {
+  return (
+    result.results
+      .map((x) => `${x.player.id}:${x.firstChoiceVotes}:${x.inclusionVotes}:${x.recommended}`)
+      .sort()
+      .join("|") + `#${result.combinationShare}#${result.panelSize}`
+  );
+}
+
+let permuted = 0;
+for (const players of sets.filter((s) => s.length === 3).slice(0, 150)) {
+  for (const goal of ["balanced", "most-upside", "safe-floor"] as LineupGoal[]) {
+    for (const startN of [1, 2] as StartN[]) {
+      const baseline = recommend(players, startN, goal);
+      if (!baseline) continue;
+      const want = signature(baseline);
+      const shown = baseline.results.map((x) => x.player.id).join(",");
+      const label = `${players.map((p) => p.name).join("/")} N=${startN} ${goal}`;
+
+      for (const order of permutations(players)) {
+        const got = recommend(order, startN, goal);
+        permuted += 1;
+        const how = order.map((p) => p.name).join(",");
+        if (!got) fail(`${label}: no result for order ${how}`);
+        else if (signature(got) !== want) fail(`${label}: result changes with order ${how}`);
+        else if (got.results.map((x) => x.player.id).join(",") !== shown)
+          fail(`${label}: display order changes with order ${how}`);
+      }
+    }
+  }
 }
 
 console.log(`${checked} comparisons checked`);
+console.log(`${permuted} order permutations checked`);
 console.log(failures.length === 0 ? "all invariants hold" : `${failures.length} failures:`);
 for (const f of failures.slice(0, 12)) console.log(`  ${f}`);
+if (failures.length > 0) process.exit(1);

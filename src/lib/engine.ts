@@ -1,4 +1,10 @@
-import { buildPanel, bustRoom, upsideRoom, type ExpertRanking } from "@/lib/expert-rankings";
+import {
+  buildPanel,
+  bustRoom,
+  canonicalCompare,
+  upsideRoom,
+  type ExpertRanking,
+} from "@/lib/expert-rankings";
 import { inSharedList, type RankedPlayer } from "@/lib/rankings";
 import type { LineupGoal, StartN } from "@/lib/types";
 
@@ -174,15 +180,22 @@ export function recommend(
   const firstChoices = countFirstChoices(panel, players, tilt);
   const inclusions = countInclusions(panel, players, startN, tilt);
 
+  // Every sort below ends on the canonical comparison, so a tie can never be broken by the
+  // order the user happened to click the names in. Two players level on votes are a real
+  // possibility, most obviously the pair left on nought behind a runaway favourite, and
+  // without a final tie-break they would swap places on screen between identical sessions.
   const bySelection = [...players].sort((a, b) => {
     const diff = (inclusions.get(b.id) ?? 0) - (inclusions.get(a.id) ?? 0);
-    return diff !== 0 ? diff : (firstChoices.get(b.id) ?? 0) - (firstChoices.get(a.id) ?? 0);
+    if (diff !== 0) return diff;
+    const first = (firstChoices.get(b.id) ?? 0) - (firstChoices.get(a.id) ?? 0);
+    return first !== 0 ? first : canonicalCompare(a, b);
   });
   const recommended = new Set(bySelection.slice(0, startN).map((p) => p.id));
 
-  const byFirstChoice = [...players].sort(
-    (a, b) => (firstChoices.get(b.id) ?? 0) - (firstChoices.get(a.id) ?? 0),
-  );
+  const byFirstChoice = [...players].sort((a, b) => {
+    const diff = (firstChoices.get(b.id) ?? 0) - (firstChoices.get(a.id) ?? 0);
+    return diff !== 0 ? diff : canonicalCompare(a, b);
+  });
   const firstChoicePick = byFirstChoice.slice(0, startN);
 
   // Does the first-choice ordering actually decide the last slot, or is it a coin toss

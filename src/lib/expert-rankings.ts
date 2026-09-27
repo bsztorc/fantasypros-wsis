@@ -58,6 +58,36 @@ function normalFrom(next: () => number): number {
 }
 
 /**
+ * Canonical order for a comparison: by name, then by id to break a duplicate.
+ *
+ * THE PANEL MUST DEPEND ON THE SET OF PLAYERS, NOT THE ORDER THEY ARRIVED IN.
+ *
+ * It did not, and that was a real defect. The seed key was built from the players in the
+ * order given, and each player drew from the sequence at the position they sat in, so the
+ * same three players compared in a different order produced a different panel and different
+ * percentages. Selecting Mitchell, Wilson and Bateman put Wilson in front at 67%. Selecting
+ * the same three as Mitchell, Bateman and Wilson put Bateman in front at 59%. Nothing about
+ * the data changed between those two clicks, only the order of the clicks.
+ *
+ * That is fatal for a walkthrough. The order a user clicks names in is not a property of
+ * anything, and a recommendation that moves with it cannot be demonstrated twice.
+ *
+ * By name rather than by rank, deliberately: ranks move if the snapshot is ever re-frozen,
+ * and a canonical order derived from the data would quietly reshuffle every panel when it
+ * did. Compared without `localeCompare`, whose result depends on the host's ICU data, so the
+ * ordering is identical on every machine.
+ */
+export function canonicalCompare(a: RankedPlayer, b: RankedPlayer): number {
+  if (a.name !== b.name) return a.name < b.name ? -1 : 1;
+  if (a.id !== b.id) return a.id < b.id ? -1 : 1;
+  return 0;
+}
+
+function canonicalOrder(players: RankedPlayer[]): RankedPlayer[] {
+  return [...players].sort(canonicalCompare);
+}
+
+/**
  * Build a panel of expert rankings over the given players.
  *
  * Each expert carries a persistent lean, scaled by how uncertain a player is. An expert
@@ -72,15 +102,16 @@ export function buildPanel(
 ): ExpertRanking[] {
   if (players.length === 0) return [];
 
-  const spread = players.reduce((sum, p) => sum + p.deviation, 0) / players.length || 1;
-  const key = players.map((p) => p.id).join("-");
+  const ordered = canonicalOrder(players);
+  const spread = ordered.reduce((sum, p) => sum + p.deviation, 0) / ordered.length || 1;
+  const key = ordered.map((p) => p.id).join("-");
 
   return Array.from({ length: panelSize }, (_, expertIndex) => {
     let counter = 0;
     const next = () => seeded(`${key}:${expertIndex}:${counter++}`, 0x5f3a);
     const lean = normalFrom(next);
 
-    const scored = players.map((player) => {
+    const scored = ordered.map((player) => {
       const tilt = lean * (player.deviation / spread);
       const offset =
         player.deviation * (CORRELATION * tilt + Math.sqrt(1 - CORRELATION ** 2) * normalFrom(next));

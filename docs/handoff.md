@@ -160,12 +160,13 @@ rankings at a moment in time.** No precision claim, and no expert counts offered
 ## Verification
 
 ```
-npm run check:snapshot    # the frozen data is still the frozen data; also runs in the build
-npm run check:engine      # invariants across 2754 comparisons
+npm run check:snapshot    # the frozen data is still the frozen data
+npm run check:engine      # 2754 comparisons, plus 4176 selection-order permutations
 npm run check:divergence  # divergence rate by roster tier
 ```
 
-Run the last two after any engine change. The invariant sweep exists because four bugs were
+`npm run build` runs the first two and fails on either, so neither a moved snapshot nor an
+order-dependent result can reach production. Run the third after any engine change. The invariant sweep exists because four bugs were
 found by inspection rather than by tests, three of them by Brandon reading output and asking
 whether a number made sense.
 
@@ -211,6 +212,24 @@ separate.
 - **Inferred lineup goal and matchup-margin reasoning: not built.** Both need league and
   matchup state that does not exist, and inventing it would put fabricated data behind a
   recommendation. Everything else invented in the prototype is inert dressing. Write-up.
+- **The answer depends on the set of players, never the order they were selected in.**
+  Non-negotiable, and gated by `npm run build`.
+
+  The engine failed this in production. The panel seed was built from the players in the
+  order given, so the same three receivers returned six different answers depending on which
+  name was clicked first. Wilson led at 67% one way round, Bateman led at 59% another, with
+  the data untouched. It surfaced when a walkthrough written against one ordering was
+  replayed against another, which is the same way it would have surfaced in front of a panel.
+
+  `buildPanel` now sorts into a canonical order first, by name and then by id, and every
+  tie-break in the engine ends on that same comparison so display order cannot drift either.
+  By name rather than by rank on purpose: ranks move if the snapshot is ever re-frozen, and
+  a canonical order derived from the data would silently reshuffle every panel when it did.
+
+  `scripts/check-engine.ts` permutes the input on 150 comparisons across every goal and slot
+  count, 4176 permutations, and exits non-zero on any disagreement. The check that used to
+  sit there called `recommend` twice with the same array, which is why it never caught this.
+  Calling a pure function twice the same way proves nothing.
 - **Do not gate Start N.** The case rests on gating personalization and never the answer.
   Gating the core feature contradicts it.
 - **Sync conversion is demonstrated, not built.** The demo-state switcher is the argument:
