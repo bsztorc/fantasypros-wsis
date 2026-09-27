@@ -51,28 +51,47 @@ function Shot({
   );
 }
 
+/** Shared by every line of hero copy that sits on the artwork. */
+const HERO_LINE = "absolute -translate-y-1/2 whitespace-nowrap leading-none text-fp-ink";
+
 /**
  * The hero, built the way FantasyPros builds theirs.
  *
  * On their product pillars the whole banner is one link and the call to action inside it is
- * live text that underlines on hover. The artwork carries the wordmark and the arrow, so
- * only "Try it now" is rendered here, positioned against the arrow in percentages and sized
- * in `cqw` so it tracks the image at every width instead of drifting off the arrow.
+ * live text that underlines on hover.
+ *
+ * Every small text run is live rather than baked. The artwork is a screenshot crop of their
+ * Research pillar and cannot be re-exported larger, so the browser upscales it and the baked
+ * text softens, while text the browser draws stays crisp. With one line live and the rest
+ * baked, the live one read as darker even though the colours were identical. Rendering all of
+ * them here keeps every line at one weight and one colour. What stays in the artwork is the
+ * headline, which is set in Zuume and is large enough that the softening does not read, and
+ * the chart icon and arrow, which are graphics rather than letterforms.
+ *
+ * Positions are percentages of the artwork and sizes are in `cqw` against the banner, so the
+ * copy tracks the image at every width instead of drifting off the icon and the arrow. Both
+ * were solved against the ink each run occupied in the original, and land within a pixel.
  */
 function Hero() {
   return (
     <Link href={TOOL_HREF} className="group @container relative mt-8 block">
       <Image
         src="/wsis-hero.png"
-        alt="Who Should I Start? The question changes every week. Now the answer can too."
+        alt="Who Should I Start?"
         width={847}
         height={303}
         priority
         sizes="(max-width: 940px) 100vw, 860px"
         className="h-auto w-full rounded-lg"
       />
+      <span className={`${HERO_LINE} left-[10.63%] top-[24.59%] text-[1.6cqw] font-medium`}>
+        Research
+      </span>
+      <span className={`${HERO_LINE} left-[7.67%] top-[56.11%] text-[1.4cqw]`}>
+        The question changes every week. Now the answer can too.
+      </span>
       <span
-        className="absolute right-[84.3%] top-[75.2%] -translate-y-1/2 whitespace-nowrap text-[1.63cqw] font-semibold leading-none text-fp-ink group-hover:underline"
+        className={`${HERO_LINE} left-[7.67%] top-[75.74%] text-[1.72cqw] font-semibold group-hover:underline`}
       >
         Try it now
       </span>
