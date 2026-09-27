@@ -78,41 +78,65 @@ that page. Anything roster-aware needs data the tool does not touch.
 
 ## Next: the landing page
 
-The assignment asks for a landing page explaining the feature and its value **to a user,
-not to a product team**. That constraint is the whole job, and it is the easiest one to
-fail, because everything else in this repo is written for a product team.
+**Brandon has already drafted it.** `assets/WSIS Landing Page.docx`, untracked, alongside
+`WSIS Hero Image.png`. Read the draft before proposing anything. It is substantially
+written, it is good, and a session that starts from scratch will contradict it.
 
-**Write for a fantasy manager.** Someone who opens the tool on a Sunday morning with two
-flex spots and three names. Not a PM, not JMO, not an interviewer.
+Ask where the final page should live before building. It may stay a document rather than
+become a route in this app. Do not assume it belongs in `src/`.
 
-**Belongs on the page:**
+### Who it is for
+
+The assignment says the page explains the feature and its value **to a user, not to a
+product team**. True, but read carefully: the page has two readers. Nominally a fantasy
+manager. Actually the FantasyPros panel, who are grading it on product sense.
+
+That double audience is why evidence belongs on it. On a real consumer page a research
+statistic would be internal justification leaking onto the marketing site. Here it is both
+social proof for the manager and proof of rigour for the panel.
+
+### Belongs on the page
 
 - The moment of the problem: you have two spots and three players, and the tool only tells
   you who is best, once.
-- What Start N does, in their words: tell it how many spots you are filling and it picks the
-  combination, not just a winner.
+- What Start N does, in their words: tell it how many spots you are filling and it picks
+  the combination, not just a winner.
 - What Lineup Goal does: some weeks you need a safe floor, some weeks you need a ceiling.
   Say which and the recommendation changes.
+- **The two research findings, 27% and 31%**, each attached to the feature it justifies.
+  They read as social proof to a manager and as evidence to the panel. Never added
+  together: they are overlapping sets.
+- **The divergence range**, worded as the draft already words it: a range, scoped to the
+  flex tier, dated to the Week 3 sample. It is the one figure that shows the problem is
+  real rather than theoretical. 13% to 30% is correct and appropriately rounded.
 - Plain screenshots of the real thing.
 
-**Does not belong on the page:**
+### Does not belong on the page
 
-- Divergence rates, medians, ranges, tiers. None of it. Those are arguments for a product
-  team about whether to build this, and the user does not care whether it is 13% or 30%.
-- Expert panels, reconstruction, dispersion, sample sizes.
-- The research percentages. "27% of users" is a reason to build it, not a reason to use it.
+- **Any single divergence figure.** The range is the result. A point estimate is a property
+  of the reconstruction seed and a reviewer who re-ran it would get a different one.
+- The per-tier table, medians, or anything that invites the question "how did you measure
+  that" unprompted. Have the answer ready for the panel; do not lead with it.
+- Expert panel reconstruction, dispersion, standard deviation, or the 46-expert count
+  offered as proof of accuracy. That is methodology, and it belongs in the write-up and the
+  dev spec, where someone has asked.
 - Any mention of the assignment, the interview, or FantasyPros' shortcomings as a company.
   The page should read like something FantasyPros would ship, not a critique of them.
-- The word "prototype" anywhere in the user-facing copy.
+- The word "prototype" in the user-facing copy.
 
-**Tone check:** the page never tells the user their old way was stupid. The existing
-percentage is correct and useful at one slot. The pitch is that the tool now answers a
-second question it could not answer before, not that it was broken.
+### Tone check
 
-**Assets Brandon is already drafting** live in `assets/` and are not tracked by git:
-`WSIS Landing Page.docx` and `WSIS Hero Image.png`. Ask him where he wants the final page to
-live before building anything: it may be a document rather than a route in this app. Do not
-assume it belongs in `src/`.
+The page never tells the user their old way was stupid. The existing percentage is correct
+and useful at one slot. The pitch is that the tool now answers a second question it could
+not answer before, not that it was broken.
+
+### A correction worth recording
+
+An earlier version of this section said to keep the research percentages and the divergence
+range off the page entirely. That was wrong, and it was written before anyone had read
+Brandon's draft, which uses all three deliberately and uses them well. Taking "not for a
+product team" literally enough to strip the evidence would have gutted the page. Read the
+draft first; it is ahead of this document.
 
 ---
 
