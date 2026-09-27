@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/check-snapshot.mjs && next build",
+    "build": "node scripts/check-snapshot.mjs && tsx scripts/check-engine.ts && next build",
     "start": "next start",
     "lint": "eslint",
     "check:snapshot": "node scripts/check-snapshot.mjs",
