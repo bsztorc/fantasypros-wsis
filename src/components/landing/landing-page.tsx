@@ -12,7 +12,9 @@ const TOOL_HREF = "/wsis";
  * of padding, which is `.product-pillar` on their site and what `max-w-[900px] px-5` gives
  * here. Copy and screenshots both run the full 860px so nothing sits short of anything else.
  */
+/** The intro paragraph only. 20px rather than 22px so its longest line clears 860px. */
 const LEAD = "text-[20px] font-bold leading-[34px] text-fp-ink";
+/** Section headings, and the closing line above the button, which is one of them in kind. */
 const HEADING = "text-[18px] font-bold leading-[32px] text-fp-ink";
 const COPY = "mt-[18px] flex flex-col gap-[18px] text-[18px] leading-[32px] text-fp-ink";
 const SECTION = "border-t border-fp-border py-10";
@@ -172,7 +174,7 @@ export function LandingPage() {
         </section>
 
         <section className="border-t border-fp-border pt-10">
-          <p className={LEAD}>Set the number. Set the goal.</p>
+          <p className={HEADING}>Set the number. Set the goal.</p>
           <Link
             href={TOOL_HREF}
             className="mt-5 inline-flex items-center gap-2 rounded-md bg-fp-blue px-6 py-3 text-[15px] font-semibold text-white transition-colors hover:bg-fp-blue-bright"
