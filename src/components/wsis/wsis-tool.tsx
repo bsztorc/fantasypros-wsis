@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppHeader } from "@/components/app-header";
 import { AdviceView } from "@/components/wsis/advice/advice-view";
 import { LineupControls } from "@/components/wsis/lineup-controls";
@@ -35,6 +35,19 @@ export function WsisTool() {
   const [startN, setStartN] = useState<StartN>(1);
   const [tab, setTab] = useState<TeamTab>("my-team");
   const [view, setView] = useState<View>("compare");
+
+  /**
+   * Open at the top, and start each view at the top.
+   *
+   * The header is sticky, so any scroll offset leaves the top of the tool sitting under
+   * it and the reader has to scroll up to find it. Two ways in: a reload or a back
+   * restores the previous scroll position, and switching to the advice view keeps the
+   * scroll the user was at when they reached the button, which is usually well down the
+   * roster list.
+   */
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [view]);
 
   const capabilities = DEMO_STATES[demoState];
   const selectedIds = selected.map((player) => player.id);

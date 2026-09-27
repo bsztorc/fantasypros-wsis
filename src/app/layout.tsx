@@ -8,10 +8,13 @@ const poppins = Poppins({
   weight: ["400", "500", "600", "700"],
 });
 
+/**
+ * Site-wide fallback only. Each route sets its own: the landing page speaks to a fantasy
+ * manager and never calls itself a prototype, while the tool route says plainly what it is.
+ */
 export const metadata: Metadata = {
-  title: "Who Should I Start? - Lineup-Aware Prototype",
-  description:
-    "Prototype exploring lineup-aware start/sit recommendations: choose how many spots you are filling and get the expert-preferred combination.",
+  title: "Who Should I Start?",
+  description: "Choose how many spots you are filling and get the expert-preferred combination.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
