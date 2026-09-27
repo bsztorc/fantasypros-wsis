@@ -1,19 +1,24 @@
 # Handoff
 
 Where the prototype stands, what was decided, and what is deliberately absent. Written
-2026-09-26 for whoever picks this up next, including a fresh session with no memory of how
-it got here.
+2026-09-26, last updated 2026-09-27, for whoever picks this up next, including a fresh
+session with no memory of how it got here.
 
 **Assignment due Wednesday 2026-09-30. Brandon plans to send it Tuesday.**
 
+**Next up: the landing page.** Read "The story, locked" and "Next: the landing page" below
+before writing a word of it. The rest of this document is background you will want if a
+question comes up, not required reading for that task.
+
 ---
 
-## The prototype is finished
+## The prototype is finished and released
 
 It does what it was built to do: demonstrate that the question a fantasy manager arrives
 with is not the question Who Should I Start? answers, and show what changes when it is.
 
-Live at the production URL, built from `main`. Real 2026 Week 3 data throughout.
+Live at the production URL. `main` and `develop` are level, history is linear, no open
+branches. Real 2026 Week 3 data throughout.
 
 ### What it has
 
@@ -24,7 +29,8 @@ Live at the production URL, built from `main`. Real 2026 Week 3 data throughout.
 | **Injury visibility** | Real designations beside every player name, on every screen. |
 | **Three demo states** | Signed Out, Signed In unsynced, Premium synced, switched from the header. |
 | **Advice view** | Two to four players, tabs consolidated from eleven to five. |
-| **Coach AI summary** | Templated, always rendered, including at three or more players where the product drops it. |
+| **Results band** | At one slot it matches the product exactly: leader ring, first-choice badges on the rest. Above one slot the recommended players join one tile under one percentage, and the individual badges go. |
+| **Coach AI summary** | Templated, always rendered, including at three or more players where the product drops it. Two paragraphs at most: the recommendation, then what the lineup goal contributes when one is set. Nothing else. |
 
 ### The argument it makes
 
@@ -39,6 +45,74 @@ choosing between. Raise Players to Start and they separate.
 **The existing percentage is this measure with N fixed at one.** The feature does not add a
 statistic, it exposes a parameter. That framing matters: nothing about FantasyPros' math is
 being challenged.
+
+---
+
+## The story, locked
+
+**One idea: turn Who Should I Start? from a player comparison into a flexible decision
+tool.** Two features carry it, and each one answers something Brandon found in his own
+sample of 100 start/sit requests.
+
+| Feature | The finding behind it |
+|---|---|
+| **Start N of Y** | 27% of requests were filling more than one slot. The tool only ever computes each expert's first choice. |
+| **Lineup Goal** | 31% volunteered context beyond scoring and roster format, dominated by injury worry and whether they needed a floor or a ceiling. The tool has no way to hear any of it. |
+
+Two findings, two features, one idea. That is the whole pitch and it should stay that tight.
+
+**Do not add 27% and 31%.** They are overlapping sets. "58% unserved" is wrong and will be
+caught.
+
+**A third feature was built and cut.** Team-aware injury reasoning worked and was removed on
+purpose, because it changed what the tool *said* rather than what it *computed*, and the
+product's own AI summary could already say it. The full reasoning is under "Decisions worth
+not relitigating". It is now the strongest item on the proposed-improvements list. If anyone
+asks why the injury research did not become a feature, that is the answer, and it is a
+better answer than having built it.
+
+**The line worth having ready:** Start N and Lineup Goal run entirely on data already on
+that page. Anything roster-aware needs data the tool does not touch.
+
+---
+
+## Next: the landing page
+
+The assignment asks for a landing page explaining the feature and its value **to a user,
+not to a product team**. That constraint is the whole job, and it is the easiest one to
+fail, because everything else in this repo is written for a product team.
+
+**Write for a fantasy manager.** Someone who opens the tool on a Sunday morning with two
+flex spots and three names. Not a PM, not JMO, not an interviewer.
+
+**Belongs on the page:**
+
+- The moment of the problem: you have two spots and three players, and the tool only tells
+  you who is best, once.
+- What Start N does, in their words: tell it how many spots you are filling and it picks the
+  combination, not just a winner.
+- What Lineup Goal does: some weeks you need a safe floor, some weeks you need a ceiling.
+  Say which and the recommendation changes.
+- Plain screenshots of the real thing.
+
+**Does not belong on the page:**
+
+- Divergence rates, medians, ranges, tiers. None of it. Those are arguments for a product
+  team about whether to build this, and the user does not care whether it is 13% or 30%.
+- Expert panels, reconstruction, dispersion, sample sizes.
+- The research percentages. "27% of users" is a reason to build it, not a reason to use it.
+- Any mention of the assignment, the interview, or FantasyPros' shortcomings as a company.
+  The page should read like something FantasyPros would ship, not a critique of them.
+- The word "prototype" anywhere in the user-facing copy.
+
+**Tone check:** the page never tells the user their old way was stupid. The existing
+percentage is correct and useful at one slot. The pitch is that the tool now answers a
+second question it could not answer before, not that it was broken.
+
+**Assets Brandon is already drafting** live in `assets/` and are not tracked by git:
+`WSIS Landing Page.docx` and `WSIS Hero Image.png`. Ask him where he wants the final page to
+live before building anything: it may be a document rather than a route in this app. Do not
+assume it belongs in `src/`.
 
 ---
 
@@ -148,11 +222,16 @@ separate.
 
 | Deliverable | State |
 |---|---|
-| Prototype | Done |
+| Prototype | Done, released to `main` |
 | Improvements proposed, each with problem, benefit, measure | Not started |
 | One prioritized, with reasoning | Not started |
-| Landing page explaining the value to a user | Not started |
+| Landing page explaining the value to a user | **Next** |
 | Dev spec, written for a developer or coding agent | Not started |
+
+Team-aware injury reasoning is the first entry for the proposed-improvements list: it has
+research behind it, a clear user benefit, a measure, and a written reason for not being the
+one prioritized. Most of that write-up already exists under "Decisions worth not
+relitigating".
 
 **The dev spec is the one JMO reads closely.** He is a career developer with published
 Django libraries. Less prose, explicit structure, testable criteria, named edge cases.
@@ -194,3 +273,16 @@ release. `main` fast-forwards from `develop` so history stays linear.
 
 Answer the question asked, then stop. A question about what something would take is not
 authorization to build it.
+
+The repo is part of the deliverable. JMO is a career developer with published Django
+libraries and may read it rather than only the deployed prototype. Treat commit history,
+README accuracy and the absence of scaffold leftovers as work, and raise hygiene problems
+without being asked.
+
+**Untracked and deliberately so:** `assets/` holds Brandon's in-progress Word files,
+including Word lock files (`~$…`, `~WRL….tmp`) that must never be committed. A
+`git add -A` would take them. There is no `.gitignore` rule for them yet; Brandon has been
+asked and has not decided.
+
+**Style, for anything written for the assignment:** no em dashes or double hyphens, and
+never the words "actually" or "absolutely".
