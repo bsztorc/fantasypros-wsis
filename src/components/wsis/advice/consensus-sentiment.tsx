@@ -59,9 +59,12 @@ function whyNotStarted(result: PlayerResult, weakestStarter: PlayerResult | unde
         `${weakestStarter.player.name}`
       );
     }
+    // "Would start him at all" reads as a verdict on the player. The share is relative to
+    // this comparison and nothing else: it counts experts whose own top N, drawn from these
+    // players, includes him. Every sentence here has to keep that scope visible.
     return (
       `nobody ranks ${name} the best of these, and only ${result.inclusionShare}% would start ` +
-      `him at all`
+      `him over the others`
     );
   }
 
@@ -75,7 +78,7 @@ function whyNotStarted(result: PlayerResult, weakestStarter: PlayerResult | unde
   }
 
   if (!weakestStarter) {
-    return `${result.inclusionShare}% would start ${name}, short of a slot`;
+    return `only ${result.inclusionShare}% would start ${name} over the others`;
   }
 
   const margin = weakestStarter.inclusionShare - result.inclusionShare;
