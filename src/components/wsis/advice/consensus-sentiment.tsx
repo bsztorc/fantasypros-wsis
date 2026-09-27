@@ -198,6 +198,15 @@ function summarize(recommendation: Recommendation): string[] {
  * The numbers are the real spread: how far above his average the most optimistic expert
  * puts a player, and how far below the most pessimistic one does.
  */
+/**
+ * What a spread is not enough for.
+ *
+ * Says what the shortfall is against, which "not enough according to experts" did not: the
+ * player has the best floor or the best ceiling of the group and still did not make the
+ * lineup. It is the slot he missed, not the measure.
+ */
+const SHORT_OF_A_START = ", but not enough to earn a start over the other options.";
+
 function goalNote(recommendation: Recommendation): string {
   const { goal, results } = recommendation;
   if (goal === "balanced") return "";
@@ -215,7 +224,7 @@ function goalNote(recommendation: Recommendation): string {
     const lead =
       `Among all experts, ${widest.player.name}'s highest rank is ${spots(room)} above his ` +
       `average, giving him the most upside of these`;
-    return widest.recommended ? `${lead}.` : `${lead}, but not enough according to experts.`;
+    return widest.recommended ? `${lead}.` : lead + SHORT_OF_A_START;
   }
 
   const steadiest = [...results].sort((a, b) => bustRoom(a.player) - bustRoom(b.player))[0];
@@ -224,7 +233,7 @@ function goalNote(recommendation: Recommendation): string {
   const lead =
     `Among all experts, ${steadiest.player.name}'s lowest rank is ${spots(drop)} below his ` +
     `average, the smallest drop of these, giving him the safest floor`;
-  return steadiest.recommended ? `${lead}.` : `${lead}, but not enough according to experts.`;
+  return steadiest.recommended ? `${lead}.` : lead + SHORT_OF_A_START;
 }
 
 /** "a, b and c", or just "a" for a single item. */
