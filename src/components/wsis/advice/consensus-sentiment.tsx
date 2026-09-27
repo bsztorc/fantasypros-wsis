@@ -169,25 +169,22 @@ function summarize(recommendation: Recommendation, isSynced: boolean): string {
  * the tool does know is the spread behind each player, so that is what it states: a fact
  * about the rankings, not a story about the user's session.
  *
+ * NO COMPARISON TO BALANCED EITHER. A later version appended what Balanced would start
+ * instead. Someone who has chosen Most Upside is not asking what the cautious answer would
+ * have been, and offering it anyway hedges the recommendation they did ask for. The goal is
+ * a question, not a suggestion to be second-guessed in its own answer.
+ *
  * The numbers are the real spread: how far above his average the most optimistic expert
  * puts a player, and how far below the most pessimistic one does.
  */
 function goalNote(recommendation: Recommendation): string {
-  const { goal, goalChangedFrom, results } = recommendation;
+  const { goal, results } = recommendation;
   if (goal === "balanced") return "";
 
   const spots = (value: number) => {
     const rounded = Math.round(value);
     return `${rounded} ${rounded === 1 ? "spot" : "spots"}`;
   };
-
-  // What Balanced would start instead, stated as a difference between two settings rather
-  // than as something the user did.
-  const starters = results.filter((r) => r.recommended);
-  const dropped = goalChangedFrom
-    ? goalChangedFrom.find((p) => !starters.some((r) => r.player.id === p.id))
-    : undefined;
-  const balancedNote = dropped ? ` Balanced starts ${dropped.name} here instead.` : "";
 
   if (goal === "most-upside") {
     const widest = [...results].sort((a, b) => upsideRoom(b.player) - upsideRoom(a.player))[0];
@@ -197,9 +194,7 @@ function goalNote(recommendation: Recommendation): string {
     const base =
       ` Among all experts, ${widest.player.name}'s highest rank is ${spots(room)} above his ` +
       `average, giving him the most upside of these.`;
-    return widest.recommended
-      ? base + balancedNote
-      : base + ` It is not enough support to take a slot.`;
+    return widest.recommended ? base : base + ` It is not enough support to take a slot.`;
   }
 
   const steadiest = [...results].sort((a, b) => bustRoom(a.player) - bustRoom(b.player))[0];
@@ -208,10 +203,9 @@ function goalNote(recommendation: Recommendation): string {
   const base =
     ` Among all experts, ${steadiest.player.name}'s lowest rank is ${spots(drop)} below his ` +
     `average, the smallest drop of these, giving him the safest floor.`;
-  return steadiest.recommended
-    ? base + balancedNote
-    : base + ` It is not enough support to take a slot.`;
+  return steadiest.recommended ? base : base + ` It is not enough support to take a slot.`;
 }
+
 /** Roster-aware reasoning. Synced states only, because it reads the user's team. */
 function teamNote(recommendation: Recommendation): string {
   const players = recommendation.results.map((result) => result.player);
