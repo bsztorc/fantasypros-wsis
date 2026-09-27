@@ -273,7 +273,12 @@ export function AdviceView({
 
       <AdviceTabs active={tab} onChange={setTab} />
 
-      <div className="space-y-4 bg-fp-navy-tab py-5">
+      {/*
+        The module stack carries the same gutter as every other section of the view. Without
+        it the white cards run to the edge of the navy panel while the header, search and
+        controls above them sit inset, which reads as a missing border down both sides.
+      */}
+      <div className="space-y-4 bg-fp-navy-tab p-5">
         {tab === "Overview" ? (
           <>
             <ConsensusSentiment recommendation={recommendation} />

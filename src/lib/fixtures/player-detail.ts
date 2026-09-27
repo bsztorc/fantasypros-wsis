@@ -1,5 +1,6 @@
 import { bustRoom, upsideRoom } from "@/lib/expert-rankings";
 import type { SentimentLevel } from "@/components/wsis/advice/sentiment-meter";
+import { DESIGNATION_WORDING, designationFor } from "@/lib/injuries";
 import { seeded } from "@/lib/seed";
 import type { Player } from "@/lib/types";
 
@@ -74,11 +75,23 @@ export function weather(player: Player): number {
   return Math.round(52 + seeded(player.id, 31) * 26);
 }
 
-/** Availability. Invented, but fixed rather than random so the reasoning has a target. */
-const QUESTIONABLE = new Set(["24357", "19794"]);
-
-export function injuryStatus(player: Player): "Healthy" | "Questionable" {
-  return QUESTIONABLE.has(player.id) ? "Questionable" : "Healthy";
+/**
+ * Availability, read from the real designations rather than invented.
+ *
+ * This used to be a hardcoded pair of ids, chosen before the injury snapshot existed. It
+ * then contradicted the snapshot on the same screen: D. Smith carried his Q tag beside his
+ * name in the results band and in this table read "Healthy", while R. Bateman read
+ * "Questionable" with no designation at all.
+ *
+ * That is precisely the defect this prototype points at in the live product, where a
+ * questionable player renders as Healthy on mobile. Reproducing it by accident, in the one
+ * artefact making the argument, is not a defensible place to leave it.
+ */
+export function injuryStatus(player: Player): string {
+  const designation = designationFor(player.id);
+  if (!designation) return "Healthy";
+  const wording = DESIGNATION_WORDING[designation];
+  return wording.charAt(0).toUpperCase() + wording.slice(1);
 }
 
 /** Map a spread in rank positions onto the product's five-level meter. */
