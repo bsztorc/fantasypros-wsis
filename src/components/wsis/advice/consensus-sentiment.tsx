@@ -111,13 +111,11 @@ function exclusions(recommendation: Recommendation): string {
   return ` ${lead} ${listOf(reasons)}.`;
 }
 
-function summarize(recommendation: Recommendation, isSynced: boolean): string {
+/** The recommendation and the expert support behind it. Answers the question asked. */
+function answerParagraph(recommendation: Recommendation): string {
   const { results, panelSize, startN, combinationShare } = recommendation;
-  if (results.length < 2) return "";
-
   const starters = results.filter((result) => result.recommended);
   const [leader] = results;
-  const team = isSynced ? teamNote(recommendation) : "";
 
   if (startN === 1) {
     const rest = results.slice(1);
@@ -128,9 +126,7 @@ function summarize(recommendation: Recommendation, isSynced: boolean): string {
       return (
         `All ${panelSize} experts make ${leader.player.name} their first choice, so the ` +
         `${COUNT_WORD[rest.length] ?? rest.length} others each show 0%. That counts first ` +
-        `picks only, and says nothing about which of them to start next to him.` +
-        goalNote(recommendation) +
-        team
+        `picks only, and says nothing about which of them to start next to him.`
       );
     }
 
@@ -138,9 +134,7 @@ function summarize(recommendation: Recommendation, isSynced: boolean): string {
       `${leader.firstChoiceVotes} of ${panelSize} experts make ${leader.player.name} their ` +
       `first choice, ahead of ` +
       listOf(rest.map((result) => `${result.player.name} at ${result.firstChoiceShare}%`)) +
-      `.` +
-      goalNote(recommendation) +
-      team
+      `.`
     );
   }
 
@@ -158,7 +152,28 @@ function summarize(recommendation: Recommendation, isSynced: boolean): string {
     listOf(otherStarters.map((r) => `${r.inclusionShare}% would also start ${r.player.name}`)) +
     `.`;
 
-  return answer + why + exclusions(recommendation) + goalNote(recommendation) + team;
+  return answer + why + exclusions(recommendation);
+}
+
+/**
+ * The summary, as paragraphs.
+ *
+ * The first answers the question: who to start, on what support, and why the others are
+ * out. Everything after it is context the user did not ask for and may not need, so each
+ * piece gets its own paragraph rather than being run into the answer. Read as one block it
+ * all looked like part of the recommendation, and the injury note in particular is not: it
+ * is a fact about their week that they have to weigh themselves.
+ */
+function summarize(recommendation: Recommendation, isSynced: boolean): string[] {
+  if (recommendation.results.length < 2) return [];
+
+  return [
+    answerParagraph(recommendation),
+    goalNote(recommendation),
+    isSynced ? teamNote(recommendation) : "",
+  ]
+    .map((paragraph) => paragraph.trim())
+    .filter((paragraph) => paragraph.length > 0);
 }
 
 /**
@@ -258,9 +273,11 @@ export function ConsensusSentiment({
       </div>
 
       <div className="mt-3 rounded-md border border-fp-border bg-[#fafbfc] p-4">
-        <p className="text-sm leading-relaxed text-fp-ink">
-          {summarize(recommendation, isSynced)}
-        </p>
+        <div className="space-y-3 text-sm leading-relaxed text-fp-ink">
+          {summarize(recommendation, isSynced).map((paragraph) => (
+            <p key={paragraph.slice(0, 40)}>{paragraph}</p>
+          ))}
+        </div>
         <button
           type="button"
           className="mt-2 cursor-pointer text-sm font-medium text-fp-link hover:underline"
