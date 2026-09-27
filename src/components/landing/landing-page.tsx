@@ -12,7 +12,7 @@ const TOOL_HREF = "/wsis";
  * of padding, which is `.product-pillar` on their site and what `max-w-[900px] px-5` gives
  * here. Copy and screenshots both run the full 860px so nothing sits short of anything else.
  */
-const LEAD = "text-[22px] font-bold leading-[34px] text-fp-ink";
+const LEAD = "text-[20px] font-bold leading-[34px] text-fp-ink";
 const HEADING = "text-[18px] font-bold leading-[32px] text-fp-ink";
 const COPY = "mt-[18px] flex flex-col gap-[18px] text-[18px] leading-[32px] text-fp-ink";
 const SECTION = "border-t border-fp-border py-10";
@@ -100,10 +100,22 @@ export function LandingPage() {
       <main className="mx-auto w-full max-w-[900px] px-5 pb-16">
         <Hero />
 
+        {/*
+         * Three parallel beats, so they are broken onto three lines to make the repetition
+         * visible rather than letting the measure decide. Only once the column is at its
+         * full 860px, because the longest of the three runs 782px and would otherwise wrap
+         * into a fourth ragged line, which is worse than not breaking at all.
+         */}
         <p className={`mb-10 mt-8 ${LEAD}`}>
-          Some weeks you’re not picking one player, you’re picking two. Some weeks you need a
-          floor, not a ceiling. Tell Who Should I Start? what you need and it recommends the
-          combination.
+          <span className="min-[900px]:block">
+            Some weeks you’re not picking one player, you’re picking two.{" "}
+          </span>
+          <span className="min-[900px]:block">
+            Some weeks you need a floor, not a ceiling.{" "}
+          </span>
+          <span className="min-[900px]:block">
+            Tell Who Should I Start? what you need and it recommends the combination.
+          </span>
         </p>
 
         <section className={SECTION}>
