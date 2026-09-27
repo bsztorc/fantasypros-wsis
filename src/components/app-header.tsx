@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { ChevronDown } from "@/components/ui/icons";
 import { DEMO_STATES, DEMO_STATE_ORDER } from "@/lib/demo-state";
 import type { DemoState } from "@/lib/types";
@@ -21,9 +22,14 @@ export function AppHeader({ demoState, onDemoStateChange }: AppHeaderProps) {
   return (
     <header className="sticky top-0 z-30 border-b border-fp-border bg-white">
       <div className="mx-auto flex h-16 max-w-[1180px] items-center justify-between px-5">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-fp-navy">
+        {/* Back to the landing page, which is the site root. */}
+        <Link
+          href="/"
+          aria-label="Who Should I Start?"
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-fp-navy"
+        >
           <Image src="/fp-icon.svg" alt="FantasyPros" width={40} height={40} priority />
-        </div>
+        </Link>
 
         <div className="flex items-center gap-3">
           <label htmlFor="demo-state" className="text-sm font-semibold text-fp-ink">

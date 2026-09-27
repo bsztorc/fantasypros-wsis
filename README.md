@@ -1,6 +1,7 @@
 # Who Should I Start? — Lineup-Aware Prototype
 
-**Live:** https://fantasypros-wsis.vercel.app/
+**Live:** https://fantasypros-wsis.vercel.app/ (landing page)  
+**The tool:** https://fantasypros-wsis.vercel.app/wsis
 
 A prototype exploring one change to a player-comparison tool: let the user say how many
 lineup spots they are filling, and recommend the expert-preferred *combination* rather
@@ -22,7 +23,8 @@ from the brief's core list are still open.
 
 | Area | State |
 |---|---|
-| Landing page, three demo states | built |
+| Landing page explaining the feature, at the site root | built |
+| Tool landing screen, three demo states | built |
 | Start N and Lineup Goal controls | built, gating verified |
 | Advice view, two through four players | built |
 | Recommendation engine | built, invariants verified across 2754 comparisons |

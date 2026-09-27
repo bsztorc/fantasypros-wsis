@@ -6,9 +6,9 @@ session with no memory of how it got here.
 
 **Assignment due Wednesday 2026-09-30. Brandon plans to send it Tuesday.**
 
-**Next up: the landing page.** Read "The story, locked" and "Next: the landing page" below
-before writing a word of it. The rest of this document is background you will want if a
-question comes up, not required reading for that task.
+**Next up: the improvements list and the dev spec.** The landing page is built and is now
+the site's root; "The landing page, as built" below records what it says and what was left
+off it. The rest of this document is background you will want if a question comes up.
 
 ---
 
@@ -76,67 +76,55 @@ that page. Anything roster-aware needs data the tool does not touch.
 
 ---
 
-## Next: the landing page
+## The landing page, as built
 
-**Brandon has already drafted it.** `assets/WSIS Landing Page.docx`, untracked, alongside
-`WSIS Hero Image.png`. Read the draft before proposing anything. It is substantially
-written, it is good, and a session that starts from scratch will contradict it.
+**Built and released.** The site's root is the landing page: `src/app/page.tsx` renders
+`src/components/landing/landing-page.tsx`, and the tool moved to `/wsis`. The deliverable is
+a single shared link, so whoever opens it meets the feature before the tool, and the banner
+itself links to `/wsis` so the working tool stays one click away above the fold.
 
-Ask where the final page should live before building. It may stay a document rather than
-become a route in this app. Do not assume it belongs in `src/`.
+The copy is Brandon's, finalised in `assets/WSIS Landing Page - User Facing v2.docx`, which is
+untracked like the rest of `assets/`. The three images are committed to `public/`.
 
 ### Who it is for
 
-The assignment says the page explains the feature and its value **to a user, not to a
-product team**. True, but read carefully: the page has two readers. Nominally a fantasy
-manager. Actually the FantasyPros panel, who are grading it on product sense.
+A fantasy manager, and only a fantasy manager.
 
-That double audience is why evidence belongs on it. On a real consumer page a research
-statistic would be internal justification leaking onto the marketing site. Here it is both
-social proof for the manager and proof of rigour for the panel.
+An earlier version of this section argued the page had two readers, the manager nominally and
+the panel in practice, and that research evidence belonged on it to prove rigour to the panel.
+**That was wrong, and the shipped page does not work that way.** A statistic about how many
+other people ask a two-slot question tells a reader nothing they can act on, because they
+already know whether they have two spots to fill. Prevalence evidence justifies funding a
+build. It does not sell a feature. The argument it was carrying belongs in the improvements
+proposal, where the reader has asked why this is worth building.
 
-### Belongs on the page
+### What is on the page
 
-- The moment of the problem: you have two spots and three players, and the tool only tells
-  you who is best, once.
-- What Start N does, in their words: tell it how many spots you are filling and it picks
-  the combination, not just a winner.
-- What Lineup Goal does: some weeks you need a safe floor, some weeks you need a ceiling.
-  Say which and the recommendation changes.
-- **The two research findings, 27% and 31%**, each attached to the feature it justifies.
-  They read as social proof to a manager and as evidence to the panel. Never added
-  together: they are overlapping sets.
-- **The divergence range**, worded as the draft already words it: a range, scoped to the
-  flex tier, dated to the Week 3 sample. It is the one figure that shows the problem is
-  real rather than theoretical. 13% to 30% is correct and appropriately rounded.
-- Plain screenshots of the real thing.
+- The two features in the user's words, each with a scenario, a mechanism and a screenshot.
+- Two screenshots, both at Start N of 2, one Balanced and one Most Upside. The change between
+  them is the new feature responding to a control the user moved, which is a launch page
+  demonstrating its own capability rather than critiquing the old one.
+- One credibility line: the same Expert Consensus Rankings, no re-ranking.
 
-### Does not belong on the page
+### What was deliberately left off, and why
 
-- **Any single divergence figure.** The range is the result. A point estimate is a property
-  of the reconstruction seed and a reviewer who re-ran it would get a different one.
-- The per-tier table, medians, or anything that invites the question "how did you measure
-  that" unprompted. Have the answer ready for the panel; do not lead with it.
-- Expert panel reconstruction, dispersion, standard deviation, or the 46-expert count
-  offered as proof of accuracy. That is methodology, and it belongs in the write-up and the
-  dev spec, where someone has asked.
-- Any mention of the assignment, the interview, or FantasyPros' shortcomings as a company.
-  The page should read like something FantasyPros would ship, not a critique of them.
-- The word "prototype" in the user-facing copy.
+- **The 27%, the 31% and the divergence range.** See "Who it is for". All three move to the
+  improvements proposal.
+- **Every comparison of old behaviour to new.** The one-slot screenshot came off for this
+  reason. With it on the page a reader saw a player at 2% become a recommendation, with no
+  way to read that except as the tool contradicting itself. Nothing on the page now shows or
+  implies a prior answer. A real launch does not publish a critique of its own prior output.
+- **Player names in the copy.** The screenshots carry the specifics, and keeping names out of
+  the prose means the page does not date itself to the Week 3 snapshot.
+- Methodology of any kind, the assignment, and the word "prototype".
 
 ### Tone check
 
-The page never tells the user their old way was stupid. The existing percentage is correct
-and useful at one slot. The pitch is that the tool now answers a second question it could
-not answer before, not that it was broken.
-
-### A correction worth recording
-
-An earlier version of this section said to keep the research percentages and the divergence
-range off the page entirely. That was wrong, and it was written before anyone had read
-Brandon's draft, which uses all three deliberately and uses them well. Taking "not for a
-product team" literally enough to strip the evidence would have gutted the page. Read the
-draft first; it is ahead of this document.
+The page never tells the user their old way was stupid. The existing percentage is correct and
+useful at one slot. The pitch is that the tool now answers a second question, not that it was
+broken. The last old-versus-new phrasing on the page, "not just the leader", became "not just
+the top player" for the same reason, and because "leader" was the engine's vocabulary rather
+than a reader's.
 
 ---
 
@@ -268,7 +256,7 @@ separate.
 | Prototype | Done, released to `main` |
 | Improvements proposed, each with problem, benefit, measure | Not started |
 | One prioritized, with reasoning | Not started |
-| Landing page explaining the value to a user | **Next** |
+| Landing page explaining the value to a user | Done, at the site root |
 | Dev spec, written for a developer or coding agent | Not started |
 
 Team-aware injury reasoning is the first entry for the proposed-improvements list: it has
