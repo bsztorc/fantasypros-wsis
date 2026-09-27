@@ -25,8 +25,9 @@ from the brief's core list are still open.
 | Landing page, three demo states | built |
 | Start N and Lineup Goal controls | built, gating verified |
 | Advice view, two through four players | built |
-| Recommendation engine | built, invariants verified across 2289 comparisons |
-| Real Week 3 data, 395 players | built |
+| Recommendation engine | built, invariants verified across 2754 comparisons |
+| Real Week 3 data, 435 players | built |
+| Frozen snapshot, verified in the build | built |
 | Consensus strength | not started |
 | Availability risk in the reasoning | not started |
 | Matchup-aware reasoning, synced | not started |
@@ -39,6 +40,12 @@ than the demo.
 - **Real:** the scoring and recommendation logic, computed from fixture data at runtime.
 - **Fixture:** expert rankings, rosters, matchup state, and availability. No API, no
   database, no keys. Deterministic by design so results are reproducible in a walkthrough.
+
+The rankings are a reconstructed snapshot of FantasyPros' published rankings at a moment in
+time, frozen on purpose. Real rankings move through the week, so a live feed would mean the
+same walkthrough reaching a different recommendation a month from now. `npm run build`
+verifies the snapshot against `src/lib/fixtures/snapshot.lock.json` and fails if it moved, and
+neither harvest script will overwrite it without `--force`.
 - **Stubbed:** anything the existing product already does well, including the AI summary
   and the information tabs. Rebuilding those is not the point of the exercise.
 

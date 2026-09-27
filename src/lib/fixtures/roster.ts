@@ -4,10 +4,10 @@ import { playerById, SNAPSHOT, type RankedPlayer } from "@/lib/rankings";
  * The synced user's roster, as drawn in the concept design, with two substitutions.
  *
  * Vele and Godwin are replaced by M. Wilson and R. Bateman so the roster contains a real
- * flex dilemma. Mitchell, Wilson and Bateman sit in the same receiver tier, and the
- * ballots behind them do not support the order the current display puts them in: Bateman
- * is boom or bust, ranked best of the three by a minority and last by most, while Mitchell
- * is nobody's favorite and almost everybody's acceptable second.
+ * flex dilemma. Mitchell, Wilson and Bateman sit in the same receiver tier, and the expert
+ * rankings behind them do not support the order the current display puts them in: Bateman is
+ * boom or bust, ranked best of the three by a minority and last by most, while Mitchell is
+ * nobody's favorite and almost everybody's acceptable second.
  *
  * Pittman is left out: he is injured, and a roster that starts an injured player invites
  * a question that has nothing to do with the feature.

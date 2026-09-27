@@ -136,68 +136,40 @@ into an answer when N is greater than one, and it always explains the result.
 
 ## Divergence measured against roster tiers
 
-How often the expert-preferred pair differs from the top two by first-choice share. Three
-players from the same tier, filling two slots, against the Week 3 snapshot, 46
-reconstructed ballots.
+**The numbers live in `docs/metrics.md`, and only there.** This file used to carry its own
+copy of the table. The two drifted, and by the time anyone noticed there were three different
+sets of rates in three documents, none of them reproducible from the committed snapshot. One
+table, measured by `npm run check:divergence`, in one file.
 
-Tiers follow how rosters and rankings actually work, not even blocks. QB caps at 32
-because only 32 quarterbacks start in the NFL. RB stops at RB3 and TE at TE2, because
-beyond that nobody is a startable option. WR runs to four tiers, since the position goes
-deeper than any other. Flex is filled from the players who missed a positional slot:
-RB3, WR3, WR4 and TE2, compared across positions.
+What is worth keeping here is the reasoning behind the measurement.
 
-### Blocks of twelve
+**Why these tiers.** They follow how rosters and rankings actually work, not even blocks. QB
+caps at 32 because only 32 quarterbacks start in the NFL. RB stops at RB3 and TE at TE2,
+because beyond that nobody is a startable option. WR runs to four tiers, since the position
+goes deeper than any other. Flex is filled from the players who missed a positional slot: RB3,
+WR3, WR4 and TE2, compared across positions.
 
-| Tier | Divergence | Cases | Dispersion |
-|---|---|---|---|
-| QB1 (1-12) | 1.4% | 3/220 | 1.00 |
-| QB2 (13-24) | 8.6% | 19/220 | 1.97 |
-| QB3 (25-32) | 12.5% | 7/56 | 2.37 |
-| RB1 (1-12) | 4.5% | 10/220 | 1.15 |
-| RB2 (13-24) | 6.4% | 14/220 | 2.20 |
-| RB3 (25-36) | 5.0% | 11/220 | 2.54 |
-| WR1 (1-12) | 10.9% | 24/220 | 1.36 |
-| WR2 (13-24) | 8.6% | 19/220 | 2.16 |
-| **WR3 (25-36)** | **22.3%** | 49/220 | 4.11 |
-| WR4 (37-48) | 11.8% | 26/220 | 4.53 |
-| TE1 (1-12) | 6.8% | 15/220 | 1.51 |
-| TE2 (13-24) | 4.5% | 10/220 | 2.21 |
+**Why flex splits in two.** Not every candidate who can legally fill the slot represents a
+real dilemma. Splitting flex separates the decision a manager agonises over, the better half
+of RB3 alongside all of WR3, from the rest of what is merely eligible.
 
-### Flex, split in two
+**Why the contrast carries the argument.** The display is a fine proxy for the right answer in
+the tiers where nobody needs help, and unreliable where they do. That is a better line than
+any board-wide average, and it pre-empts "so it is right most of the time", which is only true
+of the comparisons nobody makes.
 
-Flex is filled by whoever missed a positional slot, but not every candidate represents a
-real dilemma. Splitting it separates the decision a manager agonises over from the rest of
-what can legally fill the slot.
+**Why FLEX2 diverges less despite higher dispersion.** Dispersion alone does not drive
+divergence; a pool also needs players who are genuinely close in value. FLEX2 contains many
+lopsided pairings, and lopsided comparisons never diverge. State this before someone finds it,
+because on the surface it looks like it undercuts the mechanism when it sharpens it.
 
-| Tier | Composition | Divergence | Cases | Dispersion |
-|---|---|---|---|---|
-| **FLEX1** | top half of RB3, all of WR3 | **22.3%** | 182/816 | 8.01 |
-| FLEX2 | rest of RB3, WR4, TE2 | 9.9% | 401/4060 | 9.19 |
+**Why it is reported as a range.** A reconstructed panel is one of many consistent with the
+published dispersion, so a single run measures the seed as much as the rankings. The ordering
+holds across every reconstruction; the level does not. `docs/metrics.md` has the wordings to
+avoid.
 
-### What to claim, and what not to
-
-**Lead with this:** in the flex decision managers actually agonise over, the expert
-preferred pair differs from the top two by first-choice share **22.3% of the time**. More
-than one in five. The same figure holds for WR3 measured on its own, which is unsurprising
-since WR3 supplies twelve of FLEX1's eighteen players, and the agreement between two
-independently constructed pools is worth more than either number alone.
-
-**The contrast carries the argument.** QB1 is 1.4%, RB1 is 4.5%, TE1 is 6.8%. The display
-is a fine proxy for the right answer in the tiers where nobody needs help, and wrong more
-than one time in five where they do. That is a better line than any board-wide average,
-and it pre-empts "so it is right most of the time", which is only true of the comparisons
-nobody makes.
-
-**Note FLEX2 is lower despite higher dispersion.** 9.9% against 22.3%, on a wider spread.
-Dispersion alone does not drive divergence; a pool needs players who are genuinely close
-in value. FLEX2 contains many pairings that are lopsided, and lopsided comparisons never
-diverge. State this before someone finds it, because on the surface it looks like it
-undercuts the mechanism when it actually sharpens it.
-
-**Do not claim a smooth gradient.** RB3 (5.0%) sits below RB2 (6.4%), and WR4 (11.8%) below
-WR3 (22.3%). The relationship with uncertainty is real at the extremes and noisy between.
-
-**QB3 is a thin sample.** Eight players, 56 comparisons. Directional at best.
+**QB3 is a thin sample.** Eight players, 56 comparisons. Directional at best, and left out of
+the reported table.
 
 ## Pinned: the expert panel is modeled, not measured
 

@@ -4,16 +4,34 @@
  * Their ranking pages embed a `ecrData` object containing, for every ranked player, the
  * consensus rank and the dispersion of expert opinion behind it: best rank, worst rank,
  * average and standard deviation. That dispersion is what the prototype needs, because
- * individual expert ballots are not published in bulk.
+ * individual expert rankings are not published in bulk.
  *
  * Run with: node scripts/harvest-rankings.mjs
  * Writes:   src/lib/fixtures/rankings-week3.json
  *
- * Re-running overwrites the snapshot with whatever is current, so the committed file is
- * the record of what was captured and when.
+ * The committed snapshot is frozen, because the demo has to give the same answer in a month
+ * as it gives today. This refuses to overwrite it. Re-freezing is a deliberate act:
+ *
+ *   node scripts/harvest-rankings.mjs --force
+ *   node scripts/check-snapshot.mjs --write
+ *
+ * and then re-measure every number the write-up quotes, because they all move.
  */
 
 import { writeFile, mkdir } from "node:fs/promises";
+import { existsSync } from "node:fs";
+
+const OUTPUT = "src/lib/fixtures/rankings-week3.json";
+
+// Checked before any request goes out, so a refusal costs FantasyPros nothing.
+if (existsSync(OUTPUT) && !process.argv.includes("--force")) {
+  console.error(
+    `REFUSING TO WRITE: ${OUTPUT} already exists and the snapshot is frozen.\n` +
+      "Overwriting it moves every measured number in docs/metrics.md.\n" +
+      "Pass --force if you mean to re-freeze, then: node scripts/check-snapshot.mjs --write",
+  );
+  process.exit(1);
+}
 
 /**
  * The nine lists the Who Should I Start? tool itself offers as filters.
@@ -119,7 +137,7 @@ if (weeks.size !== 1) {
 
 await mkdir("src/lib/fixtures", { recursive: true });
 await writeFile(
-  "src/lib/fixtures/rankings-week3.json",
+  OUTPUT,
   JSON.stringify(
     {
       source: "FantasyPros consensus rankings",

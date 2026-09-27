@@ -1,4 +1,4 @@
-import { buildPanel, bustRoom, upsideRoom, type Ballot } from "@/lib/ballots";
+import { buildPanel, bustRoom, upsideRoom, type ExpertRanking } from "@/lib/expert-rankings";
 import { inSharedList, type RankedPlayer } from "@/lib/rankings";
 import type { LineupGoal, StartN } from "@/lib/types";
 
@@ -6,8 +6,8 @@ import type { LineupGoal, StartN } from "@/lib/types";
  * The recommendation engine.
  *
  * The existing tool counts, for each expert, the single player they ranked highest. That
- * answers "who is each expert's favorite". When a manager is filling two slots the
- * question changes to "who would each expert start", and the same ballots answer it
+ * answers "who is each expert's favorite". When a manager is filling two slots the question
+ * changes to "who would each expert start", and the same expert rankings answer it
  * differently: count how often a player appears in an expert's top N.
  *
  * Nothing here re-ranks players or second-guesses the consensus. It asks a different
@@ -74,7 +74,7 @@ export interface Recommendation {
 /**
  * How far a lineup goal may move a player within an expert's ranking, in board positions.
  *
- * A ballot records the rank each expert gave on the underlying board, so the nudge works
+ * A ranking records the rank each expert gave on the underlying board, so the nudge works
  * on that scale: at 0.35, a player whose optimistic ranking sits ten places above his
  * average gains three and a half places. That is enough to overtake someone an expert put
  * narrowly ahead of him and not enough to overtake someone put comfortably ahead.
@@ -111,26 +111,26 @@ function goalAdjustments(
  * through it: the user asked what these rankings say about ceiling, so answering with
  * unweighted counts would be answering a question they did not ask.
  */
-function orderBallot(
-  ballot: Ballot,
+function orderRanking(
+  ranking: ExpertRanking,
   players: RankedPlayer[],
   tilt: Map<string, number>,
 ): RankedPlayer[] {
   return [...players].sort(
     (a, b) =>
-      (ballot.get(a.id) ?? Infinity) + (tilt.get(a.id) ?? 0) -
-      ((ballot.get(b.id) ?? Infinity) + (tilt.get(b.id) ?? 0)),
+      (ranking.get(a.id) ?? Infinity) + (tilt.get(a.id) ?? 0) -
+      ((ranking.get(b.id) ?? Infinity) + (tilt.get(b.id) ?? 0)),
   );
 }
 
 function countFirstChoices(
-  panel: Ballot[],
+  panel: ExpertRanking[],
   players: RankedPlayer[],
   tilt: Map<string, number>,
 ): Map<string, number> {
   const votes = new Map(players.map((p) => [p.id, 0]));
-  for (const ballot of panel) {
-    const best = orderBallot(ballot, players, tilt)[0];
+  for (const ranking of panel) {
+    const best = orderRanking(ranking, players, tilt)[0];
     if (best) votes.set(best.id, (votes.get(best.id) ?? 0) + 1);
   }
   return votes;
@@ -138,14 +138,14 @@ function countFirstChoices(
 
 /** How many experts would start each player, seen through the lineup goal. */
 function countInclusions(
-  panel: Ballot[],
+  panel: ExpertRanking[],
   players: RankedPlayer[],
   startN: number,
   tilt: Map<string, number>,
 ): Map<string, number> {
   const included = new Map(players.map((p) => [p.id, 0]));
-  for (const ballot of panel) {
-    for (const player of orderBallot(ballot, players, tilt).slice(0, startN)) {
+  for (const ranking of panel) {
+    for (const player of orderRanking(ranking, players, tilt).slice(0, startN)) {
       included.set(player.id, (included.get(player.id) ?? 0) + 1);
     }
   }
@@ -197,8 +197,8 @@ export function recommend(
 
   // How many experts would start exactly this set, rather than merely include a member.
   let exactAgreement = 0;
-  for (const ballot of panel) {
-    const top = orderBallot(ballot, players, tilt).slice(0, startN);
+  for (const ranking of panel) {
+    const top = orderRanking(ranking, players, tilt).slice(0, startN);
     if (top.every((p) => recommended.has(p.id))) exactAgreement += 1;
   }
   const combinationShare = Math.round((exactAgreement / panel.length) * 100);

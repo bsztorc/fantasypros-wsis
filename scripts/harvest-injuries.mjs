@@ -5,15 +5,33 @@
  * only load twenty rows at a time, so the rankings pages cannot supply this. Each player's
  * own page carries it server side, so this reads those.
  *
- * Scoped to the roster and the top of the flex board rather than all 395 players: those
+ * Scoped to the roster and the top of the flex board rather than all 435 players: those
  * are the players visible without searching, and this is a snapshot for a prototype, not a
  * feed. Players outside that set simply carry no designation.
  *
  * Run with: node scripts/harvest-injuries.mjs
  * Writes:   src/lib/fixtures/injuries-week3.json
+ *
+ * Frozen like the rankings, and guarded the same way. Designations change through the week,
+ * so a re-harvest would move what the demo shows. Re-freezing is deliberate:
+ *
+ *   node scripts/harvest-injuries.mjs --force
+ *   node scripts/check-snapshot.mjs --write
  */
 
 import { readFile, writeFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
+
+const OUTPUT = "src/lib/fixtures/injuries-week3.json";
+
+// Checked before any request goes out, so a refusal costs FantasyPros nothing.
+if (existsSync(OUTPUT) && !process.argv.includes("--force")) {
+  console.error(
+    `REFUSING TO WRITE: ${OUTPUT} already exists and the snapshot is frozen.\n` +
+      "Pass --force if you mean to re-freeze, then: node scripts/check-snapshot.mjs --write",
+  );
+  process.exit(1);
+}
 
 /** Page wording to the abbreviation the product shows beside a name. */
 const DESIGNATIONS = [
@@ -92,7 +110,7 @@ Likely rate limited. Collect the difference by hand rather than rerunning.`,
 }
 
 await writeFile(
-  "src/lib/fixtures/injuries-week3.json",
+  OUTPUT,
   JSON.stringify(
     {
       source: "FantasyPros player pages",
