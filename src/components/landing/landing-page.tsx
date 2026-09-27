@@ -12,6 +12,7 @@ const TOOL_HREF = "/wsis";
  * of padding, which is `.product-pillar` on their site and what `max-w-[900px] px-5` gives
  * here. Copy and screenshots both run the full 860px so nothing sits short of anything else.
  */
+
 /** The intro paragraph only. 20px rather than 22px so its longest line clears 860px. */
 const LEAD = "text-[20px] font-bold leading-[34px] text-fp-ink";
 /** Section headings, and the closing line above the button, which is one of them in kind. */
@@ -51,50 +52,30 @@ function Shot({
   );
 }
 
-/** Shared by every line of hero copy that sits on the artwork. */
-const HERO_LINE = "absolute -translate-y-1/2 whitespace-nowrap leading-none text-fp-ink";
-
 /**
- * The hero, built the way FantasyPros builds theirs.
+ * The hero, built the way FantasyPros builds theirs: the whole banner is one link.
  *
- * On their product pillars the whole banner is one link and the call to action inside it is
- * live text that underlines on hover.
+ * The copy is part of the artwork rather than live text on top of it. Rendering it live was
+ * tried and reverted. It measured correctly, landing within two pixels of the ink it replaced,
+ * but it did not sit right on screen against the rest of the banner. Since the image is a
+ * screenshot crop of their Research pillar and cannot be re-exported larger, one softened
+ * image reads better than a mix of soft artwork and crisp live text.
  *
- * Every small text run is live rather than baked. The artwork is a screenshot crop of their
- * Research pillar and cannot be re-exported larger, so the browser upscales it and the baked
- * text softens, while text the browser draws stays crisp. With one line live and the rest
- * baked, the live one read as darker even though the colours were identical. Rendering all of
- * them here keeps every line at one weight and one colour. What stays in the artwork is the
- * headline, which is set in Zuume and is large enough that the softening does not read, and
- * the chart icon and arrow, which are graphics rather than letterforms.
- *
- * Positions are percentages of the artwork and sizes are in `cqw` against the banner, so the
- * copy tracks the image at every width instead of drifting off the icon and the arrow. Both
- * were solved against the ink each run occupied in the original, and land within a pixel.
+ * The alt text therefore has to carry the headline and the call to action, since nothing in
+ * the banner is readable as text.
  */
 function Hero() {
   return (
-    <Link href={TOOL_HREF} className="group @container relative mt-8 block">
+    <Link href={TOOL_HREF} className="mt-8 block">
       <Image
         src="/wsis-hero.png"
-        alt="Who Should I Start?"
+        alt="Who Should I Start? The question changes every week. Now the answer can too. Try it now."
         width={847}
         height={303}
         priority
         sizes="(max-width: 940px) 100vw, 860px"
         className="h-auto w-full rounded-lg"
       />
-      <span className={`${HERO_LINE} left-[10.63%] top-[24.59%] text-[1.6cqw] font-medium`}>
-        Research
-      </span>
-      <span className={`${HERO_LINE} left-[7.67%] top-[56.11%] text-[1.4cqw]`}>
-        The question changes every week. Now the answer can too.
-      </span>
-      <span
-        className={`${HERO_LINE} left-[7.67%] top-[75.74%] text-[1.72cqw] font-semibold group-hover:underline`}
-      >
-        Try it now
-      </span>
     </Link>
   );
 }
