@@ -120,13 +120,18 @@ function answerParagraph(recommendation: Recommendation): string {
   if (startN === 1) {
     const rest = results.slice(1);
 
-    // A runaway favorite leaves everyone else on nought, which reads as though the rest are
-    // equally bad. They are not being compared at all: nobody ranked any of them first.
-    if (rest.every((result) => result.firstChoiceShare === 0)) {
+    // A runaway favorite takes every vote and leaves the rest on nought. Say that plainly.
+    //
+    // This sentence used to carry a second half, that the percentage says nothing about
+    // which of them to start next to him. True, and not an answer to the question asked: at
+    // one slot the user wants one player, and arguing for the feature inside the answer to a
+    // question they did not ask is the tool talking about itself. Counted on votes rather
+    // than on the rounded share, so a fractional share can never round down into this claim.
+    if (rest.every((result) => result.firstChoiceVotes === 0)) {
+      const others = rest.length === 1 ? "the other" : "the others";
       return (
-        `All ${panelSize} experts make ${leader.player.name} their first choice, so the ` +
-        `${COUNT_WORD[rest.length] ?? rest.length} others each show 0%. That counts first ` +
-        `picks only, and says nothing about which of them to start next to him.`
+        `All ${panelSize} experts make ${leader.player.name} their first choice. Nobody ` +
+        `ranked ${others} above him.`
       );
     }
 
