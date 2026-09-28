@@ -22,14 +22,25 @@ export function AppHeader({ demoState, onDemoStateChange }: AppHeaderProps) {
   return (
     <header className="sticky top-0 z-30 border-b border-fp-border bg-white">
       <div className="mx-auto flex h-16 max-w-[1180px] items-center justify-between px-5">
-        {/* Back to the landing page, which is the site root. */}
-        <Link
-          href="/"
-          aria-label="Who Should I Start?"
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-fp-navy"
-        >
-          <Image src="/fp-icon.svg" alt="FantasyPros" width={40} height={40} priority />
-        </Link>
+        {/*
+         * Both go to the landing page, which is the site root. The mark alone was not a
+         * discoverable way back, so the label says where it goes.
+         */}
+        <div className="flex items-center gap-4">
+          <Link
+            href="/"
+            aria-label="Who Should I Start?"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-fp-navy"
+          >
+            <Image src="/fp-icon.svg" alt="FantasyPros" width={40} height={40} priority />
+          </Link>
+          <Link
+            href="/"
+            className="text-sm font-semibold text-fp-link hover:underline"
+          >
+            Landing Page
+          </Link>
+        </div>
 
         <div className="flex items-center gap-3">
           <label htmlFor="demo-state" className="text-sm font-semibold text-fp-ink">
