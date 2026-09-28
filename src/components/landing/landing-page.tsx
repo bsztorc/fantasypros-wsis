@@ -124,8 +124,8 @@ export function LandingPage() {
           <h2 className={HEADING}>Start the right number</h2>
           <div className={COPY}>
             <p>
-              You have two roster spots open and three players who could fill them. Which one do
-              you sit?
+              You have two roster spots open and three players who could fill them. Who gets the
+              start?
             </p>
             <p>
               Set <strong className="font-bold">Players to Start</strong> to the number of spots
