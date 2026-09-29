@@ -65,79 +65,74 @@ function tieBreak(
 /**
  * Why one player did not make the lineup.
  *
- * Every excluded player gets a reason. Leaving that to the reader is what the current
- * display does: it shows an ordering, says nothing about what the ordering means, and lets
- * them infer that second place is the next best start. Each reason is stated in the same
- * expert counts the recommendation itself is built from.
+ * Every excluded player gets a reason. Leaving that to the reader is what the current display
+ * does: it shows an ordering, says nothing about what the ordering means, and lets them infer
+ * that second place is the next best start.
+ *
+ * NOTHING HERE SAYS ANYONE WOULD START A PLAYER WHO IS NOT BEING STARTED. These sentences
+ * exist to say why a player is out, and "while 52% would still start him" argues against the
+ * recommendation it is supposed to be explaining. Put as ranking rather than as starting, the
+ * same fact reads as the reason it is: not enough experts put him high enough.
+ *
+ * COUNTS, NOT PERCENTAGES. Inclusion counts experts whose own top N includes a player, so
+ * across a comparison these sum to N x 100 rather than 100. At two slots the average player
+ * sits near 67% of three or 50% of four, and that par moves with the number of players
+ * compared, so a bare percentage lands on a scale the reader cannot see and lands differently
+ * from one comparison to the next. "19 of 46 experts" does not.
+ *
+ * NO THRESHOLDS. Two invented numbers used to live here: a 40% share above which "only" was
+ * withheld, and a 10 point margin below which a shortfall became "the closest call". Both
+ * were dodges around percentages that read wrong on their own. A player who trails trails,
+ * and how narrowly is not the reason he is out.
  */
 function whyNotStarted(
   result: PlayerResult,
   weakestStarter: PlayerResult | undefined,
   tiedWith: PlayerResult | undefined,
+  startN: number,
 ): string {
   const name = result.player.name;
+  const topN = `their top ${COUNT_WORD[startN] ?? startN}`;
 
   // A tie is not a narrow loss and must not be described as one. The reader is entitled to
   // know the vote did not decide this, without being walked through how the tie was settled.
   if (tiedWith) {
-    return (
-      `${name} is level with ${tiedWith.player.name} at ${result.inclusionShare}% and loses ` +
-      `the last spot on a tie-break`
-    );
+    return `${name} is level with ${tiedWith.player.name} and loses the last spot on a tie-break`;
   }
 
-  if (result.inclusionShare === 0) {
-    return `no expert would start ${name} over these`;
+  if (result.inclusionVotes === 0) {
+    return `no expert ranks ${name} in ${topN}`;
   }
 
-  if (result.firstChoiceShare === 0) {
-    // Broad support with no first-place votes is a real position, and "only" misdescribes it
-    // once the share passes half. He is not disliked, he is nobody's favourite.
-    if (weakestStarter && result.inclusionShare >= 40) {
-      return (
-        `nobody ranks ${name} the best of these, and while ${result.inclusionShare}% would ` +
-        `still start him that trails ${weakestStarter.inclusionShare}% for ` +
-        `${weakestStarter.player.name}`
-      );
-    }
-    // "Would start him at all" reads as a verdict on the player. The share is relative to
-    // this comparison and nothing else: it counts experts whose own top N, drawn from these
-    // players, includes him. Every sentence here has to keep that scope visible.
-    return (
-      `nobody ranks ${name} the best of these, and only ${result.inclusionShare}% would start ` +
-      `him over the others`
-    );
+  if (result.firstChoiceVotes === 0) {
+    // Nobody's favourite is a real position and not a verdict on the player, so this branch
+    // carries no count at all. He is out because fewer experts rank him high enough, and
+    // that is the whole of it.
+    return weakestStarter
+      ? `nobody ranks ${name} the best of these, and fewer experts put him in ${topN} than ` +
+          `${weakestStarter.player.name}`
+      : `nobody ranks ${name} the best of these`;
   }
 
   // A divisive player is the interesting exclusion: he looks like the obvious next pick on
   // first-place votes alone, and is the reason the two questions give different answers.
   if (gain(result) <= 8) {
     return (
-      `${name} splits the panel: ${result.firstChoiceShare}% rank him the best of these, but ` +
-      `most of the rest rank him last, so he is seldom anyone's second pick`
+      `${name} splits the panel: ${result.firstChoiceVotes} experts rank him the best of ` +
+      `these, and most of the rest rank him last`
     );
   }
 
   if (!weakestStarter) {
-    return `only ${result.inclusionShare}% would start ${name} over the others`;
+    return `${name} trails: ${result.inclusionVotes} experts put him in ${topN}`;
   }
 
-  const margin = weakestStarter.inclusionShare - result.inclusionShare;
-  if (margin <= 10) {
-    return (
-      `${name} is the closest call: ${result.inclusionShare}% would start him against ` +
-      `${weakestStarter.inclusionShare}% for ${weakestStarter.player.name}`
-    );
-  }
-
-  // "Here" is the scope, and it is doing necessary work: the share counts experts whose own
-  // top N, drawn from these players, includes him. Without it the sentence reads as a verdict
-  // on the player rather than on his place in this comparison.
-  //
-  // No reference point, unlike the closest-call branch above. By this margin the number
-  // speaks for itself, and naming the starter he trails would repeat a player already named
-  // twice in the same paragraph.
-  return `${name} trails with only ${result.inclusionShare}% who would start him here`;
+  // Both counts, so the shortfall is visible rather than asserted, and the reader never has
+  // to know what a good inclusion number looks like to read it.
+  return (
+    `${name} trails: ${result.inclusionVotes} experts put him in ${topN}, against ` +
+    `${weakestStarter.inclusionVotes} for ${weakestStarter.player.name}`
+  );
 }
 
 /**
@@ -176,6 +171,7 @@ function exclusions(recommendation: Recommendation): string {
         result,
         weakestStarter,
         tie && tie.loser.player.id === result.player.id ? tie.winner : undefined,
+        recommendation.startN,
       ),
     );
 
