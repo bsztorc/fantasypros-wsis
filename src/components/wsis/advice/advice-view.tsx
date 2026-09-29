@@ -301,9 +301,12 @@ export function AdviceView({
         ) : (
           <section className="rounded-lg bg-white px-5 py-10 text-center">
             <p className="text-sm font-semibold text-fp-ink">{tab}</p>
-            <p className="mt-1 text-sm text-fp-muted">
-              Not rebuilt in this prototype. The existing product already covers it.
-            </p>
+            {/*
+              Says what the tab is and stops. The second sentence, that the existing product
+              already covers it, was the prototype explaining its own scope to a reader who
+              has not asked and does not need to weigh it.
+            */}
+            <p className="mt-1 text-sm text-fp-muted">Not rebuilt in this prototype.</p>
           </section>
         )}
       </div>
