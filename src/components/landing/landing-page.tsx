@@ -167,7 +167,7 @@ export function LandingPage() {
           <h2 className={HEADING}>Built on the rankings you already trust</h2>
           <div className={COPY}>
             <p>
-              No re-ranking. It’s the same Expert Consensus Rankings behind every Who Should I
+              No new rankings. It’s the same Expert Consensus Rankings behind every Who Should I
               Start? answer. Now with the ability to ask more than one type of question.
             </p>
           </div>
