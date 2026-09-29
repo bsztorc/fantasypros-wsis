@@ -325,10 +325,16 @@ libraries and may read it rather than only the deployed prototype. Treat commit 
 README accuracy and the absence of scaffold leftovers as work, and raise hygiene problems
 without being asked.
 
-**Untracked and deliberately so:** `assets/` holds Brandon's in-progress Word files,
-including Word lock files (`~$…`, `~WRL….tmp`) that must never be committed. A
-`git add -A` would take them. There is no `.gitignore` rule for them yet; Brandon has been
-asked and has not decided.
+**`assets/` is tracked.** It holds the source images the landing page and the write-up were
+built from: the six demo-state screenshots, the concept design, the current-product
+screenshot, the hero artwork and the two landing-page shots. An earlier version of this
+paragraph said the folder was untracked and deliberately so. That was never true of the
+images, and the repo is part of the deliverable, so it is worth not leaving the record
+wrong.
+
+Brandon's in-progress Word files lived here too and have been removed. No `.gitignore` rule
+covers them, so a Word file saved here again, or one of its lock files (`~$…`, `~WRL….tmp`),
+would be taken by a `git add -A`. Stage by name rather than with `-A`.
 
 **Style, for anything written for the assignment:** no em dashes or double hyphens, and
 never the words "actually" or "absolutely".
