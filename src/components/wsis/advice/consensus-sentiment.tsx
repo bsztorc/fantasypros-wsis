@@ -141,12 +141,25 @@ function whyNotStarted(
 }
 
 /**
- * Every exclusion, as one sentence.
+ * One sentence per excluded player, and no lead-in.
  *
- * A single exclusion gets no lead-in. "The one left out:" announced a structure the sentence
- * did not need, and a reader filling two slots from three players can see which player is
- * missing from the recommendation without being told there is one. The plural keeps its
- * lead-in, because there the colon is doing real work in front of a list.
+ * "The one left out:" and "The others:" announced a structure the sentences did not need. A
+ * reader filling two slots from four players can see which players are missing from the
+ * recommendation without being told there are some.
+ *
+ * ONE RULE, NOT TWO, AND THE PLURAL IS THE REASON. Dropping only the singular lead-in left
+ * the plural as a colon-introduced list, which forced the reasons through `listOf` and joined
+ * them with "and". The reasons are not noun phrases: four of the seven branches carry their
+ * own comma, colon or "and" already, so the join produced a run-on with no boundary between
+ * one player's reason and the next:
+ *
+ *   The others: nobody ranks D. London the best of these, and only 26% would start him over
+ *   the others and no expert would start M. Wilson over these.
+ *
+ * Two "and"s, "the others" twice, and nothing to say where London ends and Wilson begins.
+ * Sentences need no separator, so giving every exclusion its own removes the list, the join
+ * and the duplicated phrase at once. Only reachable at four players and two slots, because
+ * one slot never calls this and every other shape leaves exactly one player out.
  */
 function exclusions(recommendation: Recommendation): string {
   const starters = recommendation.results.filter((result) => result.recommended);
@@ -166,12 +179,9 @@ function exclusions(recommendation: Recommendation): string {
       ),
     );
 
-  if (benched.length === 1) {
-    const only = reasons[0];
-    return ` ${only.charAt(0).toUpperCase()}${only.slice(1)}.`;
-  }
-
-  return ` The others: ${listOf(reasons)}.`;
+  return reasons
+    .map((reason) => ` ${reason.charAt(0).toUpperCase()}${reason.slice(1)}.`)
+    .join("");
 }
 
 /** The recommendation and the expert support behind it. Answers the question asked. */
