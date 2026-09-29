@@ -130,10 +130,14 @@ function whyNotStarted(
     );
   }
 
-  return (
-    `${name} trails on the same question: ${result.inclusionShare}% would start him against ` +
-    `${weakestStarter.inclusionShare}% for ${weakestStarter.player.name}`
-  );
+  // "Here" is the scope, and it is doing necessary work: the share counts experts whose own
+  // top N, drawn from these players, includes him. Without it the sentence reads as a verdict
+  // on the player rather than on his place in this comparison.
+  //
+  // No reference point, unlike the closest-call branch above. By this margin the number
+  // speaks for itself, and naming the starter he trails would repeat a player already named
+  // twice in the same paragraph.
+  return `${name} trails with only ${result.inclusionShare}% who would start him here`;
 }
 
 /**
