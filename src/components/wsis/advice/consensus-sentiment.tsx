@@ -382,16 +382,35 @@ function goalNote(recommendation: Recommendation): string {
     .filter((result) => !result.recommended)
     .sort((a, b) => (better(a, b) ? -1 : better(b, a) ? 1 : 0))[0];
 
+  // THE CLAIM IS ABOUT THE SET, NOT ABOUT WHO IS MISSING FROM IT.
+  //
+  // Two earlier versions phrased this as an absence: "nobody left out has a wider ceiling",
+  // then "no one else here has more room above his average". Both were true and both read as
+  // though nobody had been left out at all, which is never the case. Start N only unlocks
+  // once there are more players than slots, so every recommendation excludes someone, and a
+  // sentence a reader can take as saying otherwise contradicts the screen it sits under.
+  //
+  // Stated as a property of the recommended set it needs no reference to the excluded players
+  // at all, and it is the stronger claim: the condition checked here is that no excluded
+  // player beats the weakest starter, which means no other combination of these players
+  // scores higher on the measure either.
+  const count = COUNT_WORD[results.length] ?? results.length;
+
   if (!challenger || !better(challenger, weakest)) {
-    return (
-      `${lead} Nobody left out has a ${upside ? "wider ceiling" : "smaller drop"}, so the ` +
-      `${group} gives the ${upside ? "most upside" : "safest floor"} available here.`
-    );
+    return upside
+      ? `${lead} No other ${group} from these ${count} has more.`
+      : `${lead} No other ${group} from these ${count} drops less.`;
   }
 
+  // Both figures, in the same words as the sentence before it. "X's ceiling is wider than
+  // Y's at 6 spots" made the reader work out which player the 6 belonged to and hold the
+  // other number from the previous sentence to see the gap. Printing the pair settles it.
+  const gap = `${Math.round(room(challenger))} spots against ${Math.round(room(weakest))}`;
+
   return (
-    `${lead} ${challenger.player.name}'s ${upside ? "ceiling is wider" : "drop is smaller"} ` +
-    `than ${weakest.player.name}'s at ${spots(room(challenger))}` +
+    `${lead} ${challenger.player.name} has ` +
+    `${upside ? "more room above his average" : "a smaller drop below his average"} than ` +
+    `${weakest.player.name}, ${gap}` +
     SHORT_OF_A_START
   );
 }
