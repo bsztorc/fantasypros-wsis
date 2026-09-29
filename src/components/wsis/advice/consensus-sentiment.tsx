@@ -34,6 +34,35 @@ function gain(result: PlayerResult): number {
 }
 
 /**
+ * The two players the last slot was decided between, when the votes could not decide it.
+ *
+ * The engine picks by inclusion votes, falls back to first-choice votes, and ends on a
+ * canonical comparison by name so that the same set of players always returns the same
+ * answer. When both counts are level at the selection boundary, that name comparison is what
+ * awarded the slot. Saying one player is "ahead of" or "trails" the other would then be
+ * describing a margin that does not exist, which is the same failure this whole summary
+ * exists to avoid. Null whenever the votes did separate them, which is nearly always.
+ */
+function tieBreak(
+  recommendation: Recommendation,
+): { winner: PlayerResult; loser: PlayerResult } | null {
+  const starters = recommendation.results.filter((result) => result.recommended);
+  const benched = recommendation.results.filter((result) => !result.recommended);
+  if (starters.length === 0 || benched.length === 0) return null;
+
+  const bySupport = (a: PlayerResult, b: PlayerResult) =>
+    b.inclusionVotes - a.inclusionVotes || b.firstChoiceVotes - a.firstChoiceVotes;
+
+  const weakestStarter = [...starters].sort(bySupport)[starters.length - 1];
+  const strongestBenched = [...benched].sort(bySupport)[0];
+
+  return weakestStarter.inclusionVotes === strongestBenched.inclusionVotes &&
+    weakestStarter.firstChoiceVotes === strongestBenched.firstChoiceVotes
+    ? { winner: weakestStarter, loser: strongestBenched }
+    : null;
+}
+
+/**
  * Why one player did not make the lineup.
  *
  * Every excluded player gets a reason. Leaving that to the reader is what the current
@@ -41,8 +70,21 @@ function gain(result: PlayerResult): number {
  * them infer that second place is the next best start. Each reason is stated in the same
  * expert counts the recommendation itself is built from.
  */
-function whyNotStarted(result: PlayerResult, weakestStarter: PlayerResult | undefined): string {
+function whyNotStarted(
+  result: PlayerResult,
+  weakestStarter: PlayerResult | undefined,
+  tiedWith: PlayerResult | undefined,
+): string {
   const name = result.player.name;
+
+  // A tie is not a narrow loss and must not be described as one. The reader is entitled to
+  // know the vote did not decide this, without being walked through how the tie was settled.
+  if (tiedWith) {
+    return (
+      `${name} is level with ${tiedWith.player.name} at ${result.inclusionShare}% and loses ` +
+      `the last spot on a tie-break`
+    );
+  }
 
   if (result.inclusionShare === 0) {
     return `no expert would start ${name} over these`;
@@ -94,20 +136,38 @@ function whyNotStarted(result: PlayerResult, weakestStarter: PlayerResult | unde
   );
 }
 
-/** Every exclusion, as one sentence. */
+/**
+ * Every exclusion, as one sentence.
+ *
+ * A single exclusion gets no lead-in. "The one left out:" announced a structure the sentence
+ * did not need, and a reader filling two slots from three players can see which player is
+ * missing from the recommendation without being told there is one. The plural keeps its
+ * lead-in, because there the colon is doing real work in front of a list.
+ */
 function exclusions(recommendation: Recommendation): string {
   const starters = recommendation.results.filter((result) => result.recommended);
   const benched = recommendation.results.filter((result) => !result.recommended);
   if (benched.length === 0) return "";
 
   const weakestStarter = [...starters].sort((a, b) => a.inclusionShare - b.inclusionShare)[0];
+  const tie = tieBreak(recommendation);
 
   const reasons = [...benched]
     .sort((a, b) => b.inclusionShare - a.inclusionShare)
-    .map((result) => whyNotStarted(result, weakestStarter));
+    .map((result) =>
+      whyNotStarted(
+        result,
+        weakestStarter,
+        tie && tie.loser.player.id === result.player.id ? tie.winner : undefined,
+      ),
+    );
 
-  const lead = benched.length === 1 ? "The one left out:" : "The others:";
-  return ` ${lead} ${listOf(reasons)}.`;
+  if (benched.length === 1) {
+    const only = reasons[0];
+    return ` ${only.charAt(0).toUpperCase()}${only.slice(1)}.`;
+  }
+
+  return ` The others: ${listOf(reasons)}.`;
 }
 
 /** The recommendation and the expert support behind it. Answers the question asked. */
@@ -131,6 +191,31 @@ function answerParagraph(recommendation: Recommendation): string {
       return (
         `All ${panelSize} experts make ${leader.player.name} their first choice. Nobody ` +
         `ranked ${others} above him.`
+      );
+    }
+
+    // Two players level on first-choice votes is the one case where "ahead of" is a lie. At
+    // one slot the vote is the whole answer, so when it does not separate them the summary
+    // has to say so and name what awarded the slot instead.
+    const level = rest.filter(
+      (result) => result.firstChoiceVotes === leader.firstChoiceVotes,
+    );
+
+    if (level.length > 0) {
+      const behind = rest.filter((result) => !level.includes(result));
+      const shared = listOf(
+        level.map((result) => `${result.firstChoiceVotes} make ${result.player.name} theirs`),
+      );
+      const others =
+        behind.length > 0
+          ? `, with ` +
+            listOf(behind.map((result) => `${result.player.name} at ${result.firstChoiceShare}%`))
+          : ``;
+
+      return (
+        `${leader.firstChoiceVotes} of ${panelSize} experts make ${leader.player.name} their ` +
+        `first choice and ${shared}${others}. ${leader.player.name} takes the recommendation ` +
+        `on a tie-break.`
       );
     }
 
@@ -208,7 +293,7 @@ function summarize(recommendation: Recommendation): string[] {
 const SHORT_OF_A_START = ", but not enough to earn a start over the other options.";
 
 function goalNote(recommendation: Recommendation): string {
-  const { goal, results } = recommendation;
+  const { goal, results, startN } = recommendation;
   if (goal === "balanced") return "";
 
   const spots = (value: number) => {
@@ -216,24 +301,99 @@ function goalNote(recommendation: Recommendation): string {
     return `${rounded} ${rounded === 1 ? "spot" : "spots"}`;
   };
 
-  if (goal === "most-upside") {
-    const widest = [...results].sort((a, b) => upsideRoom(b.player) - upsideRoom(a.player))[0];
-    const room = upsideRoom(widest.player);
-    if (room <= 0) return "";
+  const upside = goal === "most-upside";
+  const room = (result: PlayerResult) =>
+    upside ? upsideRoom(result.player) : bustRoom(result.player);
 
-    const lead =
-      `Among all experts, ${widest.player.name}'s highest rank is ${spots(room)} above his ` +
-      `average, giving him the most upside of these`;
-    return widest.recommended ? `${lead}.` : lead + SHORT_OF_A_START;
+  // Best on this measure first: the widest ceiling for upside, the smallest drop for floor.
+  const byMeasure = [...results].sort((a, b) => (upside ? room(b) - room(a) : room(a) - room(b)));
+
+  if (upside && room(byMeasure[0]) <= 0) return "";
+
+  if (startN === 1) {
+    const best = byMeasure[0];
+    const lead = upside
+      ? `Among all experts, ${best.player.name}'s highest rank is ${spots(room(best))} above ` +
+        `his average, giving him the most upside of these`
+      : `Among all experts, ${best.player.name}'s lowest rank is ${spots(room(best))} below ` +
+        `his average, the smallest drop of these, giving him the safest floor`;
+
+    if (best.recommended) return `${lead}.`;
+
+    // He did not fall short of anything. The vote was level and the tie-break went to the
+    // other player, which the paragraph above has already said, so the note has to agree
+    // with it rather than offer a second, contradictory reason for the same exclusion.
+    const tie = tieBreak(recommendation);
+    if (tie && tie.loser.player.id === best.player.id) {
+      return `${lead}, and the slot went the other way on the tie-break.`;
+    }
+
+    return lead + SHORT_OF_A_START;
   }
 
-  const steadiest = [...results].sort((a, b) => bustRoom(a.player) - bustRoom(b.player))[0];
-  const drop = bustRoom(steadiest.player);
+  // ABOVE ONE SLOT THE ANSWER IS A SET, SO THE NOTE HAS TO ACCOUNT FOR ALL OF IT.
+  //
+  // This sentence used to name only the group's best on the measure and stop. At one slot
+  // that is the whole answer. Above one slot it left the second recommended player
+  // unexplained: the reader has been handed a pair and told why one of them is there, which
+  // invites exactly the inference the results band was redesigned to prevent, that the two
+  // tiles are a first pick and a runner-up.
+  const starters = results.filter((result) => result.recommended);
 
-  const lead =
-    `Among all experts, ${steadiest.player.name}'s lowest rank is ${spots(drop)} below his ` +
-    `average, the smallest drop of these, giving him the safest floor`;
-  return steadiest.recommended ? `${lead}.` : lead + SHORT_OF_A_START;
+  // EVERY COMPARISON BELOW RUNS ON THE ROUNDED FIGURE, NOT THE RAW SPREAD.
+  //
+  // The sentence prints whole spots, so a claim settled on the hundredths behind them
+  // contradicts the numbers beside it. An earlier version did exactly that and produced
+  // "G. Pickens's highest rank is 3 spots above his average. D. London's ceiling is wider
+  // still at 3 spots", which is the tool arguing with its own output.
+  const measure = (result: PlayerResult) => Math.round(room(result));
+  const better = (a: PlayerResult, b: PlayerResult) =>
+    upside ? measure(a) > measure(b) : measure(a) < measure(b);
+
+  const full = (result: PlayerResult) => {
+    if (measure(result) === 0) {
+      return upside
+        ? `${result.player.name} has no room above his average`
+        : `${result.player.name} has no drop below his average`;
+    }
+    return upside
+      ? `${result.player.name}'s highest rank is ${spots(room(result))} above his average`
+      : `${result.player.name}'s lowest rank is ${spots(room(result))} below his average`;
+  };
+
+  // The second and third readings drop the scaffolding. Repeating "highest rank is N spots
+  // above his average" for every player buries the numbers the sentence exists to compare.
+  const short = (result: PlayerResult) =>
+    measure(result) === 0
+      ? `${result.player.name}'s is none`
+      : `${result.player.name}'s is ${spots(room(result))}`;
+
+  const [first, ...rest] = starters;
+  const lead = `Among all experts, ${listOf([full(first), ...rest.map(short)])}.`;
+  const group = starters.length === 2 ? "pair" : "group";
+
+  // NO CLAIM THAT THE SET IS BEST ON THE MEASURE, BECAUSE IT NEED NOT BE. The goal tilts
+  // every expert's ranking and the lineup is then chosen on votes, so a player can carry the
+  // better spread and still not be started. Naming him, and naming the starter he beats, is
+  // the honest version and the same admission the one-slot sentence already makes.
+  // Worst on the measure first, so index 0 is the starter a left-out player has to beat.
+  const weakest = [...starters].sort((a, b) => (better(a, b) ? 1 : better(b, a) ? -1 : 0))[0];
+  const challenger = results
+    .filter((result) => !result.recommended)
+    .sort((a, b) => (better(a, b) ? -1 : better(b, a) ? 1 : 0))[0];
+
+  if (!challenger || !better(challenger, weakest)) {
+    return (
+      `${lead} Nobody left out has a ${upside ? "wider ceiling" : "smaller drop"}, so the ` +
+      `${group} gives the ${upside ? "most upside" : "safest floor"} available here.`
+    );
+  }
+
+  return (
+    `${lead} ${challenger.player.name}'s ${upside ? "ceiling is wider" : "drop is smaller"} ` +
+    `than ${weakest.player.name}'s at ${spots(room(challenger))}` +
+    SHORT_OF_A_START
+  );
 }
 
 /** "a, b and c", or just "a" for a single item. */
