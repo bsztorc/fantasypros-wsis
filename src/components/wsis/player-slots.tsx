@@ -87,7 +87,7 @@ export function PlayerSlots({
   const locked = Array.from({ length: lockedSlots });
 
   return (
-    <div className="flex overflow-hidden bg-fp-navy-slot">
+    <div className="order-2 flex overflow-hidden bg-fp-navy-slot">
       {open.map((_, index) => (
         <Slot key={`open-${index}`} player={players[index]} locked={false} onRemove={onRemove} />
       ))}

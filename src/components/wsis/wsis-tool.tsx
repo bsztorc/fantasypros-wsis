@@ -122,7 +122,14 @@ export function WsisTool() {
             onRemove={handleRemove}
           />
         ) : (
-          <div className="overflow-hidden rounded-lg bg-fp-navy">
+          /*
+           * A phone reads this top down in a different order than the desktop row does:
+           * the players first, then what is being asked of them, then the means of adding
+           * another, then the lists. Each section carries its own `order`, and the column
+           * is only a flex container below `sm`, so on desktop the order values are inert
+           * and the sections stay in source order.
+           */
+          <div className="flex flex-col overflow-hidden rounded-lg bg-fp-navy sm:block sm:flex-row">
             <WsisBanner />
 
             <PlayerSearch
@@ -141,13 +148,13 @@ export function WsisTool() {
                   disabled={!canGetAdvice}
                   onClick={() => setView("advice")}
                   className={[
-                    "h-12 shrink-0 rounded-full px-5 text-sm font-bold transition-colors sm:hidden",
+                    "h-10 shrink-0 rounded-full px-4 text-[13px] font-bold transition-colors sm:hidden",
                     canGetAdvice
                       ? "cursor-pointer bg-fp-blue text-white hover:bg-fp-blue-bright"
                       : "cursor-not-allowed bg-fp-disabled text-white/90",
                   ].join(" ")}
                 >
-                  Advice
+                  Compare
                 </button>
               }
             />
@@ -173,7 +180,7 @@ export function WsisTool() {
 
             <TeamTabs active={tab} onChange={setTab} />
 
-            <div className="bg-fp-navy-tab pt-4">
+            <div className="order-6 bg-fp-navy-tab pt-4">
               {tab === "my-team" ? (
                 <MyTeamPanel
                   demoState={demoState}

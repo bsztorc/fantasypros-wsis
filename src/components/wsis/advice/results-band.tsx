@@ -252,7 +252,7 @@ export function ResultsBand({
 
   if (results.length === 2) {
     return (
-      <div className="hidden items-stretch bg-fp-navy-slot sm:flex">
+      <div className="order-2 hidden items-stretch bg-fp-navy-slot sm:flex">
         <MirroredPair results={results} panelSize={panelSize} onRemove={onRemove} />
         <AddPlayerCell
           canAddPlayer={canAddPlayer}
@@ -269,7 +269,7 @@ export function ResultsBand({
 
   return (
     <div
-      className="hidden h-[200px] items-stretch bg-fp-navy-slot sm:grid"
+      className="order-2 hidden h-[200px] items-stretch bg-fp-navy-slot sm:grid"
       style={{ gridTemplateColumns: bandColumns(results.length) }}
     >
       {/* The recommended set: one tile, one percentage, equal weight inside. */}

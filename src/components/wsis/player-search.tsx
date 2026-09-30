@@ -45,9 +45,9 @@ export function PlayerSearch({
     : [];
 
   return (
-    <div className="relative px-5 pb-4">
+    <div className="order-4 relative px-5 pb-4">
       <div className="flex items-center gap-3">
-        <div className="flex h-12 min-w-0 flex-1 items-center gap-3 rounded-full border border-fp-border bg-white px-5">
+        <div className="flex h-10 min-w-0 flex-1 items-center gap-3 rounded-full border border-fp-border bg-white px-4 sm:h-12 sm:px-5">
           <SearchIcon className="h-5 w-5 shrink-0 text-fp-ink" />
           <input
             type="search"

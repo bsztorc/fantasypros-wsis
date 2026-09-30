@@ -25,7 +25,7 @@ export function AdviceTabs({
      * row that overflows pushes the first tab off the left edge where nothing suggests it
      * exists. Scrolling forward from Overview is discoverable; scrolling back to it is not.
      */
-    <div className="flex justify-start gap-4 overflow-x-auto bg-fp-navy-tab px-5 pt-3 sm:justify-center sm:gap-6">
+    <div className="order-5 flex justify-start gap-4 overflow-x-auto bg-fp-navy-tab px-5 pt-3 sm:justify-center sm:gap-6">
       {ADVICE_TABS.map((tab) => {
         const selected = tab === active;
         return (

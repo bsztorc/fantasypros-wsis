@@ -167,7 +167,7 @@ export function ResultsBandMobile({
   const leader = starters[0];
 
   return (
-    <div className="bg-fp-navy-slot px-3 py-3 sm:hidden">
+    <div className="order-2 bg-fp-navy-slot px-3 py-3 sm:hidden">
       <div className="flex items-stretch gap-1.5">
         {grouped ? (
           <>

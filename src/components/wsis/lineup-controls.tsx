@@ -71,7 +71,7 @@ export function LineupControls({
      * label instead, a three-option control gets about 200px to hold "Safe Floor",
      * "Balanced" and "Most Upside", which is not enough for any of them to stay legible.
      */
-    <div className="flex flex-col gap-3 bg-fp-navy px-5 pb-4 sm:gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+    <div className="order-3 flex flex-col gap-3 bg-fp-navy px-5 pb-4 sm:gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
       {/*
        * `order` puts Players to Start first on a phone without moving it in the DOM, so the
        * desktop row keeps both its order and its markup. Start N leads there because it is

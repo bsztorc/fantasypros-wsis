@@ -207,8 +207,8 @@ export function AdviceView({
   ];
 
   return (
-    <div className="overflow-hidden rounded-lg bg-fp-navy">
-      <div className="flex items-center justify-between gap-3 px-5 py-4 sm:gap-4">
+    <div className="flex flex-col overflow-hidden rounded-lg bg-fp-navy sm:block sm:flex-row">
+      <div className="order-1 flex items-center justify-between gap-3 px-5 py-4 sm:gap-4">
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <button
             type="button"
@@ -222,17 +222,18 @@ export function AdviceView({
             Who Should I Start? - {WEEK_LABEL} - {SCORING_LABEL}
           </h1>
         </div>
+        {/* Dropped on a phone for the same reason as the banner's: it is not this decision. */}
         <button
           type="button"
           aria-label="Tool settings"
-          className="flex h-[34px] w-[34px] cursor-pointer items-center justify-center rounded-md bg-[#ededed] text-fp-ink transition-colors hover:bg-white"
+          className="hidden h-[34px] w-[34px] cursor-pointer items-center justify-center rounded-md bg-[#ededed] text-fp-ink transition-colors hover:bg-white sm:flex"
         >
           <GearIcon className="h-[18px] w-[18px]" />
         </button>
       </div>
 
       {signedOut ? (
-        <div className="px-5 pb-4">
+        <div className="order-4 px-5 pb-4">
           <div className="flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm">
             <span className="text-fp-muted">{"ⓘ"}</span>
             <button
@@ -287,7 +288,7 @@ export function AdviceView({
         it the white cards run to the edge of the navy panel while the header, search and
         controls above them sit inset, which reads as a missing border down both sides.
       */}
-      <div className="space-y-4 bg-fp-navy-tab p-5">
+      <div className="order-6 space-y-4 bg-fp-navy-tab p-5">
         {tab === "Overview" ? (
           <>
             <ConsensusSentiment recommendation={recommendation} />
