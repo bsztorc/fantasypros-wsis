@@ -224,11 +224,13 @@ export function AdviceView({
           >
             <ChevronDown className="h-5 w-5 rotate-90" />
           </button>
-          {/* Broken the same way as the selection banner's; see the note there. */}
+          {/*
+            One line at every width, unlike the selection banner's. That one breaks to clear
+            the Compare button beside it; this row carries only the back arrow, so the title
+            has the width to stay whole.
+          */}
           <h1 className="text-[13px] font-bold leading-tight text-white sm:text-[17px] sm:leading-normal">
-            Who Should I Start?
-            <span className="hidden sm:inline"> - </span>
-            <span className="block sm:inline">{WEEK_LABEL} - {SCORING_LABEL}</span>
+            Who Should I Start? - {WEEK_LABEL} - {SCORING_LABEL}
           </h1>
         </div>
         {/* Dropped on a phone for the same reason as the banner's: it is not this decision. */}
