@@ -35,7 +35,7 @@ export function MyTeamPanel({
 
   return (
     <div className="px-5 pb-6">
-      <div className="mb-3 flex justify-end">
+      <div className="mb-3 hidden justify-end sm:flex">
         <div className="relative">
           <select
             aria-label="League"

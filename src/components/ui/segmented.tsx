@@ -66,7 +66,7 @@ export function Segmented<T extends string | number>({
                * point of this control, so none of them may be scrolled out of reach.
                */
               size === "text" ? "px-1 sm:px-5" : "px-3 sm:px-8",
-              "flex flex-1 items-center justify-center gap-0.5 py-1.5 text-[11px] font-semibold leading-tight transition-colors sm:gap-1.5 sm:leading-5 sm:py-2.5 sm:flex-initial sm:text-sm",
+              "flex flex-1 items-center justify-center gap-0.5 py-3 text-[11px] font-semibold leading-tight transition-colors sm:gap-1.5 sm:leading-5 sm:py-2.5 sm:flex-initial sm:text-sm",
               index > 0 ? "border-l border-fp-navy-divider" : "",
               selected
                 ? "bg-fp-blue-bright text-white"
