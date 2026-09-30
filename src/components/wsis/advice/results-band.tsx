@@ -250,15 +250,27 @@ export function ResultsBand({
   const { results, panelSize, combinationShare, startN } = recommendation;
   if (results.length === 0) return null;
 
+  /*
+   * A full comparison has nothing to add, so it shows no Add Player control at all.
+   *
+   * The padlocked version is not the same thing and stays. That one says the comparison
+   * could hold more players and this tier will not, which is the whole point of the
+   * signed-out state; a disabled "+" on a comparison that is simply full says only that
+   * the reader has already done what it is asking for.
+   */
+  const showAddPlayer = canAddPlayer || addPlayerLocked;
+
   if (results.length === 2) {
     return (
       <div className="order-2 hidden items-stretch bg-fp-navy-slot sm:flex">
         <MirroredPair results={results} panelSize={panelSize} onRemove={onRemove} />
-        <AddPlayerCell
-          canAddPlayer={canAddPlayer}
-          addPlayerLocked={addPlayerLocked}
-          onAddPlayer={onAddPlayer}
-        />
+        {showAddPlayer && (
+          <AddPlayerCell
+            canAddPlayer={canAddPlayer}
+            addPlayerLocked={addPlayerLocked}
+            onAddPlayer={onAddPlayer}
+          />
+        )}
       </div>
     );
   }
@@ -270,7 +282,7 @@ export function ResultsBand({
   return (
     <div
       className="order-2 hidden h-[200px] items-stretch bg-fp-navy-slot sm:grid"
-      style={{ gridTemplateColumns: bandColumns(results.length) }}
+      style={{ gridTemplateColumns: bandColumns(results.length, showAddPlayer) }}
     >
       {/* The recommended set: one tile, one percentage, equal weight inside. */}
       <div
@@ -302,11 +314,13 @@ export function ResultsBand({
         />
       ))}
 
-      <AddPlayerCell
-        canAddPlayer={canAddPlayer}
-        addPlayerLocked={addPlayerLocked}
-        onAddPlayer={onAddPlayer}
-      />
+      {showAddPlayer && (
+        <AddPlayerCell
+          canAddPlayer={canAddPlayer}
+          addPlayerLocked={addPlayerLocked}
+          onAddPlayer={onAddPlayer}
+        />
+      )}
     </div>
   );
 }

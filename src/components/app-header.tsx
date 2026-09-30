@@ -51,7 +51,7 @@ export function AppHeader({ demoState, onDemoStateChange }: AppHeaderProps) {
          * which state is selected matters more than the word "Demo Mode" beside it. The
          * label stays in the accessibility tree rather than being deleted.
          */}
-        <div className="flex min-w-0 flex-1 items-center justify-end gap-3 sm:flex-initial">
+        <div className="ml-4 flex min-w-0 flex-1 items-center justify-end gap-3 sm:ml-0 sm:flex-initial">
           <label
             htmlFor="demo-state"
             className="sr-only text-sm font-semibold text-fp-ink sm:not-sr-only"

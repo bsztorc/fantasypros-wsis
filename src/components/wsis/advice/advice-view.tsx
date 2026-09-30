@@ -81,6 +81,12 @@ export function AdviceView({
   const recommendation = recommend(players, startN, goal);
   const signedOut = demoState === "signed-out";
   const canAddPlayer = players.length < openSlots;
+  /*
+   * The single source for the Add Player strip, read by the band and by every table under
+   * it. A full comparison drops the control and the column it sat in; the padlocked version
+   * is a tier limit rather than a full comparison, and keeps both.
+   */
+  const addPlayerStrip = canAddPlayer || signedOut;
 
   if (!recommendation) {
     return (
@@ -308,16 +314,18 @@ export function AdviceView({
                 title="Most Accurate Experts"
                 rows={expertAccuracyRows}
                 playerNames={ordered.map((player) => ({ id: player.id, name: player.name }))}
+                addPlayerStrip={addPlayerStrip}
                 footer={isPremium ? undefined : <PremiumFooter />}
               />
               <CompareModule
                 title="Sentiment"
                 rows={sentimentRows}
+                addPlayerStrip={addPlayerStrip}
                 footer={isPremium ? undefined : <PremiumFooter />}
               />
-              <CompareModule title="Matchup" rows={matchupRows} />
-              <CompareModule title="Fantasy Points" rows={pointsRows} />
-              <CompareModule title="Misc" rows={miscRows} />
+              <CompareModule title="Matchup" rows={matchupRows} addPlayerStrip={addPlayerStrip} />
+              <CompareModule title="Fantasy Points" rows={pointsRows} addPlayerStrip={addPlayerStrip} />
+              <CompareModule title="Misc" rows={miscRows} addPlayerStrip={addPlayerStrip} />
             </div>
           </>
         ) : (

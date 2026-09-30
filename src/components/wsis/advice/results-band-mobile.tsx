@@ -214,11 +214,14 @@ export function ResultsBandMobile({
           ))
         )}
 
-        <AddPlayerCell
-          canAddPlayer={canAddPlayer}
-          addPlayerLocked={addPlayerLocked}
-          onAddPlayer={onAddPlayer}
-        />
+        {/* Gone once the comparison is full; see the note in `results-band.tsx`. */}
+        {(canAddPlayer || addPlayerLocked) && (
+          <AddPlayerCell
+            canAddPlayer={canAddPlayer}
+            addPlayerLocked={addPlayerLocked}
+            onAddPlayer={onAddPlayer}
+          />
+        )}
       </div>
 
       {/*
