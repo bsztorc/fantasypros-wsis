@@ -65,8 +65,8 @@ export function Segmented<T extends string | number>({
                * so all three options stay on screen. Keeping every option visible is the
                * point of this control, so none of them may be scrolled out of reach.
                */
-              size === "text" ? "px-2 sm:px-5" : "px-4 sm:px-8",
-              "flex flex-1 items-center justify-center gap-1.5 py-2.5 text-[13px] font-semibold transition-colors sm:flex-initial sm:text-sm",
+              size === "text" ? "px-1 sm:px-5" : "px-3 sm:px-8",
+              "flex flex-1 items-center justify-center gap-0.5 py-1.5 text-[11px] font-semibold leading-tight transition-colors sm:gap-1.5 sm:leading-5 sm:py-2.5 sm:flex-initial sm:text-sm",
               index > 0 ? "border-l border-fp-navy-divider" : "",
               selected
                 ? "bg-fp-blue-bright text-white"
@@ -75,7 +75,7 @@ export function Segmented<T extends string | number>({
                   : "bg-fp-navy-deep text-white hover:bg-fp-navy-slot cursor-pointer",
             ].join(" ")}
           >
-            {showLock && <LockIcon className="h-3 w-3" />}
+            {showLock && <LockIcon className="h-2.5 w-2.5 shrink-0 sm:h-3 sm:w-3" />}
             {option.label}
           </button>
         );
