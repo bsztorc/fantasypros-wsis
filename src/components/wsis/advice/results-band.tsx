@@ -220,7 +220,9 @@ interface ResultsBandProps {
 }
 
 /**
- * The results header.
+ * The results header, from 640px up. `results-band-mobile.tsx` is the same band on a phone,
+ * where neither of the two layouts below survives the width; only one of the two is ever
+ * displayed. Anything that changes what the band *says* has to change in both.
  *
  * Two players keep the product's mirrored layout. From three up, the players the tool
  * recommends are joined into one tile and share a single percentage: the share of experts
@@ -250,7 +252,7 @@ export function ResultsBand({
 
   if (results.length === 2) {
     return (
-      <div className="flex items-stretch bg-fp-navy-slot">
+      <div className="hidden items-stretch bg-fp-navy-slot sm:flex">
         <MirroredPair results={results} panelSize={panelSize} onRemove={onRemove} />
         <AddPlayerCell
           canAddPlayer={canAddPlayer}
@@ -267,7 +269,7 @@ export function ResultsBand({
 
   return (
     <div
-      className="grid h-[200px] items-stretch bg-fp-navy-slot"
+      className="hidden h-[200px] items-stretch bg-fp-navy-slot sm:grid"
       style={{ gridTemplateColumns: bandColumns(results.length) }}
     >
       {/* The recommended set: one tile, one percentage, equal weight inside. */}

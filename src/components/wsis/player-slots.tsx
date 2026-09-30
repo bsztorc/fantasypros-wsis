@@ -30,8 +30,8 @@ function Slot({
   onRemove: (playerId: string) => void;
 }) {
   return (
-    <div className="relative flex h-[185px] flex-1 flex-col items-center justify-end overflow-hidden border-r border-fp-navy-divider/60 px-2 pt-3">
-      <span className="absolute top-3 text-sm font-semibold text-fp-on-navy">
+    <div className="relative flex h-[136px] min-w-0 flex-1 flex-col items-center justify-end overflow-hidden border-r border-fp-navy-divider/60 px-1 pt-3 sm:h-[185px] sm:px-2">
+      <span className="absolute top-3 text-[11px] font-semibold text-fp-on-navy sm:text-sm">
         {player ? player.posRank : "-"}
       </span>
 
@@ -48,21 +48,22 @@ function Slot({
 
       {locked ? (
         <div className="flex h-full w-full items-center justify-center">
-          <LockIcon className="h-11 w-11 text-white/85" />
+          <LockIcon className="h-8 w-8 text-white/85 sm:h-11 sm:w-11" />
         </div>
       ) : player ? (
-        <div className="flex flex-col items-center gap-1 pb-3">
-          <PlayerSilhouette className="h-16 w-16 text-white/20" />
-          <span className="text-sm font-semibold text-white">
+        <div className="flex min-w-0 flex-col items-center gap-1 pb-2 sm:pb-3">
+          <PlayerSilhouette className="h-10 w-10 text-white/20 sm:h-16 sm:w-16" />
+          <span className="w-full truncate text-center text-[11px] font-semibold text-white sm:w-auto sm:overflow-visible sm:whitespace-normal sm:text-clip sm:text-start sm:text-sm">
             {player.name}
             <InjuryTag playerId={player.id} />
           </span>
-          <span className="text-xs text-fp-on-navy">
+          {/* `sm:leading-4` is the line height `text-xs` carries; `leading-normal` is not. */}
+          <span className="text-center text-[9px] leading-tight text-fp-on-navy sm:text-start sm:text-xs sm:leading-4">
             {player.position} - {player.team} · {player.opponent}
           </span>
         </div>
       ) : (
-        <PlayerSilhouette className="-mb-7 h-32 w-32 text-white/[0.09]" />
+        <PlayerSilhouette className="-mb-5 h-24 w-24 text-white/[0.09] sm:-mb-7 sm:h-32 sm:w-32" />
       )}
     </div>
   );
@@ -94,7 +95,12 @@ export function PlayerSlots({
         <Slot key={`locked-${index}`} locked onRemove={onRemove} />
       ))}
 
-      <div className="flex w-[185px] shrink-0 items-center justify-center px-4">
+      {/*
+        Hidden on a phone, where the selection page carries this button beside the search
+        pill instead. Four slots and a button cannot share 295px and leave the slots wide
+        enough to read a name in, and the button is the one of the five that can move.
+      */}
+      <div className="hidden w-[185px] shrink-0 items-center justify-center px-4 sm:flex">
         <button
           type="button"
           disabled={!canGetAdvice}

@@ -130,6 +130,26 @@ export function WsisTool() {
               selectedIds={selectedIds}
               onSelect={handleToggle}
               disabled={!selectable}
+              trailing={
+                /*
+                 * The phone's View Advice button. Same action and same disabled rule as the
+                 * one in the comparison strip, which hides itself at this width; only one of
+                 * the two is ever on screen.
+                 */
+                <button
+                  type="button"
+                  disabled={!canGetAdvice}
+                  onClick={() => setView("advice")}
+                  className={[
+                    "h-12 shrink-0 rounded-full px-5 text-sm font-bold transition-colors sm:hidden",
+                    canGetAdvice
+                      ? "cursor-pointer bg-fp-blue text-white hover:bg-fp-blue-bright"
+                      : "cursor-not-allowed bg-fp-disabled text-white/90",
+                  ].join(" ")}
+                >
+                  Advice
+                </button>
+              }
             />
 
             <LineupControls

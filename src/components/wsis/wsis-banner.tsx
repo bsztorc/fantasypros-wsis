@@ -4,9 +4,9 @@ import { SCORING_LABEL, WEEK_LABEL } from "@/lib/fixtures/roster";
 /** Title row of the tool: week, scoring format, and settings. */
 export function WsisBanner() {
   return (
-    <div className="flex items-start justify-between gap-4 px-5 pb-4 pt-5">
+    <div className="flex flex-col gap-3 px-5 pb-4 pt-5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
       <div>
-        <h1 className="text-[22px] font-bold leading-tight text-white">
+        <h1 className="text-[17px] font-bold leading-tight text-white sm:text-[22px]">
           Who Should I Start? - {WEEK_LABEL} - {SCORING_LABEL}
         </h1>
         <p className="mt-1 text-[13px] text-fp-on-navy">

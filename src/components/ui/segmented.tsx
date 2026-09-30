@@ -46,7 +46,7 @@ export function Segmented<T extends string | number>({
     <div
       role="group"
       aria-label={label}
-      className="flex overflow-hidden rounded-md border border-fp-navy-divider"
+      className="flex w-full overflow-hidden rounded-md border border-fp-navy-divider sm:w-auto"
     >
       {options.map((option, index) => {
         const selected = option.value === value;
@@ -60,8 +60,13 @@ export function Segmented<T extends string | number>({
             title={option.disabled ? option.disabledHint : undefined}
             onClick={() => onChange(option.value)}
             className={[
-              size === "text" ? "px-5" : "px-8",
-              "flex items-center justify-center gap-1.5 py-2.5 text-sm font-semibold transition-colors",
+              /*
+               * On a phone the control spans the column and the segments divide it evenly,
+               * so all three options stay on screen. Keeping every option visible is the
+               * point of this control, so none of them may be scrolled out of reach.
+               */
+              size === "text" ? "px-2 sm:px-5" : "px-4 sm:px-8",
+              "flex flex-1 items-center justify-center gap-1.5 py-2.5 text-[13px] font-semibold transition-colors sm:flex-initial sm:text-sm",
               index > 0 ? "border-l border-fp-navy-divider" : "",
               selected
                 ? "bg-fp-blue-bright text-white"

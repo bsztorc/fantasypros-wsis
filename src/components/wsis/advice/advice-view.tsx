@@ -13,6 +13,7 @@ import {
 } from "@/components/wsis/advice/compare-module";
 import { ConsensusSentiment } from "@/components/wsis/advice/consensus-sentiment";
 import { ResultsBand } from "@/components/wsis/advice/results-band";
+import { ResultsBandMobile } from "@/components/wsis/advice/results-band-mobile";
 import { SentimentMeter } from "@/components/wsis/advice/sentiment-meter";
 import { SpinTheWheel } from "@/components/wsis/advice/spin-the-wheel";
 import { LineupControls } from "@/components/wsis/lineup-controls";
@@ -207,8 +208,8 @@ export function AdviceView({
 
   return (
     <div className="overflow-hidden rounded-lg bg-fp-navy">
-      <div className="flex items-center justify-between gap-4 px-5 py-4">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between gap-3 px-5 py-4 sm:gap-4">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <button
             type="button"
             onClick={onBack}
@@ -217,7 +218,7 @@ export function AdviceView({
           >
             <ChevronDown className="h-5 w-5 rotate-90" />
           </button>
-          <h1 className="text-[17px] font-bold text-white">
+          <h1 className="text-[13px] font-bold leading-tight text-white sm:text-[17px] sm:leading-normal">
             Who Should I Start? - {WEEK_LABEL} - {SCORING_LABEL}
           </h1>
         </div>
@@ -263,7 +264,15 @@ export function AdviceView({
         gateVariant={gateVariantFor(demoState)}
       />
 
+      {/* Two renderings of one band. Each hides itself at the other's width. */}
       <ResultsBand
+        recommendation={recommendation}
+        onRemove={onRemove}
+        canAddPlayer={canAddPlayer}
+        onAddPlayer={onBack}
+        addPlayerLocked={signedOut}
+      />
+      <ResultsBandMobile
         recommendation={recommendation}
         onRemove={onRemove}
         canAddPlayer={canAddPlayer}
@@ -282,21 +291,30 @@ export function AdviceView({
         {tab === "Overview" ? (
           <>
             <ConsensusSentiment recommendation={recommendation} />
-            <SpinTheWheel />
-            <CompareModule
-              title="Most Accurate Experts"
-              rows={expertAccuracyRows}
-              playerNames={ordered.map((player) => ({ id: player.id, name: player.name }))}
-              footer={isPremium ? undefined : <PremiumFooter />}
-            />
-            <CompareModule
-              title="Sentiment"
-              rows={sentimentRows}
-              footer={isPremium ? undefined : <PremiumFooter />}
-            />
-            <CompareModule title="Matchup" rows={matchupRows} />
-            <CompareModule title="Fantasy Points" rows={pointsRows} />
-            <CompareModule title="Misc" rows={miscRows} />
+            {/*
+              Overview stops at the summary on a phone. The modules below are comparison
+              tables whose columns are one player wide; at four players on a 295px column
+              each value column is under 50px, which no amount of restyling makes readable.
+              The summary is the one part of Overview that says what the numbers mean, so it
+              is the part that earns the width.
+            */}
+            <div className="hidden space-y-4 sm:block">
+              <SpinTheWheel />
+              <CompareModule
+                title="Most Accurate Experts"
+                rows={expertAccuracyRows}
+                playerNames={ordered.map((player) => ({ id: player.id, name: player.name }))}
+                footer={isPremium ? undefined : <PremiumFooter />}
+              />
+              <CompareModule
+                title="Sentiment"
+                rows={sentimentRows}
+                footer={isPremium ? undefined : <PremiumFooter />}
+              />
+              <CompareModule title="Matchup" rows={matchupRows} />
+              <CompareModule title="Fantasy Points" rows={pointsRows} />
+              <CompareModule title="Misc" rows={miscRows} />
+            </div>
           </>
         ) : (
           <section className="rounded-lg bg-white px-5 py-10 text-center">

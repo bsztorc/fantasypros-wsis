@@ -13,10 +13,25 @@ interface PlayerSearchProps {
   disabled: boolean;
   /** Overrides the default "Add a player" copy; the product makes this contextual. */
   placeholder?: string;
+  /**
+   * Rendered to the right of the pill.
+   *
+   * The selection page puts its View Advice button here on a phone, where the comparison
+   * strip below is too narrow to also carry a button. Nothing is passed on desktop, and an
+   * absent child leaves the pill occupying the row on its own exactly as before.
+   */
+  trailing?: React.ReactNode;
 }
 
 /** The search pill, with a type-ahead list drawn from the fixture pool. */
-export function PlayerSearch({ pool, selectedIds, onSelect, disabled, placeholder }: PlayerSearchProps) {
+export function PlayerSearch({
+  pool,
+  selectedIds,
+  onSelect,
+  disabled,
+  placeholder,
+  trailing,
+}: PlayerSearchProps) {
   const [query, setQuery] = useState("");
 
   const matches = query.trim()
@@ -31,17 +46,20 @@ export function PlayerSearch({ pool, selectedIds, onSelect, disabled, placeholde
 
   return (
     <div className="relative px-5 pb-4">
-      <div className="flex h-12 items-center gap-3 rounded-full border border-fp-border bg-white px-5">
-        <SearchIcon className="h-5 w-5 shrink-0 text-fp-ink" />
-        <input
-          type="search"
-          value={query}
-          disabled={disabled}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder={disabled ? "Comparison is full" : (placeholder ?? "Add a player")}
-          aria-label="Add a player to the comparison"
-          className="w-full bg-transparent text-sm text-fp-ink placeholder:text-fp-muted focus:outline-none disabled:cursor-not-allowed"
-        />
+      <div className="flex items-center gap-3">
+        <div className="flex h-12 min-w-0 flex-1 items-center gap-3 rounded-full border border-fp-border bg-white px-5">
+          <SearchIcon className="h-5 w-5 shrink-0 text-fp-ink" />
+          <input
+            type="search"
+            value={query}
+            disabled={disabled}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={disabled ? "Comparison is full" : (placeholder ?? "Add a player")}
+            aria-label="Add a player to the comparison"
+            className="w-full bg-transparent text-sm text-fp-ink placeholder:text-fp-muted focus:outline-none disabled:cursor-not-allowed"
+          />
+        </div>
+        {trailing}
       </div>
 
       {matches.length > 0 && (
