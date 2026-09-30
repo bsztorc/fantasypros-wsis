@@ -12,8 +12,16 @@ export function WsisBanner({ action }: { action?: React.ReactNode }) {
     <div className="order-1 flex items-center justify-between gap-3 px-5 pb-4 pt-5 sm:items-start sm:gap-4">
       {/* `min-w-0` lets the title wrap beside the button; desktop keeps `auto`. */}
       <div className="min-w-0 sm:min-w-[auto]">
+        {/*
+          Two lines on a phone, broken where the sentence already breaks: the question, then
+          which week it is being asked about. Beside the Compare button the single line wrapped
+          anyway, and it wrapped mid-phrase. The dash that joined the two only reads as
+          punctuation on one line, so it goes with the break rather than starting the second.
+        */}
         <h1 className="text-[17px] font-bold leading-tight text-white sm:text-[22px]">
-          Who Should I Start? - {WEEK_LABEL} - {SCORING_LABEL}
+          Who Should I Start?
+          <span className="hidden sm:inline"> - </span>
+          <span className="block sm:inline">{WEEK_LABEL} - {SCORING_LABEL}</span>
         </h1>
         {/*
           Three lines of preamble on a phone, sitting between the title and the players it

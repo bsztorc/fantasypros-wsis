@@ -218,8 +218,11 @@ export function AdviceView({
           >
             <ChevronDown className="h-5 w-5 rotate-90" />
           </button>
+          {/* Broken the same way as the selection banner's; see the note there. */}
           <h1 className="text-[13px] font-bold leading-tight text-white sm:text-[17px] sm:leading-normal">
-            Who Should I Start? - {WEEK_LABEL} - {SCORING_LABEL}
+            Who Should I Start?
+            <span className="hidden sm:inline"> - </span>
+            <span className="block sm:inline">{WEEK_LABEL} - {SCORING_LABEL}</span>
           </h1>
         </div>
         {/* Dropped on a phone for the same reason as the banner's: it is not this decision. */}
