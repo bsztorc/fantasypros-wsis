@@ -22,6 +22,30 @@ type View = "compare" | "advice";
 const MINIMUM_FOR_ADVICE = 2;
 
 /**
+ * The searchable pool, with each player appearing once.
+ *
+ * A player on the user's roster can also be in the top thirty, and five of them are. The
+ * pool is the two lists concatenated, so those five arrived twice, and the type-ahead keyed
+ * its rows by player id: two rows then shared a key.
+ *
+ * React does not merely warn about that. Its keyed reconciliation kept a row from the
+ * previous query, so typing "adams" and then "london" offered D. Adams alongside the two
+ * D. Londons, and clicking him added a player the reader had not searched for. The
+ * duplicate row was the visible half of the bug; the stale one was the harmful half.
+ *
+ * First occurrence wins, which keeps the roster's own entry ahead of the top-thirty copy
+ * and keeps the roster at the head of the list where the reader expects their own players.
+ */
+function dedupeById(players: Player[]): Player[] {
+  const seen = new Set<string>();
+  return players.filter((player) => {
+    if (seen.has(player.id)) return false;
+    seen.add(player.id);
+    return true;
+  });
+}
+
+/**
  * The Who Should I Start? tool, with the two controls this prototype proposes.
  *
  * All three access states render from this one component. Switching state resets the
@@ -54,7 +78,7 @@ export function WsisTool() {
   const selectable = selected.length < capabilities.openSlots;
   const canGetAdvice = selected.length >= MINIMUM_FOR_ADVICE;
 
-  const searchPool = capabilities.hasRoster ? [...MY_ROSTER, ...TOP_PLAYERS] : TOP_PLAYERS;
+  const searchPool = capabilities.hasRoster ? dedupeById([...MY_ROSTER, ...TOP_PLAYERS]) : TOP_PLAYERS;
 
   /** Keep Start N legal, and leave the advice view if the comparison falls apart. */
   function applySelection(players: Player[]) {
