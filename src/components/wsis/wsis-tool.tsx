@@ -130,18 +130,12 @@ export function WsisTool() {
            * and the sections stay in source order.
            */
           <div className="flex flex-col overflow-hidden rounded-lg bg-fp-navy sm:block sm:flex-row">
-            <WsisBanner />
-
-            <PlayerSearch
-              pool={searchPool}
-              selectedIds={selectedIds}
-              onSelect={handleToggle}
-              disabled={!selectable}
-              trailing={
+            <WsisBanner
+              action={
                 /*
-                 * The phone's View Advice button. Same action and same disabled rule as the
-                 * one in the comparison strip, which hides itself at this width; only one of
-                 * the two is ever on screen.
+                 * The phone's Compare button, in the title row above the players. Same action
+                 * and same disabled rule as the View Advice button in the comparison strip,
+                 * which hides itself at this width; only one of the two is ever on screen.
                  */
                 <button
                   type="button"
@@ -157,6 +151,13 @@ export function WsisTool() {
                   Compare
                 </button>
               }
+            />
+
+            <PlayerSearch
+              pool={searchPool}
+              selectedIds={selectedIds}
+              onSelect={handleToggle}
+              disabled={!selectable}
             />
 
             <LineupControls

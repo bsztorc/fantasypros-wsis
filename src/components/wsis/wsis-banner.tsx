@@ -2,10 +2,16 @@ import { ChevronDown, GearIcon } from "@/components/ui/icons";
 import { SCORING_LABEL, WEEK_LABEL } from "@/lib/fixtures/roster";
 
 /** Title row of the tool: week, scoring format, and settings. */
-export function WsisBanner() {
+export function WsisBanner({ action }: { action?: React.ReactNode }) {
   return (
-    <div className="order-1 flex flex-col gap-3 px-5 pb-4 pt-5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-      <div>
+    /*
+     * A row at every width. It was a column on a phone to stack the title above the scoring
+     * controls, and those controls are no longer rendered there, so the row can carry the
+     * title and one action side by side instead.
+     */
+    <div className="order-1 flex items-center justify-between gap-3 px-5 pb-4 pt-5 sm:items-start sm:gap-4">
+      {/* `min-w-0` lets the title wrap beside the button; desktop keeps `auto`. */}
+      <div className="min-w-0 sm:min-w-[auto]">
         <h1 className="text-[17px] font-bold leading-tight text-white sm:text-[22px]">
           Who Should I Start? - {WEEK_LABEL} - {SCORING_LABEL}
         </h1>
@@ -46,6 +52,9 @@ export function WsisBanner() {
           <GearIcon className="h-5 w-5" />
         </button>
       </div>
+
+      {/* The phone's Compare button. Nothing is passed at desktop widths. */}
+      {action}
     </div>
   );
 }
