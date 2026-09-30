@@ -26,7 +26,7 @@ export function AppHeader({ demoState, onDemoStateChange }: AppHeaderProps) {
          * Both go to the landing page, which is the site root. The mark alone was not a
          * discoverable way back, so the label says where it goes.
          */}
-        <div className="flex items-center gap-4">
+        <div className="flex shrink-0 items-center gap-4">
           <Link
             href="/"
             aria-label="Who Should I Start?"
@@ -34,24 +34,36 @@ export function AppHeader({ demoState, onDemoStateChange }: AppHeaderProps) {
           >
             <Image src="/fp-icon.svg" alt="FantasyPros" width={40} height={40} priority />
           </Link>
+          {/*
+           * The mark keeps the link on a phone, where there is no room for the label beside
+           * a switcher wide enough to read. Its aria-label already says where it goes.
+           */}
           <Link
             href="/"
-            className="text-sm font-semibold text-fp-link hover:underline"
+            className="hidden text-sm font-semibold text-fp-link hover:underline sm:block"
           >
             Landing Page
           </Link>
         </div>
 
-        <div className="flex items-center gap-3">
-          <label htmlFor="demo-state" className="text-sm font-semibold text-fp-ink">
+        {/*
+         * On a phone the switcher takes the width the two labels give up, because reading
+         * which state is selected matters more than the word "Demo Mode" beside it. The
+         * label stays in the accessibility tree rather than being deleted.
+         */}
+        <div className="ml-4 flex min-w-0 flex-1 items-center justify-end gap-3 sm:ml-0 sm:flex-initial">
+          <label
+            htmlFor="demo-state"
+            className="sr-only text-sm font-semibold text-fp-ink sm:not-sr-only"
+          >
             Demo Mode
           </label>
-          <div className="relative">
+          <div className="relative min-w-0 flex-1 sm:flex-initial">
             <select
               id="demo-state"
               value={demoState}
               onChange={(event) => onDemoStateChange(event.target.value as DemoState)}
-              className="w-[268px] cursor-pointer appearance-none rounded-md border border-fp-border bg-white py-2.5 pl-3 pr-9 text-sm text-fp-ink shadow-sm focus:border-fp-blue focus:outline-none"
+              className="w-full cursor-pointer appearance-none rounded-md border border-fp-border bg-white py-2.5 pl-3 pr-9 text-sm text-fp-ink shadow-sm focus:border-fp-blue focus:outline-none sm:w-[268px]"
             >
               {DEMO_STATE_ORDER.map((state) => (
                 <option key={state} value={state}>

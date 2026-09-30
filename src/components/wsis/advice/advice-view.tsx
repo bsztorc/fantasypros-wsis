@@ -13,6 +13,7 @@ import {
 } from "@/components/wsis/advice/compare-module";
 import { ConsensusSentiment } from "@/components/wsis/advice/consensus-sentiment";
 import { ResultsBand } from "@/components/wsis/advice/results-band";
+import { ResultsBandMobile } from "@/components/wsis/advice/results-band-mobile";
 import { SentimentMeter } from "@/components/wsis/advice/sentiment-meter";
 import { SpinTheWheel } from "@/components/wsis/advice/spin-the-wheel";
 import { LineupControls } from "@/components/wsis/lineup-controls";
@@ -80,6 +81,12 @@ export function AdviceView({
   const recommendation = recommend(players, startN, goal);
   const signedOut = demoState === "signed-out";
   const canAddPlayer = players.length < openSlots;
+  /*
+   * The single source for the Add Player strip, read by the band and by every table under
+   * it. A full comparison drops the control and the column it sat in; the padlocked version
+   * is a tier limit rather than a full comparison, and keeps both.
+   */
+  const addPlayerStrip = canAddPlayer || signedOut;
 
   if (!recommendation) {
     return (
@@ -206,9 +213,9 @@ export function AdviceView({
   ];
 
   return (
-    <div className="overflow-hidden rounded-lg bg-fp-navy">
-      <div className="flex items-center justify-between gap-4 px-5 py-4">
-        <div className="flex items-center gap-3">
+    <div className="flex flex-col overflow-hidden rounded-lg bg-fp-navy sm:block sm:flex-row">
+      <div className="order-1 flex items-center justify-between gap-3 px-5 py-4 sm:gap-4">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <button
             type="button"
             onClick={onBack}
@@ -217,21 +224,27 @@ export function AdviceView({
           >
             <ChevronDown className="h-5 w-5 rotate-90" />
           </button>
-          <h1 className="text-[17px] font-bold text-white">
+          {/*
+            One line at every width, unlike the selection banner's. That one breaks to clear
+            the Compare button beside it; this row carries only the back arrow, so the title
+            has the width to stay whole.
+          */}
+          <h1 className="text-[13px] font-bold leading-tight text-white sm:text-[17px] sm:leading-normal">
             Who Should I Start? - {WEEK_LABEL} - {SCORING_LABEL}
           </h1>
         </div>
+        {/* Dropped on a phone for the same reason as the banner's: it is not this decision. */}
         <button
           type="button"
           aria-label="Tool settings"
-          className="flex h-[34px] w-[34px] cursor-pointer items-center justify-center rounded-md bg-[#ededed] text-fp-ink transition-colors hover:bg-white"
+          className="hidden h-[34px] w-[34px] cursor-pointer items-center justify-center rounded-md bg-[#ededed] text-fp-ink transition-colors hover:bg-white sm:flex"
         >
           <GearIcon className="h-[18px] w-[18px]" />
         </button>
       </div>
 
       {signedOut ? (
-        <div className="px-5 pb-4">
+        <div className="order-4 px-5 pb-4">
           <div className="flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm">
             <span className="text-fp-muted">{"ⓘ"}</span>
             <button
@@ -263,7 +276,15 @@ export function AdviceView({
         gateVariant={gateVariantFor(demoState)}
       />
 
+      {/* Two renderings of one band. Each hides itself at the other's width. */}
       <ResultsBand
+        recommendation={recommendation}
+        onRemove={onRemove}
+        canAddPlayer={canAddPlayer}
+        onAddPlayer={onBack}
+        addPlayerLocked={signedOut}
+      />
+      <ResultsBandMobile
         recommendation={recommendation}
         onRemove={onRemove}
         canAddPlayer={canAddPlayer}
@@ -278,25 +299,36 @@ export function AdviceView({
         it the white cards run to the edge of the navy panel while the header, search and
         controls above them sit inset, which reads as a missing border down both sides.
       */}
-      <div className="space-y-4 bg-fp-navy-tab p-5">
+      <div className="order-6 space-y-4 bg-fp-navy-tab p-5">
         {tab === "Overview" ? (
           <>
             <ConsensusSentiment recommendation={recommendation} />
-            <SpinTheWheel />
-            <CompareModule
-              title="Most Accurate Experts"
-              rows={expertAccuracyRows}
-              playerNames={ordered.map((player) => ({ id: player.id, name: player.name }))}
-              footer={isPremium ? undefined : <PremiumFooter />}
-            />
-            <CompareModule
-              title="Sentiment"
-              rows={sentimentRows}
-              footer={isPremium ? undefined : <PremiumFooter />}
-            />
-            <CompareModule title="Matchup" rows={matchupRows} />
-            <CompareModule title="Fantasy Points" rows={pointsRows} />
-            <CompareModule title="Misc" rows={miscRows} />
+            {/*
+              Overview stops at the summary on a phone. The modules below are comparison
+              tables whose columns are one player wide; at four players on a 295px column
+              each value column is under 50px, which no amount of restyling makes readable.
+              The summary is the one part of Overview that says what the numbers mean, so it
+              is the part that earns the width.
+            */}
+            <div className="hidden space-y-4 sm:block">
+              <SpinTheWheel />
+              <CompareModule
+                title="Most Accurate Experts"
+                rows={expertAccuracyRows}
+                playerNames={ordered.map((player) => ({ id: player.id, name: player.name }))}
+                addPlayerStrip={addPlayerStrip}
+                footer={isPremium ? undefined : <PremiumFooter />}
+              />
+              <CompareModule
+                title="Sentiment"
+                rows={sentimentRows}
+                addPlayerStrip={addPlayerStrip}
+                footer={isPremium ? undefined : <PremiumFooter />}
+              />
+              <CompareModule title="Matchup" rows={matchupRows} addPlayerStrip={addPlayerStrip} />
+              <CompareModule title="Fantasy Points" rows={pointsRows} addPlayerStrip={addPlayerStrip} />
+              <CompareModule title="Misc" rows={miscRows} addPlayerStrip={addPlayerStrip} />
+            </div>
           </>
         ) : (
           <section className="rounded-lg bg-white px-5 py-10 text-center">

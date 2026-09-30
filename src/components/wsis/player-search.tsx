@@ -16,7 +16,13 @@ interface PlayerSearchProps {
 }
 
 /** The search pill, with a type-ahead list drawn from the fixture pool. */
-export function PlayerSearch({ pool, selectedIds, onSelect, disabled, placeholder }: PlayerSearchProps) {
+export function PlayerSearch({
+  pool,
+  selectedIds,
+  onSelect,
+  disabled,
+  placeholder,
+}: PlayerSearchProps) {
   const [query, setQuery] = useState("");
 
   const matches = query.trim()
@@ -30,8 +36,8 @@ export function PlayerSearch({ pool, selectedIds, onSelect, disabled, placeholde
     : [];
 
   return (
-    <div className="relative px-5 pb-4">
-      <div className="flex h-12 items-center gap-3 rounded-full border border-fp-border bg-white px-5">
+    <div className="order-4 relative px-5 pb-4">
+      <div className="flex h-10 items-center gap-3 rounded-full border border-fp-border bg-white px-4 sm:h-12 sm:px-5">
         <SearchIcon className="h-5 w-5 shrink-0 text-fp-ink" />
         <input
           type="search"

@@ -33,13 +33,27 @@ export function SentimentMeter({
   const tone = favourable >= 4 ? TONE.good : favourable <= 2 ? TONE.bad : TONE.neutral;
 
   return (
-    <span className="flex flex-col items-center gap-1.5">
+    /*
+     * The meter compresses rather than spilling out of its column.
+     *
+     * The five segments were a fixed 24px each, so the meter had a hard floor of 136px
+     * before padding, whatever width the column it sat in had. A comparison table divides
+     * its width by the number of players, and at four players that column is under 136px
+     * on any viewport below about 720px: the meter then overflowed its own cell and was
+     * cut off by the panel, which clips rather than scrolls, so the rightmost sentiment
+     * values were simply not on screen.
+     *
+     * The segments now share the width they are given, capped at the 24px they used to be
+     * fixed at. Wherever the column is 136px or wider the meter is the same object it was,
+     * segment for segment; narrower than that it scales down instead of disappearing.
+     */
+    <span className="flex w-full min-w-0 flex-col items-center gap-1.5">
       <span className={`text-[13px] font-semibold ${tone.text}`}>{LEVEL_LABELS[value]}</span>
-      <span className="flex gap-1">
+      <span className="flex w-full max-w-[136px] gap-1">
         {[1, 2, 3, 4, 5].map((segment) => (
           <span
             key={segment}
-            className={`h-[3px] w-6 rounded-full ${segment <= value ? tone.fill : "bg-slate-200"}`}
+            className={`h-[3px] min-w-0 max-w-6 flex-1 rounded-full ${segment <= value ? tone.fill : "bg-slate-200"}`}
           />
         ))}
       </span>

@@ -25,14 +25,21 @@ export function TopPlayersPanel({ selectedIds, selectable, onToggle }: TopPlayer
 
   return (
     <div className="px-5 pb-6">
-      <div className="mb-3 flex flex-wrap gap-5">
+      {/*
+        One row on a phone, which the eight remaining filters fit at this size without
+        wrapping onto a second line. IDP is dropped below `sm` rather than removed from
+        POSITION_FILTERS, because that list is what the live tool shows and the desktop
+        grid has the room for all nine.
+      */}
+      <div className="mb-3 flex flex-nowrap justify-between gap-1 sm:flex-wrap sm:justify-start sm:gap-5">
         {POSITION_FILTERS.map((position) => (
           <button
             key={position}
             type="button"
             onClick={() => setFilter(position)}
             className={[
-              "cursor-pointer pb-0.5 text-[13px] font-semibold transition-colors",
+              "cursor-pointer whitespace-nowrap pb-0.5 text-[11px] font-semibold transition-colors sm:text-[13px]",
+              position === "IDP" ? "hidden sm:block" : "",
               filter === position
                 ? "text-white underline underline-offset-4"
                 : "text-fp-on-navy hover:text-white",
@@ -43,9 +50,13 @@ export function TopPlayersPanel({ selectedIds, selectable, onToggle }: TopPlayer
         ))}
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {/* One continuous list on a phone, the same way My Team is. */}
+      <div className="grid gap-0 overflow-hidden rounded-lg bg-white py-1 sm:gap-5 sm:overflow-visible sm:rounded-none sm:bg-transparent sm:py-0 sm:grid-cols-2 lg:grid-cols-3">
         {columns.map((column, columnIndex) => (
-          <div key={columnIndex} className="overflow-hidden rounded-lg bg-white py-1">
+          <div
+            key={columnIndex}
+            className="rounded-none bg-transparent py-0 sm:overflow-hidden sm:rounded-lg sm:bg-white sm:py-1"
+          >
             {column.map((player, rowIndex) => {
               const selected = selectedIds.includes(player.id);
               const disabled = !selected && !selectable;

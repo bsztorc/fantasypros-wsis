@@ -15,7 +15,7 @@ export interface CompareRow {
   bestIndex?: number;
 }
 
-function Row({ label, values, bestIndex }: CompareRow) {
+function Row({ label, values, bestIndex, addPlayerStrip }: CompareRow & { addPlayerStrip: boolean }) {
   if (values.length === 2) {
     return (
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 border-b border-fp-border px-5 py-2.5 last:border-b-0 odd:bg-[#fafbfc]">
@@ -37,7 +37,7 @@ function Row({ label, values, bestIndex }: CompareRow) {
   return (
     <div
       className="grid items-center border-b border-fp-border py-2.5 last:border-b-0 odd:bg-[#fafbfc]"
-      style={{ gridTemplateColumns: tableColumns(values.length) }}
+      style={{ gridTemplateColumns: tableColumns(values.length, addPlayerStrip) }}
     >
       <span className="px-3 text-right text-xs text-fp-muted">{label}</span>
       {values.map((value, index) => (
@@ -58,13 +58,19 @@ function Row({ label, values, bestIndex }: CompareRow) {
  * Only rendered from three players up. With two, each card already sits directly above
  * its own half and the names would be redundant.
  */
-function PlayerHeaderRow({ players }: { players: { id: string; name: string }[] }) {
+function PlayerHeaderRow({
+  players,
+  addPlayerStrip,
+}: {
+  players: { id: string; name: string }[];
+  addPlayerStrip: boolean;
+}) {
   if (players.length < 3) return null;
 
   return (
     <div
       className="grid items-center border-b border-fp-border bg-white py-3"
-      style={{ gridTemplateColumns: tableColumns(players.length) }}
+      style={{ gridTemplateColumns: tableColumns(players.length, addPlayerStrip) }}
     >
       <span />
       {players.map((player) => (
@@ -82,16 +88,24 @@ export function CompareModule({
   rows,
   playerNames,
   footer,
+  addPlayerStrip = true,
 }: {
   title: string;
   rows: CompareRow[];
   /** Renders the player name header above the title, for the first module on the page. */
   playerNames?: { id: string; name: string }[];
   footer?: React.ReactNode;
+  /**
+   * Whether the band above still reserves its Add Player strip.
+   *
+   * Read from the same value the band reads. A table that keeps the strip under a band that
+   * dropped it puts every player's numbers under the wrong player.
+   */
+  addPlayerStrip?: boolean;
 }) {
   return (
     <section className="overflow-hidden rounded-lg bg-white">
-      {playerNames && <PlayerHeaderRow players={playerNames} />}
+      {playerNames && <PlayerHeaderRow players={playerNames} addPlayerStrip={addPlayerStrip} />}
       {/*
         The section title sits in the label column rather than across the table, small and
         bold. It labels the rows beneath it; the player names above are the headings that
@@ -99,12 +113,12 @@ export function CompareModule({
       */}
       <div
         className="grid items-center border-b border-fp-border py-2.5"
-        style={{ gridTemplateColumns: tableColumns(rows[0]?.values.length ?? 1) }}
+        style={{ gridTemplateColumns: tableColumns(rows[0]?.values.length ?? 1, addPlayerStrip) }}
       >
         <h3 className="px-3 text-right text-[13px] font-bold text-fp-ink">{title}</h3>
       </div>
       {rows.map((row) => (
-        <Row key={row.label} {...row} />
+        <Row key={row.label} {...row} addPlayerStrip={addPlayerStrip} />
       ))}
       {footer}
     </section>

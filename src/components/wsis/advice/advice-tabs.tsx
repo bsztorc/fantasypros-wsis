@@ -20,7 +20,12 @@ export function AdviceTabs({
   onChange: (tab: AdviceTab) => void;
 }) {
   return (
-    <div className="flex justify-center gap-6 overflow-x-auto bg-fp-navy-tab px-5 pt-3">
+    /*
+     * Left-aligned on a phone: the five tabs are wider than the column there, and centring a
+     * row that overflows pushes the first tab off the left edge where nothing suggests it
+     * exists. Scrolling forward from Overview is discoverable; scrolling back to it is not.
+     */
+    <div className="order-5 flex justify-start gap-4 overflow-x-auto bg-fp-navy-tab px-5 pt-3 sm:justify-center sm:gap-6">
       {ADVICE_TABS.map((tab) => {
         const selected = tab === active;
         return (

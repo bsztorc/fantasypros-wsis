@@ -9,17 +9,23 @@
  * the leading column holds the row labels. In the band it holds the recommendation
  * percentage, which needs somewhere to live that belongs to no single player, because
  * above one slot the percentage describes a set rather than an individual.
+ *
+ * The strip goes when there is nothing left to add. A full comparison has no Add Player
+ * control, so reserving its width would leave the band and every table under it ending in
+ * 104px of nothing. Both functions take the same flag, and both callers read it from the
+ * same source, because a band and a table that disagree about the strip disagree about
+ * every column to its left.
  */
 
 /** Width of the Add Player strip at the right of the results band. */
 export const ADD_PLAYER_WIDTH = 104;
 
 /** Columns for the results band. Matches `tableColumns` exactly. */
-export function bandColumns(playerCount: number): string {
-  return `repeat(${playerCount + 1}, 1fr) ${ADD_PLAYER_WIDTH}px`;
+export function bandColumns(playerCount: number, withAddPlayer = true): string {
+  return `repeat(${playerCount + 1}, 1fr)${withAddPlayer ? ` ${ADD_PLAYER_WIDTH}px` : ""}`;
 }
 
 /** Columns for a comparison table: label, one per player, then the empty strip. */
-export function tableColumns(playerCount: number): string {
-  return `repeat(${playerCount + 1}, 1fr) ${ADD_PLAYER_WIDTH}px`;
+export function tableColumns(playerCount: number, withAddPlayer = true): string {
+  return `repeat(${playerCount + 1}, 1fr)${withAddPlayer ? ` ${ADD_PLAYER_WIDTH}px` : ""}`;
 }

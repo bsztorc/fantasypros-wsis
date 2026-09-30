@@ -13,19 +13,36 @@ const TOOL_HREF = "/wsis";
  * here. Copy and screenshots both run the full 860px so nothing sits short of anything else.
  */
 
+/*
+ * Every size below is written phone-first with the desktop value restored at `sm:`, so the
+ * page from 640px up renders exactly as it did before. Their 18/32 body is set for an 860px
+ * column; on a phone's 335px column it comes out around 34 characters a line, which reads as
+ * oversized rather than generous. The phone sizes are one step down with the line height
+ * tightened to match, keeping roughly the 1.7 ratio their article type uses.
+ */
+
 /** The intro paragraph only. 20px rather than 22px so its longest line clears 860px. */
-const LEAD = "text-[20px] font-bold leading-[34px] text-fp-ink";
+const LEAD =
+  "text-[17px] font-bold leading-[28px] text-fp-ink sm:text-[20px] sm:leading-[34px]";
 /** Section headings, and the closing line above the button, which is one of them in kind. */
-const HEADING = "text-[18px] font-bold leading-[32px] text-fp-ink";
-const COPY = "mt-[18px] flex flex-col gap-[18px] text-[18px] leading-[32px] text-fp-ink";
+const HEADING =
+  "text-[16px] font-bold leading-[26px] text-fp-ink sm:text-[18px] sm:leading-[32px]";
+const COPY =
+  "mt-[14px] flex flex-col gap-[14px] text-[16px] leading-[27px] text-fp-ink sm:mt-[18px] sm:gap-[18px] sm:text-[18px] sm:leading-[32px]";
 const SECTION = "border-t border-fp-border py-10";
 
 /**
  * A screenshot of the real tool, captured from the frozen Week 3 snapshot.
  *
- * These are captures of a wide desktop UI. Squeezed into a phone's width the player names
- * and the percentage stop being readable, which defeats the point of showing them, so below
- * roughly 760px the shot keeps its size and scrolls sideways inside its own box instead.
+ * These are captures of a wide desktop UI. From 640px up the shot keeps its full 760px and
+ * scrolls sideways inside its own box, because squeezed narrower than that the player names
+ * and the percentage stop being readable, which defeats the point of showing them.
+ *
+ * On a phone that trade stops paying. A 760px shot in a 375px viewport runs 425px past the
+ * right edge, so most of what it is meant to show is not on screen at all and the reader has
+ * to guess that it drags. Below 640px the shot scales down to the column instead. The names
+ * do go small, but the shape of the answer, two players sharing one tile under a single
+ * percentage, is what the section is pointing at and that survives the reduction.
  */
 function Shot({
   src,
@@ -39,14 +56,14 @@ function Shot({
   height: number;
 }) {
   return (
-    <div className="-mx-5 mt-8 overflow-x-auto px-5 sm:mx-0 sm:px-0">
+    <div className="mt-8 overflow-x-auto">
       <Image
         src={src}
         alt={alt}
         width={width}
         height={height}
-        sizes="(max-width: 940px) 760px, 860px"
-        className="h-auto w-full min-w-[760px] rounded-lg"
+        sizes="(max-width: 639px) 100vw, (max-width: 940px) 760px, 860px"
+        className="h-auto w-full rounded-lg sm:min-w-[760px]"
       />
     </div>
   );

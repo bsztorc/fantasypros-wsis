@@ -24,7 +24,13 @@ export function RosterRow({ player, selected, selectable, onToggle }: RosterRowP
       onClick={() => onToggle(player)}
       aria-pressed={selected}
       className={[
-        "grid w-full grid-cols-[28px_minmax(0,1fr)_68px_58px_46px_20px] items-center gap-2 px-3 py-[9px] text-left",
+        /*
+         * Five columns of detail beside a name need about 260px of the 295px a phone has,
+         * which leaves the name itself 35px. Below `sm` the three detail columns drop out
+         * and reappear as one line under the name, so the row keeps every value it shows
+         * on desktop and the name gets the width instead.
+         */
+        "grid w-full grid-cols-[28px_minmax(0,1fr)_20px] items-center gap-2 px-3 py-[9px] text-left sm:grid-cols-[28px_minmax(0,1fr)_68px_58px_46px_20px]",
         disabled ? "cursor-not-allowed opacity-45" : "cursor-pointer hover:bg-slate-50",
       ].join(" ")}
     >
@@ -33,14 +39,21 @@ export function RosterRow({ player, selected, selectable, onToggle }: RosterRowP
         {player.name}
         <InjuryTag playerId={player.id} />
       </span>
-      <span className="text-[11px] text-fp-muted">
+      <span className="hidden text-[11px] text-fp-muted sm:block">
         {player.position} - {player.team}
       </span>
-      <span className="text-[11px] text-fp-muted">{player.opponent}</span>
-      <span className="text-[11px] text-fp-muted">{player.posRank}</span>
+      <span className="hidden text-[11px] text-fp-muted sm:block">{player.opponent}</span>
+      <span className="hidden text-[11px] text-fp-muted sm:block">{player.posRank}</span>
       <CheckCircle
         className={`h-[18px] w-[18px] ${selected ? "text-fp-blue" : "text-slate-300"}`}
       />
+      {/*
+        Last in the row so the columns above keep their order, and hidden from `sm` up where
+        those columns carry the same values themselves.
+      */}
+      <span className="col-span-3 -mt-1 truncate pl-[36px] text-[11px] text-fp-muted sm:hidden">
+        {player.position} - {player.team} · {player.opponent} · {player.posRank}
+      </span>
     </button>
   );
 }

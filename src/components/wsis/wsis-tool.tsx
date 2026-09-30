@@ -22,6 +22,30 @@ type View = "compare" | "advice";
 const MINIMUM_FOR_ADVICE = 2;
 
 /**
+ * The searchable pool, with each player appearing once.
+ *
+ * A player on the user's roster can also be in the top thirty, and five of them are. The
+ * pool is the two lists concatenated, so those five arrived twice, and the type-ahead keyed
+ * its rows by player id: two rows then shared a key.
+ *
+ * React does not merely warn about that. Its keyed reconciliation kept a row from the
+ * previous query, so typing "adams" and then "london" offered D. Adams alongside the two
+ * D. Londons, and clicking him added a player the reader had not searched for. The
+ * duplicate row was the visible half of the bug; the stale one was the harmful half.
+ *
+ * First occurrence wins, which keeps the roster's own entry ahead of the top-thirty copy
+ * and keeps the roster at the head of the list where the reader expects their own players.
+ */
+function dedupeById(players: Player[]): Player[] {
+  const seen = new Set<string>();
+  return players.filter((player) => {
+    if (seen.has(player.id)) return false;
+    seen.add(player.id);
+    return true;
+  });
+}
+
+/**
  * The Who Should I Start? tool, with the two controls this prototype proposes.
  *
  * All three access states render from this one component. Switching state resets the
@@ -54,7 +78,7 @@ export function WsisTool() {
   const selectable = selected.length < capabilities.openSlots;
   const canGetAdvice = selected.length >= MINIMUM_FOR_ADVICE;
 
-  const searchPool = capabilities.hasRoster ? [...MY_ROSTER, ...TOP_PLAYERS] : TOP_PLAYERS;
+  const searchPool = capabilities.hasRoster ? dedupeById([...MY_ROSTER, ...TOP_PLAYERS]) : TOP_PLAYERS;
 
   /** Keep Start N legal, and leave the advice view if the comparison falls apart. */
   function applySelection(players: Player[]) {
@@ -122,8 +146,36 @@ export function WsisTool() {
             onRemove={handleRemove}
           />
         ) : (
-          <div className="overflow-hidden rounded-lg bg-fp-navy">
-            <WsisBanner />
+          /*
+           * A phone reads this top down in a different order than the desktop row does:
+           * the players first, then what is being asked of them, then the means of adding
+           * another, then the lists. Each section carries its own `order`, and the column
+           * is only a flex container below `sm`, so on desktop the order values are inert
+           * and the sections stay in source order.
+           */
+          <div className="flex flex-col overflow-hidden rounded-lg bg-fp-navy sm:block sm:flex-row">
+            <WsisBanner
+              action={
+                /*
+                 * The phone's Compare button, in the title row above the players. Same action
+                 * and same disabled rule as the View Advice button in the comparison strip,
+                 * which hides itself at this width; only one of the two is ever on screen.
+                 */
+                <button
+                  type="button"
+                  disabled={!canGetAdvice}
+                  onClick={() => setView("advice")}
+                  className={[
+                    "h-10 shrink-0 rounded-full px-4 text-[13px] font-bold transition-colors sm:hidden",
+                    canGetAdvice
+                      ? "cursor-pointer bg-fp-blue text-white hover:bg-fp-blue-bright"
+                      : "cursor-not-allowed bg-fp-disabled text-white/90",
+                  ].join(" ")}
+                >
+                  Compare
+                </button>
+              }
+            />
 
             <PlayerSearch
               pool={searchPool}
@@ -153,7 +205,7 @@ export function WsisTool() {
 
             <TeamTabs active={tab} onChange={setTab} />
 
-            <div className="bg-fp-navy-tab pt-4">
+            <div className="order-6 bg-fp-navy-tab pt-4">
               {tab === "my-team" ? (
                 <MyTeamPanel
                   demoState={demoState}

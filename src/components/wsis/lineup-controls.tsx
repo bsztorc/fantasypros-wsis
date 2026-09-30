@@ -66,9 +66,19 @@ export function LineupControls({
   }));
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 bg-fp-navy px-5 pb-4">
-      <div className="flex flex-wrap items-center gap-3">
-        <span className="text-[15px] font-semibold text-white">Lineup Goal</span>
+    /*
+     * On a phone each control takes its own row with the label above it. Set beside the
+     * label instead, a three-option control gets about 200px to hold "Safe Floor",
+     * "Balanced" and "Most Upside", which is not enough for any of them to stay legible.
+     */
+    <div className="order-3 flex flex-col gap-3 bg-fp-navy px-5 pb-4 pt-4 sm:pt-0 sm:gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+      {/*
+       * `order` puts Players to Start first on a phone without moving it in the DOM, so the
+       * desktop row keeps both its order and its markup. Start N leads there because it is
+       * the control that decides what kind of answer the goal is then applied to.
+       */}
+      <div className="order-2 flex flex-col items-stretch gap-1.5 sm:order-none sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+        <span className="text-[13px] font-semibold text-white sm:text-[15px]">Lineup Goal</span>
         <Segmented
           label="Lineup goal"
           options={goalOptions}
@@ -78,8 +88,8 @@ export function LineupControls({
         {!isPremium && gateVariant && <GateCta variant={gateVariant} />}
       </div>
 
-      <div className="flex items-center gap-4">
-        <span className="text-[15px] font-semibold text-white">Players to Start</span>
+      <div className="order-1 flex flex-col items-stretch gap-1.5 sm:order-none sm:flex-row sm:items-center sm:gap-4">
+        <span className="text-[13px] font-semibold text-white sm:text-[15px]">Players to Start</span>
         <Segmented
           label="Players to start"
           size="digit"

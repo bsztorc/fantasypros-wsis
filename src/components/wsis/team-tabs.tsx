@@ -16,7 +16,7 @@ export function TeamTabs({
   onChange: (tab: TeamTab) => void;
 }) {
   return (
-    <div className="flex gap-6 bg-fp-navy-tab px-5 pt-3">
+    <div className="order-5 flex gap-6 bg-fp-navy-tab px-5 pt-3">
       {TABS.map((tab) => {
         const selected = tab.value === active;
         return (

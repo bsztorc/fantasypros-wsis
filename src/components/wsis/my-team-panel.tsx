@@ -35,7 +35,7 @@ export function MyTeamPanel({
 
   return (
     <div className="px-5 pb-6">
-      <div className="mb-3 flex justify-end">
+      <div className="mb-3 hidden justify-end sm:flex">
         <div className="relative">
           <select
             aria-label="League"
@@ -48,9 +48,19 @@ export function MyTeamPanel({
         </div>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      {/*
+        One list on a phone. The roster is split in two so desktop can run it as two
+        columns; stacked on a phone that split turns into two cards with a gap between
+        them, which reads as two rosters. Below `sm` the white card and its padding move
+        out to the grid itself and the halves become plain runs of rows inside it, so the
+        seam disappears without the roster being split differently for each width.
+      */}
+      <div className="grid gap-0 overflow-hidden rounded-lg bg-white py-1 sm:gap-5 sm:overflow-visible sm:rounded-none sm:bg-transparent sm:py-0 lg:grid-cols-2">
         {columns.map((column, index) => (
-          <div key={index} className="overflow-hidden rounded-lg bg-white py-1">
+          <div
+            key={index}
+            className="rounded-none bg-transparent py-0 sm:overflow-hidden sm:rounded-lg sm:bg-white sm:py-1"
+          >
             {column.map((player) => (
               <RosterRow
                 key={player.id}

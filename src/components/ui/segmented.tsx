@@ -46,7 +46,7 @@ export function Segmented<T extends string | number>({
     <div
       role="group"
       aria-label={label}
-      className="flex overflow-hidden rounded-md border border-fp-navy-divider"
+      className="flex w-full overflow-hidden rounded-md border border-fp-navy-divider sm:w-auto"
     >
       {options.map((option, index) => {
         const selected = option.value === value;
@@ -60,8 +60,13 @@ export function Segmented<T extends string | number>({
             title={option.disabled ? option.disabledHint : undefined}
             onClick={() => onChange(option.value)}
             className={[
-              size === "text" ? "px-5" : "px-8",
-              "flex items-center justify-center gap-1.5 py-2.5 text-sm font-semibold transition-colors",
+              /*
+               * On a phone the control spans the column and the segments divide it evenly,
+               * so all three options stay on screen. Keeping every option visible is the
+               * point of this control, so none of them may be scrolled out of reach.
+               */
+              size === "text" ? "px-1 sm:px-5" : "px-3 sm:px-8",
+              "flex flex-1 items-center justify-center gap-0.5 py-3 text-[11px] font-semibold leading-tight transition-colors sm:gap-1.5 sm:leading-5 sm:py-2.5 sm:flex-initial sm:text-sm",
               index > 0 ? "border-l border-fp-navy-divider" : "",
               selected
                 ? "bg-fp-blue-bright text-white"
@@ -70,7 +75,7 @@ export function Segmented<T extends string | number>({
                   : "bg-fp-navy-deep text-white hover:bg-fp-navy-slot cursor-pointer",
             ].join(" ")}
           >
-            {showLock && <LockIcon className="h-3 w-3" />}
+            {showLock && <LockIcon className="h-2.5 w-2.5 shrink-0 sm:h-3 sm:w-3" />}
             {option.label}
           </button>
         );
