@@ -8,6 +8,11 @@
  * Which prompt appears depends on what the user actually needs to do next: a signed-out
  * user has to create an account before premium is even a question, so they are never
  * shown an upgrade prompt.
+ *
+ * On a phone the prompt sits on its own row under a full-width control rather than beside
+ * it, so it is centred there: left-aligned under a centred segment group it read as a
+ * stray line of text rather than as the explanation of the locks above it. It stays
+ * left-aligned from `sm` up, where it follows the control on the same row.
  */
 export type GateVariant = "signup" | "premium";
 
@@ -16,7 +21,7 @@ export function GateCta({ variant }: { variant: GateVariant }) {
     return (
       <button
         type="button"
-        className="flex cursor-pointer items-center gap-1.5 text-[13px] font-semibold text-[#79bbff] hover:underline"
+        className="flex cursor-pointer items-center justify-center gap-1.5 text-[13px] font-semibold text-[#79bbff] hover:underline sm:justify-start"
       >
         <svg viewBox="0 0 20 20" fill="none" aria-hidden className="h-4 w-4">
           <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.4" />
@@ -31,7 +36,7 @@ export function GateCta({ variant }: { variant: GateVariant }) {
   return (
     <button
       type="button"
-      className="flex cursor-pointer items-center gap-1.5 text-[13px] font-semibold text-white hover:underline"
+      className="flex cursor-pointer items-center justify-center gap-1.5 text-[13px] font-semibold text-white hover:underline sm:justify-start"
     >
       <span className="flex h-4 w-4 items-center justify-center rounded-[3px] bg-fp-gold text-[10px] font-bold text-white">
         P
