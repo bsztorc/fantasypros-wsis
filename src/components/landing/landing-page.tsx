@@ -80,6 +80,12 @@ function Shot({
  *
  * The alt text therefore has to carry the headline and the call to action, since nothing in
  * the banner is readable as text.
+ *
+ * The export it came from carried a 3 to 4px white frame around the artwork, and the artwork
+ * itself is a rounded rectangle, so the corners of its bounding box were white too. On the
+ * page's grey background both read as a border the banner does not have. The served copy in
+ * `public/` is cropped to the artwork and the corners are transparent; the original export in
+ * `assets/` is untouched, so anything re-exported from it needs the same treatment.
  */
 function Hero() {
   return (
@@ -87,8 +93,8 @@ function Hero() {
       <Image
         src="/wsis-hero.png"
         alt="Who Should I Start? The question changes every week. Now the answer can too. Try it now."
-        width={847}
-        height={303}
+        width={840}
+        height={296}
         priority
         sizes="(max-width: 940px) 100vw, 860px"
         className="h-auto w-full rounded-lg"
